@@ -21,9 +21,4 @@ public class Formulario {
 
     @ElementCollection
     private List<String> perguntas;
-
-
-    public void adicionarPergunta(String p) { perguntas.add(p); }
-    public void removerPergunta(String p) { perguntas.remove(p); }
-    public void aplicarAvaliacao() {  }
 }
