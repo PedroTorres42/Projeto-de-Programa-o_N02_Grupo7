@@ -12,8 +12,4 @@ import lombok.*;
 @EqualsAndHashCode(callSuper=true)
 public class Administrador extends Usuario {
 
-
-    public void gerarRelatorioGeral() {  }
-    public void gerenciarUsuarios() {  }
-    public void acompanharDesempenho() {  }
 }
