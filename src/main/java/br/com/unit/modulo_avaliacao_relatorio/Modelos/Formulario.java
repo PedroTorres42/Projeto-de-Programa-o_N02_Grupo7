@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Formulario {
 
-
+    // TODO: Criar classes Pergunta e Resposta para o formulario
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
