@@ -1,19 +1,15 @@
-Tentei instrutor:
-package br.com.unit.moduloavaliacao.model.usuario;
+package br.com.unit.modulo_avaliacao_relatorio.Classes;
 
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
-import br.com.unit.moduloavaliacao.model.curso.Curso;
-import br.com.unit.moduloavaliacao.model.avaliacao.Avaliacao;
 
 
 @Entity
 @DiscriminatorValue("INSTRUTOR")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper=true)
 public class Instrutor extends Usuario {
 
 
@@ -21,7 +17,7 @@ public class Instrutor extends Usuario {
 
 
     @ManyToMany(mappedBy = "instrutores")
-    private List<Curso> cursos;
+    private List<String> cursos;
 
 
     public void criarFormularioAvaliacao() {  }

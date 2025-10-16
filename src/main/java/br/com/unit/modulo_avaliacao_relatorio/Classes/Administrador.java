@@ -1,4 +1,4 @@
-package br.com.unit.moduloavaliacao.model.usuario;
+package br.com.unit.modulo_avaliacao_relatorio.Classes;
 
 
 import jakarta.persistence.Entity;
@@ -9,8 +9,7 @@ import lombok.*;
 @Entity
 @DiscriminatorValue("ADMINISTRADOR")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper=true)
 public class Administrador extends Usuario {
 
 

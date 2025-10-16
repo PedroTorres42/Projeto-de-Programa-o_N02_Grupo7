@@ -1,11 +1,21 @@
 package br.com.unit.modulo_avaliacao_relatorio.Classes;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "usuarios")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "tipo_usuario", discriminatorType = DiscriminatorType.STRING)
 public class Usuario {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String nome;
     private String email;
     private String senha;
+    
+    @Enumerated(EnumType.STRING)
     private TipoUsuario tipoUsuario; 
 
     public enum TipoUsuario {

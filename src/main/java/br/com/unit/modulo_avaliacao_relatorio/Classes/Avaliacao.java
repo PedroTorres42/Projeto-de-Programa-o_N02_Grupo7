@@ -1,11 +1,9 @@
-package br.com.unit.moduloavaliacao.model.avaliacao;
+package br.com.unit.modulo_avaliacao_relatorio.Classes;
 
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
-import br.com.unit.moduloavaliacao.model.usuario.Aluno;
-import br.com.unit.moduloavaliacao.model.usuario.Instrutor;
 
 
 @Entity
