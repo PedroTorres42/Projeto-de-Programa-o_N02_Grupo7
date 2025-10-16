@@ -18,17 +18,9 @@ public class Aluno extends Usuario {
 
     @ManyToOne
     @JoinColumn(name = "curso_id")
-    private String cursoAtual;
+    private Curso cursoAtual;
 
 
     @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL)
     private List<Avaliacao> avaliacoes;
-
-
-    public void preencherAvaliacao(Avaliacao avaliacao) {
-    }
-
-
-    public void visualizarRelatoriosIndividuais() {
-    }
 }
