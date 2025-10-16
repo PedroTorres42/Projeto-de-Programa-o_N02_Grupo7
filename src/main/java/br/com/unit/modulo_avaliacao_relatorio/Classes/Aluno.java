@@ -3,16 +3,13 @@ package br.com.unit.modulo_avaliacao_relatorio.Classes;
 
 import jakarta.persistence.*;
 import lombok.*;
-import br.com.unit.moduloavaliacao.model.curso.Curso;
-import br.com.unit.moduloavaliacao.model.avaliacao.Avaliacao;
 import java.util.List;
 
 
 @Entity
 @DiscriminatorValue("ALUNO")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper=true)
 public class Aluno extends Usuario {
 
 
@@ -21,7 +18,7 @@ public class Aluno extends Usuario {
 
     @ManyToOne
     @JoinColumn(name = "curso_id")
-    private Curso cursoAtual;
+    private String cursoAtual;
 
 
     @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL)
