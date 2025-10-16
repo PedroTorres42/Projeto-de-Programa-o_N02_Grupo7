@@ -1,4 +1,4 @@
-package br.com.unit.modulo_avaliacao_relatorio.Classes;
+package br.com.unit.modulo_avaliacao_relatorio.Modelos;
 
 
 import jakarta.persistence.*;
