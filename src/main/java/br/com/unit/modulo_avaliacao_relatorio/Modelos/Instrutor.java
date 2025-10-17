@@ -17,12 +17,7 @@ public class Instrutor extends Usuario {
 
 
     @ManyToMany(mappedBy = "instrutores")
-    private List<String> cursos;
-
-
-    public void criarFormularioAvaliacao() {  }
-    public void consultarFeedbacks() {  }
-    public void consultarRelatorioCurso() {  }
+    private List<Curso> cursos;
 
 
     @OneToMany(mappedBy = "instrutor")
