@@ -11,10 +11,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class Aluno extends Usuario {
-
-
     private String matricula;
-
 
     @ManyToOne
     @JoinColumn(name = "curso_id")
