@@ -13,12 +13,13 @@ import java.util.List;
 @AllArgsConstructor
 public class Formulario {
 
-    // TODO: Criar classes Pergunta e Resposta para o formulario
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(nullable = false)
+    private String titulo;
 
-    @ElementCollection
-    private List<String> perguntas;
+    @OneToMany(mappedBy = "formulario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Pergunta> perguntas;
 }
