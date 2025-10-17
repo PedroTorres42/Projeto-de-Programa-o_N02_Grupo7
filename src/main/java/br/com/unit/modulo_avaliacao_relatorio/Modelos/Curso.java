@@ -18,5 +18,5 @@ public class Curso {
 
     private String nome;
     private String descricao;
-    private int cargaHoraria;
+    private Integer cargaHoraria;
 }

@@ -10,6 +10,4 @@ import lombok.*;
 @DiscriminatorValue("ADMINISTRADOR")
 @Data
 @EqualsAndHashCode(callSuper=true)
-public class Administrador extends Usuario {
-
-}
+public class Administrador extends Usuario {}
