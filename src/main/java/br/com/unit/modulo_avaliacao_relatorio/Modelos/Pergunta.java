@@ -18,17 +18,8 @@ public class Pergunta {
     @Column(nullable = false)
     private String texto;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TipoPergunta tipo;
-
-
     @ManyToOne
     @JoinColumn(name = "formulario_id")
     private Formulario formulario;
 
-    public enum TipoPergunta {
-        NOTA,
-        TEXTO
-    }
 }

@@ -11,15 +11,11 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class Instrutor extends Usuario {
-
-
     private String especialidade;
-
 
     @ManyToMany(mappedBy = "instrutores")
     private List<Curso> cursos;
 
-
     @OneToMany(mappedBy = "instrutor")
-    private List<Avaliacao> avaliacoesCriadas;
+    private List<Avaliacao> avaliacoes;
 }
