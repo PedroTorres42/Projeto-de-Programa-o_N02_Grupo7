@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
 
@@ -14,8 +15,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Relatorio {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     public enum TipoRelatorio {
         CURSO,
@@ -24,5 +25,11 @@ public class Relatorio {
     }
 
     private TipoRelatorio tipo;
+
+    @CreatedDate
     private LocalDate data;
+
+
+
+    private String documento;
 }
