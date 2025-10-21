@@ -12,6 +12,8 @@ import java.util.List;
 @Entity
 @Table(name = "avaliacoes")
 @Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Avaliacao {
@@ -47,4 +49,5 @@ public class Avaliacao {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "formulario_id", nullable = false)
     private Formulario formulario;
+
 }
