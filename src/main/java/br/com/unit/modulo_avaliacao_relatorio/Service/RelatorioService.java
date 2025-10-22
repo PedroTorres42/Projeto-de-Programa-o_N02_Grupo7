@@ -227,10 +227,23 @@ public class RelatorioService {
                         0.7, 0.3
                 );
 
+                int pos = 0, neu = 0, neg = 0;
+                for (Avaliacao a : lista) {
+                    Sentimento sTexto = analisarSentimentoTexto(a.getComentario());
+                    Sentimento sNum = analisarSentimentoNumero(extrairFeedbackNumerico(a));
+                    Sentimento sGeral = combinarSentimento(sTexto, sNum);
+                    if (sGeral == Sentimento.POSITIVO) pos++;
+                    else if (sGeral == Sentimento.NEUTRO) neu++;
+                    else neg++;
+                }
+
                 adicionarCell(table, nomeGrupo);
                 adicionarCell(table, mediaNota.toPlainString());
                 adicionarCell(table, mediaFreq.toPlainString());
                 adicionarCell(table, mediaPond.toPlainString());
+                adicionarCell(table, String.valueOf(pos));
+                adicionarCell(table, String.valueOf(neu));
+                adicionarCell(table, String.valueOf(neg));
                 adicionarCell(table, String.valueOf(lista.size()));
             }
 
