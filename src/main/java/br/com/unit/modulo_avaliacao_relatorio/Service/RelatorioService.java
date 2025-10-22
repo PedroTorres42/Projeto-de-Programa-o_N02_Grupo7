@@ -1,10 +1,6 @@
 package br.com.unit.modulo_avaliacao_relatorio.Service;
 
-import br.com.unit.modulo_avaliacao_relatorio.Modelos.Avaliacao;
-import br.com.unit.modulo_avaliacao_relatorio.Modelos.Curso;
-import br.com.unit.modulo_avaliacao_relatorio.Modelos.Instrutor;
-import br.com.unit.modulo_avaliacao_relatorio.Modelos.Relatorio;
-import br.com.unit.modulo_avaliacao_relatorio.Modelos.Resposta;
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.*;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.*;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
@@ -27,11 +23,13 @@ public class RelatorioService {
     private final RelatorioRepositorio relatorioRepositorio;
     private final AvaliacaoRepositorio avaliacaoRepositorio;
     private final CursoRepositorio cursoRepositorio;
+    private final UsuarioRepositorio usuarioRepositorio;
 
-    public RelatorioService(RelatorioRepositorio relatorioRepositorio, AvaliacaoRepositorio avaliacaoRepositorio,CursoRepositorio cursoRepositorio) {
+    public RelatorioService(RelatorioRepositorio relatorioRepositorio, AvaliacaoRepositorio avaliacaoRepositorio,CursoRepositorio cursoRepositorio, UsuarioRepositorio usuarioRepositorio) {
         this.relatorioRepositorio = relatorioRepositorio;
         this.avaliacaoRepositorio = avaliacaoRepositorio;
         this.cursoRepositorio = cursoRepositorio;
+        this.usuarioRepositorio = usuarioRepositorio;
     }
 
     public Relatorio pegarRelatorioPorId(Long id){
@@ -55,7 +53,7 @@ public class RelatorioService {
 
     public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId).orElseThrow(() -> new RuntimeException("Curso não encontrado"));
-        List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(curso);
+        List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(curso.getId());
         String nomeCurso = curso.getNome();
         byte[] pdf = montarPdfComparativo(
                 "Relatório Comparativo por Curso",
@@ -71,15 +69,15 @@ public class RelatorioService {
     }
 
     public Relatorio gerarRelatorioComparativoPorInstrutor(String instrutorId) {
-        List<Avaliacao> avaliacoes = avaliacaoRepositorio.findAll().stream()
-                .filter(a -> a.getInstrutor() != null && Objects.equals(a.getInstrutor().getId(), instrutorId))
-                .collect(Collectors.toList());
+        Usuario i = usuarioRepositorio.findById(instrutorId).orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
+        if (i.getTipoUsuario() != Usuario.TipoUsuario.Instrutor) {
+            throw new IllegalArgumentException("ID provido não é de um instrutor");
+        }
+        List<Avaliacao> avaliacoes = obterAvaliacoesDeInstrutor(instrutorId);
 
         String subtitulo = "Instrutor: " + avaliacoes.stream()
                 .map(Avaliacao::getInstrutor)
-                .filter(Objects::nonNull)
                 .map(Instrutor::getNome)
-                .filter(Objects::nonNull)
                 .findFirst()
                 .orElse("ID " + instrutorId);
 
@@ -96,19 +94,13 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
-
+    // TODO: Mudar agrupamento para uma query
     private Map<String, List<Avaliacao>> agruparPorInstrutor(List<Avaliacao> avaliacoes) {
         Map<String, List<Avaliacao>> grupos = new HashMap<>();
         for (Avaliacao av : avaliacoes) {
-            String chave;
             Instrutor i = av.getInstrutor();
-            if (i == null) {
-                chave = "Instrutor N/D";
-            } else {
-                String nome = i.getNome();
-                chave = (nome != null && !nome.isBlank()) ? nome : ("Instrutor " + i.getId());
-            }
-
+            String nome = i.getNome();
+            String chave = (nome != null && !nome.isBlank()) ? nome : ("Instrutor " + i.getId());
             List<Avaliacao> lista = grupos.computeIfAbsent(chave, k -> new ArrayList<>());
             lista.add(av);
         }
@@ -116,17 +108,13 @@ public class RelatorioService {
         return grupos;
     }
 
+    // TODO: Mudar agrupamento para uma query
     private Map<String, List<Avaliacao>> agruparPorCurso(List<Avaliacao> avaliacoes) {
         Map<String, List<Avaliacao>> grupos = new HashMap<>();
         for (Avaliacao av : avaliacoes) {
-            String chave;
             Curso c = av.getCurso();
-            if (c == null) {
-                chave = "Curso N/D";
-            } else {
-                String nome = c.getNome();
-                chave = (nome != null && !nome.isBlank()) ? nome : ("Curso " + c.getId());
-            }
+            String nome = c.getNome();
+            String chave = (nome != null && !nome.isBlank()) ? nome : ("Curso " + c.getId());
 
             List<Avaliacao> lista = grupos.computeIfAbsent(chave, k -> new ArrayList<>());
             lista.add(av);
@@ -134,24 +122,24 @@ public class RelatorioService {
         return grupos;
     }
 
-    private List<Avaliacao> obterAvaliacoesDeCurso(Curso curso) {
-        return avaliacaoRepositorio.findAll().stream()
-                .filter(a -> a.getCurso() != null && Objects.equals(a.getCurso().getId(), curso.getId()))
-                .collect(Collectors.toList());
+    private List<Avaliacao> obterAvaliacoesDeInstrutor(String instrutorId) {
+        return avaliacaoRepositorio.findByInstrutorID(instrutorId);
+    }
+    private List<Avaliacao> obterAvaliacoesDeCurso(Long cursoID) {
+        return avaliacaoRepositorio.findByCursoID(cursoID);
     }
 
-    private BigDecimal calcularMediaPonderada(double nota, double freqPercent, double wNota, double wFreq) {
+    private BigDecimal calcularMediaPonderada(double nota, double freqPercent) {
+        double wNota = 0.7;
+        double wFreq = 0.3;
         double freqNormalizada = Math.max(0.0, Math.min(100.0, freqPercent)) / 10.0;
         double somaPesos = wNota + wFreq;
-        if (somaPesos <= 0) return BigDecimal.ZERO;
         double valor = (wNota * nota + wFreq * freqNormalizada) / somaPesos;
         return BigDecimal.valueOf(valor).setScale(2, RoundingMode.HALF_UP);
     }
 
     private double extrairFrequenciaPercentual(Avaliacao a) {
-        if (a.getRespostas() == null) return 0d;
         Optional<Resposta> r = a.getRespostas().stream()
-                .filter(Objects::nonNull)
                 .filter(resp -> {
                     String pergunta = resp.getPergunta() != null ? resp.getPergunta().getTexto() : null;
                     return pergunta != null && pergunta.toLowerCase(Locale.ROOT).contains("frequ");
@@ -160,7 +148,6 @@ public class RelatorioService {
         if (r.isPresent()) {
             try {
                 String valor = String.valueOf(r.get().getNota());
-                if (valor == null) return 0d;
                 String limpo = valor.replace("%", "").trim().replace(",", ".");
                 return Double.parseDouble(limpo);
             } catch (Exception ignore) {
@@ -170,6 +157,27 @@ public class RelatorioService {
         return 0d;
     }
 
+    private Double media(List<Double> valores) {
+        double soma = 0d;
+        for (Double v : valores) {
+            soma += v;
+        }
+        return soma/2;
+    }
+
+    private BigDecimal mediaPonderadaGrupo(List<Avaliacao> lista) {
+        Double mediaNota = media(lista.stream()
+                .map(Avaliacao::getMedia)
+                .toList());
+        Double mediaFreq = media(lista.stream()
+                .map(this::extrairFrequenciaPercentual)
+                .toList());
+        return calcularMediaPonderada(
+                mediaNota,
+                mediaFreq
+        );
+    }
+
     private byte[] montarPdfComparativo(String titulo, String subtitulo, Map<String, List<Avaliacao>> grupos) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -177,6 +185,7 @@ public class RelatorioService {
             PdfWriter.getInstance(doc, baos);
             doc.open();
 
+            // TODO: Mudar fontes e estilização
             Font h1 = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
             Font h2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
             Font normal = new Font(Font.FontFamily.HELVETICA, 10);
@@ -212,19 +221,17 @@ public class RelatorioService {
                 String nomeGrupo = e.getKey();
                 List<Avaliacao> lista = e.getValue();
 
-                BigDecimal mediaNota = media(lista.stream()
+                Double mediaNota = media(lista.stream()
                         .map(Avaliacao::getMedia)
-                        .filter(Objects::nonNull)
                         .toList());
 
-                BigDecimal mediaFreq = media(lista.stream()
+                Double mediaFreq = media(lista.stream()
                         .map(this::extrairFrequenciaPercentual)
                         .toList());
 
                 BigDecimal mediaPond = calcularMediaPonderada(
-                        mediaNota.doubleValue(),
-                        mediaFreq.doubleValue(),
-                        0.7, 0.3
+                        mediaNota,
+                        mediaFreq
                 );
 
                 int pos = 0, neu = 0, neg = 0;
@@ -238,9 +245,9 @@ public class RelatorioService {
                 }
 
                 adicionarCell(table, nomeGrupo);
-                adicionarCell(table, mediaNota.toPlainString());
-                adicionarCell(table, mediaFreq.toPlainString());
-                adicionarCell(table, mediaPond.toPlainString());
+                adicionarCell(table, String.valueOf(mediaNota));
+                adicionarCell(table, String.valueOf(mediaFreq));
+                adicionarCell(table, String.valueOf(mediaPond));
                 adicionarCell(table, String.valueOf(pos));
                 adicionarCell(table, String.valueOf(neu));
                 adicionarCell(table, String.valueOf(neg));
@@ -267,36 +274,9 @@ public class RelatorioService {
         table.addCell(cell);
     }
 
-    private BigDecimal media(List<Double> valores) {
-        if (valores == null || valores.isEmpty()) return BigDecimal.ZERO;
-        double soma = 0d;
-        int c = 0;
-        for (Double v : valores) {
-            if (v != null && !v.isNaN() && !v.isInfinite()) {
-                soma += v;
-                c++;
-            }
-        }
-        if (c == 0) return BigDecimal.ZERO;
-        return BigDecimal.valueOf(soma / c).setScale(2, RoundingMode.HALF_UP);
-    }
 
-    private BigDecimal mediaPonderadaGrupo(List<Avaliacao> lista) {
-        BigDecimal mediaNota = media(lista.stream()
-                .map(Avaliacao::getMedia)
-                .filter(Objects::nonNull)
-                .toList());
-        BigDecimal mediaFreq = media(lista.stream()
-                .map(this::extrairFrequenciaPercentual)
-                .toList());
-        return calcularMediaPonderada(
-                mediaNota.doubleValue(),
-                mediaFreq.doubleValue(),
-                0.7, 0.3
-        );
-    }
 
-    // TODO: Trocar para analise de sentimento com IA
+    // TODO: Trocar para analise de sentimento com IA(Se for mais simples)
     private Sentimento analisarSentimentoTexto(String texto) {
         if (texto == null || texto.isBlank()) return Sentimento.NEUTRO;
         String t = texto.toLowerCase(Locale.ROOT);
