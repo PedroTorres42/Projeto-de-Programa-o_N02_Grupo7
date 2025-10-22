@@ -283,5 +283,45 @@ public class RelatorioService {
         );
     }
 
+    // TODO: Trocar para analise de sentimento com IA
+    private Sentimento analisarSentimentoTexto(String texto) {
+        if (texto == null || texto.isBlank()) return Sentimento.NEUTRO;
+        String t = texto.toLowerCase(Locale.ROOT);
+        String[] pos = {"excelente", "bom", "ótimo", "otimo", "positivo", "claro", "recomend", "gostei", "aprendi"};
+        String[] neg = {"ruim", "péssimo", "pessimo", "negativo", "confuso", "fraco", "desorgan", "não gostei", "nao gostei"};
+        int score = 0;
+        for (String p : pos) if (t.contains(p)) score++;
+        for (String n : neg) if (t.contains(n)) score--;
+        if (score > 0) return Sentimento.POSITIVO;
+        if (score < 0) return Sentimento.NEGATIVO;
+        return Sentimento.NEUTRO;
+    }
 
+    private Sentimento analisarSentimentoNumero(Integer n) {
+        if (n == null) return Sentimento.NEUTRO;
+        if (n >= 4) return Sentimento.POSITIVO;
+        if (n == 3) return Sentimento.NEUTRO;
+        return Sentimento.NEGATIVO;
+    }
+
+    private Sentimento combinarSentimento(Sentimento a, Sentimento b) {
+        if (a == b) return a;
+        if (a == Sentimento.NEUTRO) return b;
+        if (b == Sentimento.NEUTRO) return a;
+        return Sentimento.NEUTRO;
+    }
+
+    private Integer extrairFeedbackNumerico(Avaliacao a) {
+        if (a.getRespostas() == null) return null;
+        return a.getRespostas().stream()
+                .map(Resposta::getNota)
+                .filter(Objects::nonNull)
+                .filter(v -> v >= 1 && v <= 5)
+                .findFirst()
+                .orElse(null);
+    }
+
+
+
+    private enum Sentimento { POSITIVO, NEUTRO, NEGATIVO }
 }
