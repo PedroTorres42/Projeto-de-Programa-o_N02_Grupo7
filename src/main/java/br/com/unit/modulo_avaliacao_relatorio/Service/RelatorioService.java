@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,6 +66,7 @@ public class RelatorioService {
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.CURSO);
         r.setData(LocalDate.now());
+        r.setDocumento(pdf);
         return relatorioRepositorio.save(r);
     }
 
@@ -92,7 +92,7 @@ public class RelatorioService {
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.INSTRUTOR);
         r.setData(LocalDate.now());
-        r.setDocumento(Base64.getEncoder().encodeToString(pdf));
+        r.setDocumento(pdf);
         return relatorioRepositorio.save(r);
     }
 

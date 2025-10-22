@@ -30,6 +30,6 @@ public class Relatorio {
     private LocalDate data;
 
 
-
-    private String documento;
+    @Lob
+    private byte[] documento;
 }
