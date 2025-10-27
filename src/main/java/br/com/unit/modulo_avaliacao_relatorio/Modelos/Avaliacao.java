@@ -43,4 +43,8 @@ public class Avaliacao {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "formulario_id", nullable = false)
     private Formulario formulario;
+
+    public String getComentarios() {
+        return comentario;
+    }
 }
