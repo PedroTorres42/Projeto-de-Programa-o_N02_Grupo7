@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
+import java.util.List;  
 
 public class AvaliacaoView extends JFrame {
 
@@ -19,20 +19,17 @@ public class AvaliacaoView extends JFrame {
     private JButton btnSalvar;
 
     private final AvaliacaoService avaliacaoService;
-    private final AlunoService alunoService;
-    private final InstrutorService instrutorService;
+    private final UsuarioService UsuarioService;
     private final CursoService cursoService;
     private final FormularioService formularioService;
 
     public AvaliacaoView(AvaliacaoService avaliacaoService,
-                         AlunoService alunoService,
-                         InstrutorService instrutorService,
+                         UsuarioService alunoService,
                          CursoService cursoService,
                          FormularioService formularioService) {
 
         this.avaliacaoService = avaliacaoService;
-        this.alunoService = alunoService;
-        this.instrutorService = instrutorService;
+        this.UsuarioService = UsuarioService;
         this.cursoService = cursoService;
         this.formularioService = formularioService;
 
@@ -113,17 +110,15 @@ public class AvaliacaoView extends JFrame {
     }
 
     private void popularCombos() {
-        List<Aluno> alunos = alunoService.listarAlunos();
+        List<Aluno> alunos = UsuarioService.listarAlunos();
         alunos.forEach(comboAluno::addItem);
 
-        List<Instrutor> instrutores = instrutorService.listarInstrutores();
+        List<Instrutor> instrutores = UsuarioService.listarInstrutores();
         instrutores.forEach(comboInstrutor::addItem);
 
         List<Curso> cursos = cursoService.listarCursos();
         cursos.forEach(comboCurso::addItem);
 
-        List<Formulario> formularios = formularioService.listarFormularios();
-        formularios.forEach(comboFormulario::addItem);
     }
 
     private void salvarAvaliacao() {
