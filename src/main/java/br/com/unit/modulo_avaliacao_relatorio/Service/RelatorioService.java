@@ -94,7 +94,6 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
-    // TODO: Mudar agrupamento para uma query
     private Map<String, List<Avaliacao>> agruparPorInstrutor(List<Avaliacao> avaliacoes) {
         Map<String, List<Avaliacao>> grupos = new HashMap<>();
         for (Avaliacao av : avaliacoes) {
@@ -108,7 +107,6 @@ public class RelatorioService {
         return grupos;
     }
 
-    // TODO: Mudar agrupamento para uma query
     private Map<String, List<Avaliacao>> agruparPorCurso(List<Avaliacao> avaliacoes) {
         Map<String, List<Avaliacao>> grupos = new HashMap<>();
         for (Avaliacao av : avaliacoes) {
@@ -162,7 +160,7 @@ public class RelatorioService {
         for (Double v : valores) {
             soma += v;
         }
-        return soma/2;
+        return soma/ valores.size();
     }
 
     private BigDecimal mediaPonderadaGrupo(List<Avaliacao> lista) {
