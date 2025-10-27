@@ -16,10 +16,11 @@ Permite que alunos preencham formulários de avaliação, instrutores registrem 
 ## Banco de Dados / Dados
 
 ## Contribuição
--Antonio Jorge Santana Filho 
--Pedro Henrique Torres Pereira
--Lorena Mariah Oliveira Lima
--João Vitor Nunes Oliveira Aves
--João Pedro Amaral Belfort
+- **Antonio Jorge Santana Filho**   
+- **Pedro Henrique Torres Pereira** 
+- **Lorena Mariah Oliveira Lima**
+- **João Vitor Nunes Oliveira Aves** 
+- **João Pedro Amaral Belfort**
+
 
 ## Licença
