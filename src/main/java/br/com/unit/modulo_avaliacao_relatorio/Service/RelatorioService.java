@@ -123,10 +123,10 @@ public class RelatorioService {
     }
 
     private List<Avaliacao> obterAvaliacoesDeInstrutor(String instrutorId) {
-        return avaliacaoRepositorio.findByInstrutorID(instrutorId);
+        return avaliacaoRepositorio.findByInstrutorId(instrutorId);
     }
     private List<Avaliacao> obterAvaliacoesDeCurso(Long cursoID) {
-        return avaliacaoRepositorio.findByCursoID(cursoID);
+        return avaliacaoRepositorio.findByCursoId(cursoID);
     }
 
     private BigDecimal calcularMediaPonderada(double nota, double freqPercent) {
