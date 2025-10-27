@@ -1,6 +1,8 @@
 package br.com.unit.modulo_avaliacao_relatorio.Service;
 
 
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.Aluno;
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.Instrutor;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Usuario;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.UsuarioRepositorio;
 import lombok.RequiredArgsConstructor;
