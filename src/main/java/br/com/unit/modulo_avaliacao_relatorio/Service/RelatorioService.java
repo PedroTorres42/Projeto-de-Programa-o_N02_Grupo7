@@ -45,7 +45,7 @@ public class RelatorioService {
     }
 
     public void editarRelatorio(Long id){
-        Avaliacao avaliacao = avaliacaoRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Relatório nâo encontrado"));
+        Relatorio relatorio = relatorioRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Relatório nâo encontrado"));
     }
     public void excluirRelatorio(Long id){
         relatorioRepositorio.deleteById(id);
@@ -275,7 +275,6 @@ public class RelatorioService {
     }
 
 
-
     // TODO: Trocar para analise de sentimento com IA(Se for mais simples)
     private Sentimento analisarSentimentoTexto(String texto) {
         if (texto == null || texto.isBlank()) return Sentimento.NEUTRO;
@@ -313,8 +312,6 @@ public class RelatorioService {
                 .findFirst()
                 .orElse(null);
     }
-
-
 
     private enum Sentimento { POSITIVO, NEUTRO, NEGATIVO }
 }
