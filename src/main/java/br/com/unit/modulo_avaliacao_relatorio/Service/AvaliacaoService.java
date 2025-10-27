@@ -20,10 +20,6 @@ public class AvaliacaoService {
             avaliacao.setData(LocalDate.now());
         }
 
-        if (avaliacao.getNota() < 0 || avaliacao.getNota() > 10) {
-            throw new IllegalArgumentException("A nota deve estar entre 0 e 10.");
-        }
-
         return avaliacaoRepositorio.save(avaliacao);
     }
 

@@ -1,27 +1,21 @@
 package br.com.unit.modulo_avaliacao_relatorio.Modelos;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-
 import java.time.LocalDate;
 import java.util.List;
-
 
 @Entity
 @Table(name = "avaliacoes")
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Avaliacao {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @CreatedDate
     @Column(updatable = false)
     private LocalDate data;
 
@@ -49,5 +43,4 @@ public class Avaliacao {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "formulario_id", nullable = false)
     private Formulario formulario;
-
 }
