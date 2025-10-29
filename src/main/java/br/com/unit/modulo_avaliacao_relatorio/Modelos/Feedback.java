@@ -17,6 +17,10 @@ public class Feedback {
 
     private String comentario;
 
+    @OneToOne
+    @JoinColumn(name = "avaliacao_id")
+    private Avaliacao avaliacao;
+
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
