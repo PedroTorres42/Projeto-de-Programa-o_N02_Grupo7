@@ -24,6 +24,7 @@ public class Relatorio {
         ALUNO
     }
 
+    @Enumerated(EnumType.STRING)
     private TipoRelatorio tipo;
 
     @CreatedDate
