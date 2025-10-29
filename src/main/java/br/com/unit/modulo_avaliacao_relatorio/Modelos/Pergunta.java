@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Table(name = "perguntas")
 @Entity
 @Data
@@ -17,6 +19,9 @@ public class Pergunta {
 
     @Column(nullable = false)
     private String texto;
+
+    @OneToMany(mappedBy = "pergunta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Nota> notas;
 
     @ManyToOne
     @JoinColumn(name = "formulario_id")
