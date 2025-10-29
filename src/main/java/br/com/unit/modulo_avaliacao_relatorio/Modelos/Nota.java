@@ -6,23 +6,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Table(name = "respostas")
+@Table(name = "notas")
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Resposta {
-    @EmbeddedId
-    private RespostaId id;
+public class Nota {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     private Integer nota;
 
-    @MapsId("avaliacao_id")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "avaliacao_id")
     private Avaliacao avaliacao;
 
-    @MapsId("pergunta_id")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pergunta_id")
     private Pergunta pergunta;
