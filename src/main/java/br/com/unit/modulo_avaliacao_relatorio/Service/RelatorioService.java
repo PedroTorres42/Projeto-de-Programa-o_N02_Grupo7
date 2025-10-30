@@ -136,8 +136,10 @@ public class RelatorioService {
     }
 
     private double extrairFrequenciaPercentual(Avaliacao a) {
-        Pergunta pFreq = (Pergunta) a.getFormulario().getPerguntas().stream().filter(p -> p.getTipo() == Pergunta.TipoPergunta.FREQUENCIA);
-        return pFreq.getNotas().stream().mapToDouble(Nota::getNota).average().orElse(0.0);
+        List<Nota> notas = avaliacaoRepositorio.findPerguntaByType("FREQUENCIA")
+                .orElseThrow(() -> new RuntimeException("Pergunta não encontrada")).getNotas();
+
+        return notas.stream().mapToDouble(Nota::getNota).average().orElse(0.0);
     }
 
     private Double media(List<Double> valores) {
