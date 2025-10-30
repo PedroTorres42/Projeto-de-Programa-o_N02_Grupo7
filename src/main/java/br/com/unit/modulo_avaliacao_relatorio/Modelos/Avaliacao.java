@@ -22,8 +22,9 @@ public class Avaliacao {
     @Column(nullable = false)
     private Double media;
 
-    @Column(length = 1000, nullable = false)
-    private String comentario;
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "aluno_id")
@@ -38,13 +39,12 @@ public class Avaliacao {
     private Curso curso;
 
     @OneToMany(mappedBy = "avaliacao", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Resposta> respostas;
+    private List<Nota> notas;
+
+    @OneToOne(mappedBy = "avaliacao", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Feedback feedback;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "formulario_id", nullable = false)
     private Formulario formulario;
-
-    public String getComentarios() {
-        return comentario;
-    }
 }

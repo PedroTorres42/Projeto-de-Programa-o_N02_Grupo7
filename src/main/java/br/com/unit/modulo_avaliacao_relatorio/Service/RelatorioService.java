@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class RelatorioService {
@@ -137,22 +136,8 @@ public class RelatorioService {
     }
 
     private double extrairFrequenciaPercentual(Avaliacao a) {
-        Optional<Resposta> r = a.getRespostas().stream()
-                .filter(resp -> {
-                    String pergunta = resp.getPergunta() != null ? resp.getPergunta().getTexto() : null;
-                    return pergunta != null && pergunta.toLowerCase(Locale.ROOT).contains("frequ");
-                })
-                .findFirst();
-        if (r.isPresent()) {
-            try {
-                String valor = String.valueOf(r.get().getNota());
-                String limpo = valor.replace("%", "").trim().replace(",", ".");
-                return Double.parseDouble(limpo);
-            } catch (Exception ignore) {
-                return 0d;
-            }
-        }
-        return 0d;
+        Pergunta pFreq = (Pergunta) a.getFormulario().getPerguntas().stream().filter(p -> p.getTipo() == Pergunta.TipoPergunta.FREQUENCIA);
+        return pFreq.getNotas().stream().mapToDouble(Nota::getNota).average().orElse(0.0);
     }
 
     private Double media(List<Double> valores) {
@@ -234,7 +219,7 @@ public class RelatorioService {
 
                 int pos = 0, neu = 0, neg = 0;
                 for (Avaliacao a : lista) {
-                    Sentimento sTexto = analisarSentimentoTexto(a.getComentario());
+                    Sentimento sTexto = analisarSentimentoTexto(a.getFeedback().getComentario());
                     Sentimento sNum = analisarSentimentoNumero(extrairFeedbackNumerico(a));
                     Sentimento sGeral = combinarSentimento(sTexto, sNum);
                     if (sGeral == Sentimento.POSITIVO) pos++;
@@ -273,7 +258,6 @@ public class RelatorioService {
     }
 
 
-    // TODO: Trocar para analise de sentimento com IA(Se for mais simples)
     private Sentimento analisarSentimentoTexto(String texto) {
         if (texto == null || texto.isBlank()) return Sentimento.NEUTRO;
         String t = texto.toLowerCase(Locale.ROOT);
@@ -302,9 +286,9 @@ public class RelatorioService {
     }
 
     private Integer extrairFeedbackNumerico(Avaliacao a) {
-        if (a.getRespostas() == null) return null;
-        return a.getRespostas().stream()
-                .map(Resposta::getNota)
+        if (a.getNotas() == null) return null;
+        return a.getNotas().stream()
+                .map(Nota::getNota)
                 .filter(Objects::nonNull)
                 .filter(v -> v >= 1 && v <= 5)
                 .findFirst()
