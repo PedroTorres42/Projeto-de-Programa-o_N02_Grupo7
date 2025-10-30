@@ -23,6 +23,14 @@ public class Pergunta {
     @OneToMany(mappedBy = "pergunta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Nota> notas;
 
+    @Enumerated(EnumType.STRING)
+    private TipoPergunta tipo;
+
+    public enum TipoPergunta {
+        FREQUENCIA,
+        OUTRO
+    }
+
     @ManyToOne
     @JoinColumn(name = "formulario_id")
     private Formulario formulario;

@@ -136,22 +136,8 @@ public class RelatorioService {
     }
 
     private double extrairFrequenciaPercentual(Avaliacao a) {
-        Optional<Nota> r = a.getNotas().stream()
-                .filter(resp -> {
-                    String pergunta = resp.getPergunta() != null ? resp.getPergunta().getTexto() : null;
-                    return pergunta != null && pergunta.toLowerCase(Locale.ROOT).contains("frequ");
-                })
-                .findFirst();
-        if (r.isPresent()) {
-            try {
-                String valor = String.valueOf(r.get().getNota());
-                String limpo = valor.replace("%", "").trim().replace(",", ".");
-                return Double.parseDouble(limpo);
-            } catch (Exception ignore) {
-                return 0d;
-            }
-        }
-        return 0d;
+        Pergunta pFreq = (Pergunta) a.getFormulario().getPerguntas().stream().filter(p -> p.getTipo() == Pergunta.TipoPergunta.FREQUENCIA);
+        return pFreq.getNotas().stream().mapToDouble(Nota::getNota).average().orElse(0.0);
     }
 
     private Double media(List<Double> valores) {
