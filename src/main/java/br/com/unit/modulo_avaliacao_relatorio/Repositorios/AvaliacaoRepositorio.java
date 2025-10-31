@@ -16,5 +16,7 @@ public interface AvaliacaoRepositorio extends JpaRepository<Avaliacao, Long> {
     List<Avaliacao> findByInstrutorId(@Param("instrutorId") String instrutorId);
     @Query("SELECT p FROM Pergunta p WHERE p.TipoPergunta = :tipo")
     Optional<Pergunta> findPerguntaByType(@Param("tipo") String tipo);
+    @Query("SELECT a FROM Avaliacao a WHERE a.aluno.id = :alunoId")
+    List<Avaliacao> findByAlunoId(@Param("alunoId") String alunoId);
 
 }
