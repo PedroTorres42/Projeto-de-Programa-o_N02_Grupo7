@@ -34,4 +34,19 @@ public class FormularioService {
     public List<Formulario> listarFormularios() {
         return formularioRepositorio.findAll();
     }
+
+    public Formulario pegarFormulario(Long id) {
+        return formularioRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Formulario não encontrado"));
+    }
+
+    public void deletarFormulario(Long id) {
+        formularioRepositorio.deleteById(id);
+    }
+
+    public Formulario editarFormulario(Long id, List<Pergunta> perguntas, String titulo) {
+        Formulario formulario = pegarFormulario(id);
+        formulario.setTitulo(titulo);
+        formulario.setPerguntas(perguntas);
+        return formularioRepositorio.save(formulario);
+    }
 }
