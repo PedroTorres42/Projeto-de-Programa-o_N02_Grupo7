@@ -45,10 +45,21 @@ public class RelatorioService {
         relatorioRepositorio.save(relatorio);
     }
 
-    public void editarRelatorio(Long id){
-        relatorioRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Relatório nâo encontrado"));
-        // TODO: implementar edição de relatório (atualizar metadados ou regenerar PDF)
+    public Relatorio editarRelatorio(Long id, Relatorio novosDados) {
+        Relatorio existente = relatorioRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("Relatório nâo encontrado"));
+
+        if (novosDados.getTipo() != null) {
+            existente.setTipo(novosDados.getTipo());
+        }
+        if (novosDados.getDocumento() != null && novosDados.getDocumento().length > 0) {
+            existente.setDocumento(novosDados.getDocumento());
+        }
+
+        existente.setData(LocalDate.now());
+        return relatorioRepositorio.save(existente);
     }
+    
     public void excluirRelatorio(Long id){
         relatorioRepositorio.deleteById(id);
     }
