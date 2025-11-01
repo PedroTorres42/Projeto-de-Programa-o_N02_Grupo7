@@ -1,9 +1,9 @@
 package br.com.unit.modulo_avaliacao_relatorio.Service;
 
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Avaliacao;
-import br.com.unit.modulo_avaliacao_relatorio.Modelos.Resposta;
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.Nota;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.AvaliacaoRepositorio;
-import br.com.unit.modulo_avaliacao_relatorio.Repositorios.RespostaRepositorio;
+import br.com.unit.modulo_avaliacao_relatorio.Repositorios.NotaRespositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,7 @@ import java.util.List;
 public class AvaliacaoService {
 
     private final AvaliacaoRepositorio avaliacaoRepositorio;
-    private final RespostaRepositorio respostaRepositorio;
+    private final NotaRespositorio notaRespositorio;
 
     public Avaliacao salvarAvaliacao(Long avaliacaoId) {
         Avaliacao avaliacao = avaliacaoRepositorio.findById(avaliacaoId)
@@ -25,12 +25,12 @@ public class AvaliacaoService {
             avaliacao.setData(LocalDate.now());
         }
 
-        List<Resposta> respostas = respostaRepositorio.buscarRespostasPorAvaliacao(avaliacaoId);
+        List<Nota> respostas = notaRespositorio.buscarRespostasPorAvaliacao(avaliacaoId);
 
         if (!respostas.isEmpty()) {
             double mediaCalculada = respostas.stream()
                     .filter(r -> r.getNota() != null)
-                    .mapToDouble(Resposta::getNota)
+                    .mapToDouble(Nota::getNota)
                     .average()
                     .orElse(0.0);
             avaliacao.setMedia(mediaCalculada);
@@ -39,13 +39,13 @@ public class AvaliacaoService {
                     .map(r -> r.getPergunta().getTexto() + ": " + r.getNota())
                     .reduce((c1, c2) -> c1 + "; " + c2)
                     .orElse("");
-            avaliacao.setComentario(comentarios);
+            avaliacao.getFeedback().setComentario(comentarios);
         }
 
         if (avaliacao.getMedia() < 0 || avaliacao.getMedia() > 10) {
             throw new IllegalArgumentException("A média deve ser entre 0 e 10.");
         }
-        if (avaliacao.getComentario() == null || avaliacao.getComentario().isEmpty()) {
+        if (avaliacao.getFeedback().getComentario() == null || avaliacao.getFeedback().getComentario().isEmpty()) {
             throw new IllegalArgumentException("O comentário não pode estar vazio.");
         }
 
