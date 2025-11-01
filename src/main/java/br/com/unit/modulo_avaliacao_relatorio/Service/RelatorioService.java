@@ -95,19 +95,14 @@ public class RelatorioService {
     }
 
     public Relatorio gerarRelatorioAluno(String alunoId) {
-        Usuario u = usuarioRepositorio.findById(alunoId).orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
+        Usuario u = usuarioRepositorio.findById(alunoId)
+                .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
         if (u.getTipoUsuario() != Usuario.TipoUsuario.Aluno) {
             throw new IllegalArgumentException("ID provido não é de um aluno");
         }
+
         List<Avaliacao> avaliacoes = obterAvaliacoesDeAluno(alunoId);
-
-        String nomeAluno = Optional.ofNullable(u.getNome()).filter(s -> !s.isBlank()).orElse("ID " + alunoId);
-
-        byte[] pdf = montarPdfComparativo(
-                "Relatório de Desempenho do Aluno",
-                "Aluno: " + nomeAluno,
-                agruparPorCurso(avaliacoes)
-        );
+        byte[] pdf = montarPdfAluno(u, avaliacoes);
 
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.ALUNO);
@@ -223,171 +218,174 @@ public class RelatorioService {
         );
     }
 
-    public Relatorio gerarRelatorioDetalhadoAluno(String alunoId) {
-        Usuario u = usuarioRepositorio.findById(alunoId)
-                .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
-        if (u.getTipoUsuario() != Usuario.TipoUsuario.Aluno) {
-            throw new IllegalArgumentException("ID provido não é de um aluno");
-        }
 
-        List<Avaliacao> avaliacoes = obterAvaliacoesDeAluno(alunoId);
-        byte[] pdf = montarPdfDetalhadoAluno(u, avaliacoes);
+
+    public Relatorio gerarRelatorioCurso(Long cursoId) {
+        Curso curso = cursoRepositorio.findById(cursoId)
+                .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
+
+        List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(cursoId);
+        byte[] pdf = montarPdfCurso(curso, avaliacoes);
 
         Relatorio r = new Relatorio();
-        r.setTipo(Relatorio.TipoRelatorio.ALUNO);
+        r.setTipo(Relatorio.TipoRelatorio.CURSO);
         r.setDocumento(pdf);
         return relatorioRepositorio.save(r);
     }
 
-    private byte[] montarPdfDetalhadoAluno(Usuario aluno, List<Avaliacao> avaliacoes) {
+    public Relatorio gerarRelatorioDetalhadoInstrutor(String instrutorId) {
+        Usuario u = usuarioRepositorio.findById(instrutorId)
+                .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
+        if (u.getTipoUsuario() != Usuario.TipoUsuario.Instrutor) {
+            throw new IllegalArgumentException("ID provido não é de um instrutor");
+        }
+
+        List<Avaliacao> avaliacoes = obterAvaliacoesDeInstrutor(instrutorId);
+        byte[] pdf = montarPdfInstrutor(u, avaliacoes);
+
+        Relatorio r = new Relatorio();
+        r.setTipo(Relatorio.TipoRelatorio.INSTRUTOR);
+        r.setDocumento(pdf);
+        return relatorioRepositorio.save(r);
+    }
+
+    private byte[] montarPdfAluno(Usuario aluno, List<Avaliacao> avaliacoes) {
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Document doc = new Document();
-            PdfWriter.getInstance(doc, baos);
-            doc.open();
-
-            Font h1 = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
-            Font h2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-            Font normal = new Font(Font.FontFamily.HELVETICA, 10);
-
+            Doc db = iniciarPdf();
             String nomeAluno = Optional.ofNullable(aluno.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
-            Paragraph pTitulo = new Paragraph("Relatório de Desempenho do Aluno", h1);
-            pTitulo.setAlignment(Element.ALIGN_CENTER);
-            doc.add(pTitulo);
-            doc.add(new Paragraph("Aluno: " + nomeAluno + " (ID: " + aluno.getId() + ")", h2));
-            doc.add(new Paragraph("Data: " + LocalDate.now(), normal));
-            doc.add(new Paragraph("\n"));
+            adicionarTituloCabecalho(db.doc, db.fonts, "Relatório de Desempenho do Aluno",
+                    "Aluno: " + nomeAluno + " (ID: " + aluno.getId() + ")");
 
             if (avaliacoes == null || avaliacoes.isEmpty()) {
-                doc.add(new Paragraph("Não há avaliações registradas para este aluno.", normal));
-                doc.close();
-                return baos.toByteArray();
+                db.doc.add(new Paragraph("Não há avaliações registradas para este aluno.", db.fonts.normal));
+                db.doc.close();
+                return db.baos.toByteArray();
             }
 
-            PdfPTable table = new PdfPTable(7);
-            table.setWidthPercentage(100);
-            table.setWidths(new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f});
+            float[] widths = new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
+            PdfPTable table = criarTabelaDetalhada(widths,
+                    new String[]{"Curso", "Instrutor", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
 
-            adicionarHeader(table, "Curso");
-            adicionarHeader(table, "Instrutor");
-            adicionarHeader(table, "Média Nota");
-            adicionarHeader(table, "Frequência %");
-            adicionarHeader(table, "Média Pond");
-            adicionarHeader(table, "Sentimento");
-            adicionarHeader(table, "Feedback");
-
-            int pos = 0, neu = 0, neg = 0;
-            List<Double> mediasNotas = new ArrayList<>();
-            List<Double> mediasFreqs = new ArrayList<>();
-
+            Status Status = new Status();
             for (Avaliacao a : avaliacoes) {
-                String nomeCurso = Optional.ofNullable(a.getCurso()).map(Curso::getNome).filter(s -> !s.isBlank())
-                        .orElseGet(() -> "Curso " + Optional.ofNullable(a.getCurso()).map(Curso::getId).orElse(null));
-                String nomeInstrutor = Optional.ofNullable(a.getInstrutor()).map(Instrutor::getNome).filter(s -> !s.isBlank())
-                        .orElseGet(() -> "Instrutor " + Optional.ofNullable(a.getInstrutor()).map(Instrutor::getId).orElse("?"));
-
-                Double mediaNota = Optional.ofNullable(a.getMedia()).orElse(0d);
-                double freq = extrairFrequenciaPercentual(a);
-                BigDecimal pond = calcularMediaPonderada(mediaNota, freq);
-
-                Sentimento sTexto = analisarSentimentoTexto(Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse(null));
-                Sentimento sNum = analisarSentimentoNumero(extrairFeedbackNumerico(a));
-                Sentimento sGeral = combinarSentimento(sTexto, sNum);
-                if (sGeral == Sentimento.POSITIVO) pos++; else if (sGeral == Sentimento.NEUTRO) neu++; else neg++;
-
-                String resumoFeedback = Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario)
-                        .map(t -> t.length() > 120 ? t.substring(0, 117) + "..." : t)
-                        .orElse("—");
-
-                adicionarCell(table, nomeCurso);
-                adicionarCell(table, nomeInstrutor);
-                adicionarCell(table, String.valueOf(mediaNota));
-                adicionarCell(table, String.format(Locale.ROOT, "%.2f", freq));
-                adicionarCell(table, pond.toPlainString());
-                adicionarCell(table, sGeral.name());
-                adicionarCell(table, resumoFeedback);
-
-                mediasNotas.add(mediaNota);
-                mediasFreqs.add(freq);
+                String col1 = nomeOuIdCurso(a.getCurso());
+                String col2 = nomeOuIdInstrutor(a.getInstrutor());
+                Metricas m = calcularMetricasLinha(a);
+                adicionarLinhaDetalhada(table, col1, col2, m);
+                acumular(Status, m);
             }
 
-            doc.add(table);
+            db.doc.add(table);
+            adicionarResumo(db.doc, db.fonts, Status);
 
-            doc.add(new Paragraph("\nResumo", h2));
-            BigDecimal mediaNotasGeral = BigDecimal.valueOf(media(mediasNotas)).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal mediaFreqsGeral = BigDecimal.valueOf(media(mediasFreqs)).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal pondGeral = calcularMediaPonderada(mediaNotasGeral.doubleValue(), mediaFreqsGeral.doubleValue());
-            doc.add(new Paragraph("Média das Notas: " + mediaNotasGeral.toPlainString(), normal));
-            doc.add(new Paragraph("Média de Frequência (%): " + mediaFreqsGeral.toPlainString(), normal));
-            doc.add(new Paragraph("Média Ponderada Geral: " + pondGeral.toPlainString(), normal));
-            doc.add(new Paragraph("Sentimentos — Positivos: " + pos + ", Neutros: " + neu + ", Negativos: " + neg, normal));
-
-            doc.close();
-            return baos.toByteArray();
+            db.doc.close();
+            return db.baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar PDF do aluno", e);
         }
     }
 
+    private byte[] montarPdfCurso(Curso curso, List<Avaliacao> avaliacoes) {
+        try {
+            Doc db = iniciarPdf();
+            String nomeCurso = Optional.ofNullable(curso.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
+            adicionarTituloCabecalho(db.doc, db.fonts, "Relatório Detalhado do Curso",
+                    "Curso: " + nomeCurso + " (ID: " + curso.getId() + ")");
+
+            if (avaliacoes == null || avaliacoes.isEmpty()) {
+                db.doc.add(new Paragraph("Não há avaliações registradas para este curso.", db.fonts.normal));
+                db.doc.close();
+                return db.baos.toByteArray();
+            }
+
+            float[] widths = new float[]{2.2f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
+            PdfPTable table = criarTabelaDetalhada(widths,
+                    new String[]{"Aluno", "Instrutor", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
+
+            Status Status = new Status();
+            for (Avaliacao a : avaliacoes) {
+                String col1 = nomeOuIdAluno(a.getAluno());
+                String col2 = nomeOuIdInstrutor(a.getInstrutor());
+                Metricas m = calcularMetricasLinha(a);
+                adicionarLinhaDetalhada(table, col1, col2, m);
+                acumular(Status, m);
+            }
+
+            db.doc.add(table);
+            adicionarResumo(db.doc, db.fonts, Status);
+
+            db.doc.close();
+            return db.baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar PDF do curso", e);
+        }
+    }
+
+    private byte[] montarPdfInstrutor(Usuario instrutor, List<Avaliacao> avaliacoes) {
+        try {
+            Doc db = iniciarPdf();
+            String nomeInstrutor = Optional.ofNullable(instrutor.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
+            adicionarTituloCabecalho(db.doc, db.fonts, "Relatório Detalhado do Instrutor",
+                    "Instrutor: " + nomeInstrutor + " (ID: " + instrutor.getId() + ")");
+
+            if (avaliacoes == null || avaliacoes.isEmpty()) {
+                db.doc.add(new Paragraph("Não há avaliações registradas para este instrutor.", db.fonts.normal));
+                db.doc.close();
+                return db.baos.toByteArray();
+            }
+
+            float[] widths = new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
+            PdfPTable table = criarTabelaDetalhada(widths,
+                    new String[]{"Curso", "Aluno", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
+
+            Status Status = new Status();
+            for (Avaliacao a : avaliacoes) {
+                String col1 = nomeOuIdCurso(a.getCurso());
+                String col2 = nomeOuIdAluno(a.getAluno());
+                Metricas m = calcularMetricasLinha(a);
+                adicionarLinhaDetalhada(table, col1, col2, m);
+                acumular(Status, m);
+            }
+
+            db.doc.add(table);
+            adicionarResumo(db.doc, db.fonts, Status);
+
+            db.doc.close();
+            return db.baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar PDF do instrutor", e);
+        }
+    }
+
     private byte[] montarPdfComparativo(String titulo, String subtitulo, Map<String, List<Avaliacao>> grupos) {
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Document doc = new Document();
-            PdfWriter.getInstance(doc, baos);
-            doc.open();
+            Doc db = iniciarPdf();
+            adicionarTituloCabecalho(db.doc, db.fonts, titulo, subtitulo);
 
-            // TODO: Mudar fontes e estilização
-            Font h1 = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
-            Font h2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-            Font normal = new Font(Font.FontFamily.HELVETICA, 10);
-
-            Paragraph pTitulo = new Paragraph(titulo, h1);
-            pTitulo.setAlignment(Element.ALIGN_CENTER);
-            doc.add(pTitulo);
-            doc.add(new Paragraph(subtitulo, h2));
-            doc.add(new Paragraph("Data: " + LocalDate.now(), normal));
-            doc.add(new Paragraph("\n"));
-
-            PdfPTable table = new PdfPTable(8);
-            table.setWidthPercentage(100);
-            table.setWidths(new float[]{3, 1.2f, 1.2f, 1.2f, 1f, 1f, 1f, 1f});
-
-            adicionarHeader(table, "Grupo");
-            adicionarHeader(table, "Média Nota");
-            adicionarHeader(table, "Média Freq%");
-            adicionarHeader(table, "Média Pond");
-            adicionarHeader(table, "Positivos");
-            adicionarHeader(table, "Neutros");
-            adicionarHeader(table, "Negativos");
-            adicionarHeader(table, "Total");
+            float[] widths = new float[]{3f, 1.2f, 1.2f, 1.2f, 1f, 1f, 1f, 1f};
+            String[] headers = {"Grupo", "Média Nota", "Média Freq%", "Média Pond", "Positivos", "Neutros", "Negativos", "Total"};
+            PdfPTable table = criarTabelaDetalhada(widths, headers);
 
             List<Map.Entry<String, List<Avaliacao>>> ordenado = new ArrayList<>(grupos.entrySet());
-            ordenado.sort((e1, e2) -> {
-                BigDecimal p1 = mediaPonderadaGrupo(e1.getValue());
-                BigDecimal p2 = mediaPonderadaGrupo(e2.getValue());
-                return p2.compareTo(p1);
-            });
+            ordenado.sort((e1, e2) -> mediaPonderadaGrupo(e2.getValue()).compareTo(mediaPonderadaGrupo(e1.getValue())));
 
             for (Map.Entry<String, List<Avaliacao>> e : ordenado) {
                 String nomeGrupo = e.getKey();
                 List<Avaliacao> lista = e.getValue();
 
                 Double mediaNota = media(lista.stream()
-                        .map(Avaliacao::getMedia)
+                        .map(a -> Optional.ofNullable(a.getMedia()).orElse(0d))
                         .toList());
 
                 Double mediaFreq = media(lista.stream()
                         .map(this::extrairFrequenciaPercentual)
                         .toList());
 
-                BigDecimal mediaPond = calcularMediaPonderada(
-                        mediaNota,
-                        mediaFreq
-                );
+                BigDecimal mediaPond = calcularMediaPonderada(mediaNota, mediaFreq);
 
                 int pos = 0, neu = 0, neg = 0;
                 for (Avaliacao a : lista) {
-                    Sentimento sTexto = analisarSentimentoTexto(a.getFeedback().getComentario());
+                    Sentimento sTexto = analisarSentimentoTexto(Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse(null));
                     Sentimento sNum = analisarSentimentoNumero(extrairFeedbackNumerico(a));
                     Sentimento sGeral = combinarSentimento(sTexto, sNum);
                     if (sGeral == Sentimento.POSITIVO) pos++;
@@ -405,9 +403,9 @@ public class RelatorioService {
                 adicionarCell(table, String.valueOf(lista.size()));
             }
 
-            doc.add(table);
-            doc.close();
-            return baos.toByteArray();
+            db.doc.add(table);
+            db.doc.close();
+            return db.baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar PDF", e);
         }
@@ -423,6 +421,132 @@ public class RelatorioService {
         PdfPCell cell = new PdfPCell(new Paragraph(texto, new Font(Font.FontFamily.HELVETICA, 9)));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
+    }
+
+    private static class Fontes {
+        final Font h1;
+        final Font h2;
+        final Font normal;
+        Fontes() {
+            this.h1 = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+            this.h2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+            this.normal = new Font(Font.FontFamily.HELVETICA, 10);
+        }
+    }
+
+    private static class Doc {
+        final Document doc;
+        final ByteArrayOutputStream baos;
+        final Fontes fonts;
+        Doc(Document d, ByteArrayOutputStream b, Fontes f) {
+            this.doc = d; this.baos = b; this.fonts = f;
+        }
+    }
+
+    private static class Metricas {
+        final Double mediaNota;
+        final double freq;
+        final BigDecimal pond;
+        final Sentimento sentimento;
+        final String feedbackResumo;
+        Metricas(Double mediaNota, double freq, BigDecimal pond, Sentimento sentimento, String feedbackResumo) {
+            this.mediaNota = mediaNota; this.freq = freq; this.pond = pond; this.sentimento = sentimento; this.feedbackResumo = feedbackResumo;
+        }
+    }
+
+    private static class Status {
+        int pos, neu, neg;
+        final List<Double> notas = new ArrayList<>();
+        final List<Double> freqs = new ArrayList<>();
+    }
+
+    private Doc iniciarPdf() {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Document doc = new Document();
+            PdfWriter.getInstance(doc, baos);
+            doc.open();
+            return new Doc(doc, baos, new Fontes());
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao iniciar PDF", e);
+        }
+    }
+
+    private void adicionarTituloCabecalho(Document doc, Fontes fonts, String titulo, String subtitulo) throws Exception {
+        Paragraph pTitulo = new Paragraph(titulo, fonts.h1);
+        pTitulo.setAlignment(Element.ALIGN_CENTER);
+        doc.add(pTitulo);
+        doc.add(new Paragraph(subtitulo, fonts.h2));
+        doc.add(new Paragraph("Data: " + LocalDate.now(), fonts.normal));
+        doc.add(new Paragraph("\n"));
+    }
+
+    private PdfPTable criarTabelaDetalhada(float[] widths, String[] headers) throws Exception {
+        PdfPTable table = new PdfPTable(headers.length);
+        table.setWidthPercentage(100);
+        table.setWidths(widths);
+        for (String h : headers) adicionarHeader(table, h);
+        return table;
+    }
+
+    private Metricas calcularMetricasLinha(Avaliacao a) {
+        Double mediaNota = Optional.ofNullable(a.getMedia()).orElse(0d);
+        double freq = extrairFrequenciaPercentual(a);
+        BigDecimal pond = calcularMediaPonderada(mediaNota, freq);
+        Sentimento sTexto = analisarSentimentoTexto(Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse(null));
+        Sentimento sNum = analisarSentimentoNumero(extrairFeedbackNumerico(a));
+        Sentimento sGeral = combinarSentimento(sTexto, sNum);
+        String resumoFeedback = Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario)
+                .map(t -> t.length() > 120 ? t.substring(0, 117) + "..." : t)
+                .orElse("—");
+        return new Metricas(mediaNota, freq, pond, sGeral, resumoFeedback);
+    }
+
+    private void adicionarLinhaDetalhada(PdfPTable table, String col1, String col2, Metricas m) {
+        adicionarCell(table, col1);
+        adicionarCell(table, col2);
+        adicionarCell(table, String.valueOf(m.mediaNota));
+        adicionarCell(table, String.format(Locale.ROOT, "%.2f", m.freq));
+        adicionarCell(table, m.pond.toPlainString());
+        adicionarCell(table, m.sentimento.name());
+        adicionarCell(table, m.feedbackResumo);
+    }
+
+    private void acumular(Status s, Metricas m) {
+        if (m.sentimento == Sentimento.POSITIVO) s.pos++;
+        else if (m.sentimento == Sentimento.NEUTRO) s.neu++;
+        else s.neg++;
+        s.notas.add(m.mediaNota);
+        s.freqs.add(m.freq);
+    }
+
+    private void adicionarResumo(Document doc, Fontes fonts, Status Status) throws Exception {
+        doc.add(new Paragraph("\nResumo", fonts.h2));
+        BigDecimal mediaNotasGeral = BigDecimal.valueOf(media(Status.notas)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal mediaFreqsGeral = BigDecimal.valueOf(media(Status.freqs)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal pondGeral = calcularMediaPonderada(mediaNotasGeral.doubleValue(), mediaFreqsGeral.doubleValue());
+        doc.add(new Paragraph("Média das Notas: " + mediaNotasGeral.toPlainString(), fonts.normal));
+        doc.add(new Paragraph("Média de Frequência (%): " + mediaFreqsGeral.toPlainString(), fonts.normal));
+        doc.add(new Paragraph("Média Ponderada Geral: " + pondGeral.toPlainString(), fonts.normal));
+        doc.add(new Paragraph("Sentimentos — Positivos: " + Status.pos + ", Neutros: " + Status.neu + ", Negativos: " + Status.neg, fonts.normal));
+    }
+
+    private String nomeOuIdCurso(Curso c) {
+        if (c == null) return "Curso ?";
+        String nome = c.getNome();
+        return (nome != null && !nome.isBlank()) ? nome : ("Curso " + c.getId());
+    }
+
+    private String nomeOuIdInstrutor(Instrutor i) {
+        if (i == null) return "Instrutor ?";
+        String nome = i.getNome();
+        return (nome != null && !nome.isBlank()) ? nome : ("Instrutor " + i.getId());
+    }
+
+    private String nomeOuIdAluno(Aluno a) {
+        if (a == null) return "Aluno ?";
+        String nome = a.getNome();
+        return (nome != null && !nome.isBlank()) ? nome : ("Aluno " + a.getId());
     }
 
 
