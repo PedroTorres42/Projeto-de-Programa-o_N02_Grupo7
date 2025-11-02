@@ -26,8 +26,20 @@ public class Avaliacao {
     @Column(nullable = false)
     private Double media;
 
+<<<<<<< Updated upstream
     @Column(length = 1000, nullable = false)
     private String comentario;
+=======
+    /**
+     * Novo campo para suportar setComentario(String) usado na View.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String comentario;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+>>>>>>> Stashed changes
 
     @ManyToOne
     @JoinColumn(name = "aluno_id")
@@ -47,4 +59,15 @@ public class Avaliacao {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "formulario_id", nullable = false)
     private Formulario formulario;
+<<<<<<< Updated upstream
 }
+=======
+
+    @PrePersist
+    private void prePersist() {
+        if (this.data == null) {
+            this.data = LocalDate.now();
+        }
+    }
+}
+>>>>>>> Stashed changes
