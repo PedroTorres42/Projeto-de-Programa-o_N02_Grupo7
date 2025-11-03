@@ -23,11 +23,15 @@ public class AvaliacaoView extends JFrame {
     private JComboBox<Curso> comboCurso;
     private JComboBox<Formulario> comboFormulario;
     private JButton btnSalvar;
+    private JLabel lblInstrutorLogado;
 
     private final AvaliacaoService avaliacaoService;
     private final UsuarioService usuarioService;
     private final CursoService cursoService;
     private final FormularioService formularioService;
+
+    // Simulação: Instrutor “logado”
+    private Instrutor instrutorLogado;
 
     public AvaliacaoView(
             AvaliacaoService avaliacaoService,
@@ -40,8 +44,14 @@ public class AvaliacaoView extends JFrame {
         this.cursoService = cursoService;
         this.formularioService = formularioService;
 
+        // Pega o primeiro instrutor da lista para simular login
+        List<Instrutor> instrutores = usuarioService.listarInstrutores();
+        if (!instrutores.isEmpty()) {
+            instrutorLogado = instrutores.get(0);
+        }
+
         setTitle("Cadastro de Avaliação");
-        setSize(500, 400);
+        setSize(550, 450);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -63,45 +73,50 @@ public class AvaliacaoView extends JFrame {
         JLabel lblMedia = new JLabel("Média:");
         JLabel lblComentario = new JLabel("Comentário:");
         JLabel lblAluno = new JLabel("Aluno:");
-        JLabel lblInstrutor = new JLabel("Instrutor:");
         JLabel lblCurso = new JLabel("Curso:");
-        JLabel lblFormulario = new JLabel("Formulário:");
 
+        lblInstrutorLogado = new JLabel("Instrutor: " + (instrutorLogado != null ? instrutorLogado.getNome() + " (ID: " + instrutorLogado.getId() + ")" : "Nenhum"));
+        
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Linha 0: Instrutor logado
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(lblMedia, gbc);
-        gbc.gridx = 1; gbc.gridy = 0;
-        panel.add(campoMedia, gbc);
+        panel.add(lblInstrutorLogado, gbc);
 
+        // Linha 1: Aluno
         gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(lblComentario, gbc);
-        gbc.gridx = 1; gbc.gridy = 1;
-        panel.add(new JScrollPane(campoComentario), gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2;
         panel.add(lblAluno, gbc);
-        gbc.gridx = 1; gbc.gridy = 2;
+        gbc.gridx = 1; gbc.gridy = 1;
         panel.add(comboAluno, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(lblInstrutor, gbc);
-        gbc.gridx = 1; gbc.gridy = 3;
-        panel.add(comboInstrutor, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 4;
+        // Linha 2: Curso
+        gbc.gridx = 0; gbc.gridy = 2;
         panel.add(lblCurso, gbc);
-        gbc.gridx = 1; gbc.gridy = 4;
+        gbc.gridx = 1; gbc.gridy = 2;
         panel.add(comboCurso, gbc);
 
+        // Linha 3: Média
+        gbc.gridx = 0; gbc.gridy = 3;
+        panel.add(lblMedia, gbc);
+        gbc.gridx = 1; gbc.gridy = 3;
+        panel.add(campoMedia, gbc);
+
+        // Linha 4: Comentário
+        gbc.gridx = 0; gbc.gridy = 4;
+        panel.add(lblComentario, gbc);
+        gbc.gridx = 1; gbc.gridy = 4;
+        panel.add(new JScrollPane(campoComentario), gbc);
+
+        // Linha 5: Formulário
         gbc.gridx = 0; gbc.gridy = 5;
-        panel.add(lblFormulario, gbc);
+        panel.add(new JLabel("Formulário:"), gbc);
         gbc.gridx = 1; gbc.gridy = 5;
         panel.add(comboFormulario, gbc);
 
+        // Linha 6: Botão salvar
         gbc.gridx = 1; gbc.gridy = 6;
         panel.add(btnSalvar, gbc);
 
@@ -119,8 +134,13 @@ public class AvaliacaoView extends JFrame {
         List<Aluno> alunos = usuarioService.listarAlunos();
         alunos.forEach(comboAluno::addItem);
 
+        // Preenche o combo de instrutores, mas seleciona o logado
         List<Instrutor> instrutores = usuarioService.listarInstrutores();
         instrutores.forEach(comboInstrutor::addItem);
+        if (instrutorLogado != null) {
+            comboInstrutor.setSelectedItem(instrutorLogado);
+            comboInstrutor.setEnabled(false); // bloqueia edição
+        }
 
         List<Curso> cursos = cursoService.listarCursos();
         cursos.forEach(comboCurso::addItem);
@@ -140,7 +160,11 @@ public class AvaliacaoView extends JFrame {
 
             Avaliacao avaliacao = new Avaliacao();
             avaliacao.setMedia(media);
-            avaliacao.getFeedback().setComentario(comentario);
+            // Garante que Feedback seja criado antes de acessar
+            Feedback feedback = new Feedback();
+            feedback.setComentario(comentario);
+            feedback.setAvaliacao(avaliacao);
+            avaliacao.setFeedback(feedback);
             avaliacao.setAluno(aluno);
             avaliacao.setInstrutor(instrutor);
             avaliacao.setCurso(curso);
