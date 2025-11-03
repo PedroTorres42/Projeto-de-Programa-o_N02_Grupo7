@@ -38,6 +38,28 @@ public class UsuarioService {
         if (email == null) return Optional.empty();
         return usuarioRepositorio.findByEmail(email);
     }
+    
+    public Optional<Usuario> buscarPorMatricula(String matricula) {
+        if (matricula == null || matricula.isBlank()) return Optional.empty();
+        return usuarioRepositorio.findAll().stream()
+            .filter(u -> u instanceof Aluno)
+            .map(u -> (Aluno) u)
+            .filter(a -> matricula.equals(a.getMatricula()))
+            .map(a -> (Usuario) a)
+            .findFirst();
+    }
+    
+    public Optional<Usuario> buscarPorEmailOuMatricula(String identificador) {
+        if (identificador == null || identificador.isBlank()) return Optional.empty();
+        
+        Optional<Usuario> usuario = buscarPorEmail(identificador);
+        
+        if (usuario.isEmpty() && !identificador.contains("@")) {
+            usuario = buscarPorMatricula(identificador);
+        }
+        
+        return usuario;
+    }
 
 
     public void deletarUsuario(String id) {

@@ -1,6 +1,6 @@
 package br.com.unit.modulo_avaliacao_relatorio;
 
-import br.com.unit.modulo_avaliacao_relatorio.View.AvaliacaoView;
+import br.com.unit.modulo_avaliacao_relatorio.View.InicialView;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -21,7 +21,7 @@ public class ModuloAvaliacaoView {
                         .run(args);
 
         SwingUtilities.invokeLater(() -> {
-            AvaliacaoView view = context.getBean(AvaliacaoView.class);
+            InicialView view = context.getBean(InicialView.class);
             view.setVisible(true);
         });
     }
