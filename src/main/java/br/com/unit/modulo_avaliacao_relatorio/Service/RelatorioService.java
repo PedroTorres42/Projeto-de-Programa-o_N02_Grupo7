@@ -72,6 +72,26 @@ public class RelatorioService {
     }
 
 
+    public List<Relatorio> filtrarRelatoriosPorAluno() {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.ALUNO);
+    }
+
+
+    public List<Relatorio> filtrarRelatoriosPorInstrutor() {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.INSTRUTOR);
+    }
+
+
+    public List<Relatorio> filtrarRelatoriosPorCurso() {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.CURSO);
+    }
+
+
+    public List<Relatorio> filtrarRelatoriosPorTipo(Relatorio.TipoRelatorio tipo) {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(tipo);
+    }
+
+
     public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
