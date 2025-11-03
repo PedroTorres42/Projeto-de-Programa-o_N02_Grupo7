@@ -1,153 +1,194 @@
-package br.com.unit.modulo_avaliacao_relatorio.Teste;
+package br.com.unit.modulo_avaliacao_relatorio.View;
 
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.*;
-import br.com.unit.modulo_avaliacao_relatorio.Service.*;
+import br.com.unit.modulo_avaliacao_relatorio.Service.AvaliacaoService;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;  
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AvaliacaoView extends JFrame {
 
-    private JTextField campoMedia;
-    private JTextArea campoComentario;
     private JComboBox<Aluno> comboAluno;
-    private JComboBox<Instrutor> comboInstrutor;
     private JComboBox<Curso> comboCurso;
-    private JComboBox<Formulario> comboFormulario;
-    private JButton btnSalvar;
+    private JTextField campoNota;
+    private JCheckBox checkPresenca;
+    private JTextArea campoFeedback;
+    private JButton botaoSalvar;
 
-    private final AvaliacaoService avaliacaoService;
-    private final UsuarioService UsuarioService;
-    private final CursoService cursoService;
-    private final FormularioService formularioService;
+    private final AvaliacaoService avaliacaoService; // Simulação de service
+    private final Instrutor instrutorLogado; // Simulação de instrutor logado
 
-    public AvaliacaoView(AvaliacaoService avaliacaoService,
-                         UsuarioService alunoService,
-                         CursoService cursoService,
-                         FormularioService formularioService) {
+    public AvaliacaoView(AvaliacaoService service, Instrutor instrutorLogado) {
+        this.avaliacaoService = service;
+        this.instrutorLogado = instrutorLogado;
+        configurarTela();
+    }
 
-        this.avaliacaoService = avaliacaoService;
-        this.UsuarioService = UsuarioService;
-        this.cursoService = cursoService;
-        this.formularioService = formularioService;
-
-        setTitle("Cadastro de Avaliação");
+    private void configurarTela() {
+        setTitle("Registro de Notas, Presença e Feedback");
         setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        initComponents();
-    }
-
-    private void initComponents() {
-        campoMedia = new JTextField();
-        campoComentario = new JTextArea(5, 20);
-
-        comboAluno = new JComboBox<>();
-        comboInstrutor = new JComboBox<>();
-        comboCurso = new JComboBox<>();
-        comboFormulario = new JComboBox<>();
-        btnSalvar = new JButton("Salvar");
-
-        // Popular combos
-        popularCombos();
-
-        JLabel lblMedia = new JLabel("Média:");
-        JLabel lblComentario = new JLabel("Comentário:");
-        JLabel lblAluno = new JLabel("Aluno:");
-        JLabel lblInstrutor = new JLabel("Instrutor:");
-        JLabel lblCurso = new JLabel("Curso:");
-        JLabel lblFormulario = new JLabel("Formulário:");
-
-        JPanel panel = new JPanel(new GridBagLayout());
+        JPanel painel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5,5,5,5);
+        gbc.insets = new Insets(8,8,8,8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(lblMedia, gbc);
-        gbc.gridx = 1; gbc.gridy = 0;
-        panel.add(campoMedia, gbc);
+        // --- Aluno ---
+        JLabel labelAluno = new JLabel("Aluno:");
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        painel.add(labelAluno, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(lblComentario, gbc);
-        gbc.gridx = 1; gbc.gridy = 1;
-        panel.add(new JScrollPane(campoComentario), gbc);
+        comboAluno = new JComboBox<>();
+        List<Aluno> alunos = criarAlunosSimulados();
+        for (Aluno a : alunos) comboAluno.addItem(a);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        painel.add(comboAluno, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(lblAluno, gbc);
-        gbc.gridx = 1; gbc.gridy = 2;
-        panel.add(comboAluno, gbc);
+        // --- Curso ---
+        JLabel labelCurso = new JLabel("Curso:");
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        painel.add(labelCurso, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(lblInstrutor, gbc);
-        gbc.gridx = 1; gbc.gridy = 3;
-        panel.add(comboInstrutor, gbc);
+        comboCurso = new JComboBox<>();
+        List<Curso> cursos = criarCursosSimulados();
+        for (Curso c : cursos) comboCurso.addItem(c);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        painel.add(comboCurso, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 4;
-        panel.add(lblCurso, gbc);
-        gbc.gridx = 1; gbc.gridy = 4;
-        panel.add(comboCurso, gbc);
+        // --- Nota ---
+        JLabel labelNota = new JLabel("Nota:");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        painel.add(labelNota, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 5;
-        panel.add(lblFormulario, gbc);
-        gbc.gridx = 1; gbc.gridy = 5;
-        panel.add(comboFormulario, gbc);
+        campoNota = new JTextField();
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        painel.add(campoNota, gbc);
 
-        gbc.gridx = 1; gbc.gridy = 6;
-        panel.add(btnSalvar, gbc);
+        // --- Presença ---
+        JLabel labelPresenca = new JLabel("Presença:");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        painel.add(labelPresenca, gbc);
 
-        add(panel);
+        checkPresenca = new JCheckBox("Presente");
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        painel.add(checkPresenca, gbc);
 
-        btnSalvar.addActionListener(new ActionListener() {
+        // --- Feedback ---
+        JLabel labelFeedback = new JLabel("Feedback individual:");
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        painel.add(labelFeedback, gbc);
+
+        campoFeedback = new JTextArea(5,20);
+        JScrollPane scroll = new JScrollPane(campoFeedback);
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        painel.add(scroll, gbc);
+
+        // --- Botão ---
+        botaoSalvar = new JButton("Registrar Avaliação");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        painel.add(botaoSalvar, gbc);
+
+        botaoSalvar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                salvarAvaliacao();
+                registrarAvaliacao();
             }
         });
+
+        add(painel);
     }
 
-    private void popularCombos() {
-        List<Aluno> alunos = UsuarioService.listarAlunos();
-        alunos.forEach(comboAluno::addItem);
-
-        List<Instrutor> instrutores = UsuarioService.listarInstrutores();
-        instrutores.forEach(comboInstrutor::addItem);
-
-        List<Curso> cursos = cursoService.listarCursos();
-        cursos.forEach(comboCurso::addItem);
-
-    }
-
-    private void salvarAvaliacao() {
+    private void registrarAvaliacao() {
         try {
-            double media = Double.parseDouble(campoMedia.getText());
-            String comentario = campoComentario.getText();
             Aluno aluno = (Aluno) comboAluno.getSelectedItem();
-            Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
             Curso curso = (Curso) comboCurso.getSelectedItem();
-            Formulario formulario = (Formulario) comboFormulario.getSelectedItem();
+            int notaInt = Integer.parseInt(campoNota.getText());
+            boolean presente = checkPresenca.isSelected();
+            String feedbackTexto = campoFeedback.getText();
 
+            // Criando Avaliacao e Feedback (simulação)
             Avaliacao avaliacao = new Avaliacao();
-            avaliacao.setMedia(media);
-            avaliacao.setComentario(comentario);
             avaliacao.setAluno(aluno);
-            avaliacao.setInstrutor(instrutor);
             avaliacao.setCurso(curso);
-            avaliacao.setFormulario(formulario);
+            avaliacao.setInstrutor(instrutorLogado);
+            avaliacao.setData(LocalDate.now());
+            avaliacao.setMedia((double) notaInt);
 
-            Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
-            JOptionPane.showMessageDialog(this, "Avaliação salva com ID: " + salva.getId());
+            Feedback feedback = new Feedback();
+            feedback.setComentario(feedbackTexto);
+            feedback.setAvaliacao(avaliacao);
+            feedback.setUsuario(instrutorLogado);
 
-            // Resetar campos
-            campoMedia.setText("");
-            campoComentario.setText("");
+            avaliacao.setFeedback(feedback);
+
+            // Criando Nota
+            Nota nota = new Nota();
+            nota.setNota(notaInt);
+            nota.setAvaliacao(avaliacao);
+            List<Nota> notas = new ArrayList<>();
+            notas.add(nota);
+            avaliacao.setNotas(notas);
+
+            // Simulação de persistência (chamaria AvaliacaoService real se disponível)
+            if (avaliacaoService != null) {
+                avaliacaoService.salvarAvaliacao(avaliacao);
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "✅ Avaliação registrada com sucesso!\nAluno: "+aluno+"\nCurso: "+curso+"\nNota: "+notaInt+"\nPresença: "+(presente?"Presente":"Ausente")+"\nFeedback: "+feedbackTexto,
+                    "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+            campoNota.setText("");
+            campoFeedback.setText("");
+            checkPresenca.setSelected(false);
+
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Informe um número válido para média.");
+            JOptionPane.showMessageDialog(this,"Insira uma nota válida (ex: 8)","Erro",JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this,ex.getMessage(),"Erro",JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // --- Dados simulados ---
+    private List<Aluno> criarAlunosSimulados() {
+        List<Aluno> lista = new ArrayList<>();
+        lista.add(new Aluno("1","João Silva", null, null, null));
+        lista.add(new Aluno("2","Maria Souza", null, null, null));
+        lista.add(new Aluno("3","Lucas Andrade", null, null, null));
+        return lista;
+    }
+
+    private List<Curso> criarCursosSimulados() {
+        List<Curso> lista = new ArrayList<>();
+        lista.add(new Curso(1L,"POO","Programação Orientada a Objetos",60,null));
+        lista.add(new Curso(2L,"BD","Banco de Dados",80,null));
+        lista.add(new Curso(3L,"Engenharia","Engenharia de Software",100,null));
+        return lista;
+    }
+
+    public static void main(String[] args) {
+        Instrutor instrutor = new Instrutor();
+        instrutor.setNome("Prof. Pedro");
+
+        SwingUtilities.invokeLater(() -> new AvaliacaoView(null,instrutor).setVisible(true));
     }
 }
