@@ -1,5 +1,6 @@
 package br.com.unit.modulo_avaliacao_relatorio.Repositorios;
 
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.Avaliacao;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Nota;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.MediaPorCurso;
 
 public interface NotaRespositorio extends JpaRepository<Nota, Long> {
@@ -38,5 +40,10 @@ public interface NotaRespositorio extends JpaRepository<Nota, Long> {
                  group by coalesce(c.nome, 'Curso ?')
              """)
         List<MediaPorCurso> mediasPorCursoDto();
+
+
+    @Query("SELECT n.nota FROM Nota n WHERE n.avaliacao = :avaliacao " +
+           "AND n.pergunta.tipo = 'FREQUENCIA' AND n.nota IS NOT NULL")
+    Optional<Integer> findFrequenciaByAvaliacao(@Param("avaliacao") Avaliacao avaliacao);
 
 }

@@ -72,6 +72,26 @@ public class RelatorioService {
     }
 
 
+    public List<Relatorio> filtrarRelatoriosPorAluno() {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.ALUNO);
+    }
+
+
+    public List<Relatorio> filtrarRelatoriosPorInstrutor() {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.INSTRUTOR);
+    }
+
+
+    public List<Relatorio> filtrarRelatoriosPorCurso() {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.CURSO);
+    }
+
+
+    public List<Relatorio> filtrarRelatoriosPorTipo(Relatorio.TipoRelatorio tipo) {
+        return relatorioRepositorio.findByTipoOrderByDataDesc(tipo);
+    }
+
+
     public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
@@ -220,13 +240,10 @@ public class RelatorioService {
     }
 
     private Double extrairFrequenciaPercentual(Avaliacao a) {
-        if (a == null || a.getNotas() == null) return 0.0;
-        return a.getNotas().stream()
-                .filter(n -> n != null && n.getPergunta() != null && n.getPergunta().getTipo() == Pergunta.TipoPergunta.FREQUENCIA)
-                .map(Nota::getNota)
-                .filter(Objects::nonNull)
+        if (a == null) return 0.0;
+        
+        return notaRespositorio.findFrequenciaByAvaliacao(a)
                 .map(Integer::doubleValue)
-                .findFirst()
                 .orElse(0.0);
     }
 
