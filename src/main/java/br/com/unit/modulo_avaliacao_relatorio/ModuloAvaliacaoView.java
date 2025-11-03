@@ -1,10 +1,11 @@
 package br.com.unit.modulo_avaliacao_relatorio;
 
-import br.com.unit.modulo_avaliacao_relatorio.View.InicialView;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+
+import br.com.unit.modulo_avaliacao_relatorio.View.InicialView;
 
 import javax.swing.*;
 
