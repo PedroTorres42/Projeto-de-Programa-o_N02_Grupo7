@@ -134,7 +134,7 @@ public class AvaliacaoView extends JFrame {
 
             Avaliacao avaliacao = new Avaliacao();
             avaliacao.setMedia(media);
-            avaliacao.setComentario(comentario);
+            avaliacao.getFeedback().setComentario(comentario);
             avaliacao.setAluno(aluno);
             avaliacao.setInstrutor(instrutor);
             avaliacao.setCurso(curso);
