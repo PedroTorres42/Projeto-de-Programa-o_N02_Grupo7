@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface AvaliacaoRepositorio extends JpaRepository<Avaliacao, Long> {
     @Query("SELECT a FROM Avaliacao a WHERE a.aluno.id = :alunoId")
     List<Avaliacao> findByCursoId(@Param("alunoId") Long alunoId);
-    @Query("SELECT a FROM Avaliacao a WHERE a.instrutor.id = :id")
+    @Query("SELECT a FROM Avaliacao a WHERE a.instrutor.id = :instrutorId")
     List<Avaliacao> findByInstrutorId(@Param("instrutorId") String instrutorId);
     @Query("SELECT p FROM Pergunta p WHERE p.TipoPergunta = :tipo")
     Optional<Pergunta> findPerguntaByType(@Param("tipo") String tipo);

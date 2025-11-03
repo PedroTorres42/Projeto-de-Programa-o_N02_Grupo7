@@ -9,11 +9,20 @@ import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.Image;
+import com.opencsv.CSVWriter;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.ChartUtils;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
@@ -21,33 +30,42 @@ import java.util.stream.Collectors;
 
 @Service
 public class RelatorioService {
+
     private final RelatorioRepositorio relatorioRepositorio;
     private final AvaliacaoRepositorio avaliacaoRepositorio;
     private final CursoRepositorio cursoRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
+    private final FormularioRepositorio formularioRepositorio;
 
-    public RelatorioService(RelatorioRepositorio relatorioRepositorio, AvaliacaoRepositorio avaliacaoRepositorio,CursoRepositorio cursoRepositorio, UsuarioRepositorio usuarioRepositorio) {
+    public RelatorioService(RelatorioRepositorio relatorioRepositorio,
+                            AvaliacaoRepositorio avaliacaoRepositorio,
+                            CursoRepositorio cursoRepositorio,
+                            UsuarioRepositorio usuarioRepositorio,
+                            FormularioRepositorio formularioRepositorio) {
         this.relatorioRepositorio = relatorioRepositorio;
         this.avaliacaoRepositorio = avaliacaoRepositorio;
         this.cursoRepositorio = cursoRepositorio;
         this.usuarioRepositorio = usuarioRepositorio;
+        this.formularioRepositorio = formularioRepositorio;
     }
 
-    public Relatorio pegarRelatorioPorId(Long id){
-        return relatorioRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Relatório não encontrado"));
+
+    public Relatorio pegarRelatorioPorId(Long id) {
+        return relatorioRepositorio.findById(id)
+                .orElseThrow(() -> new RuntimeException("Relatório não encontrado"));
     }
 
-    public Iterable<Relatorio> pegarTodosRelatorios(){
+    public Iterable<Relatorio> pegarTodosRelatorios() {
         return relatorioRepositorio.findAll();
     }
 
-    public void salvarRelatorio(Relatorio relatorio){
+    public void salvarRelatorio(Relatorio relatorio) {
         relatorioRepositorio.save(relatorio);
     }
 
     public Relatorio editarRelatorio(Long id, Relatorio novosDados) {
         Relatorio existente = relatorioRepositorio.findById(id)
-                .orElseThrow(() -> new RuntimeException("Relatório nâo encontrado"));
+                .orElseThrow(() -> new RuntimeException("Relatório não encontrado"));
 
         if (novosDados.getTipo() != null) {
             existente.setTipo(novosDados.getTipo());
@@ -59,29 +77,32 @@ public class RelatorioService {
         existente.setData(LocalDate.now());
         return relatorioRepositorio.save(existente);
     }
-    
-    public void excluirRelatorio(Long id){
+
+    public void excluirRelatorio(Long id) {
         relatorioRepositorio.deleteById(id);
     }
 
+
     public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
-        Curso curso = cursoRepositorio.findById(cursoId).orElseThrow(() -> new RuntimeException("Curso não encontrado"));
+        Curso curso = cursoRepositorio.findById(cursoId)
+                .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(curso.getId());
-        String nomeCurso = curso.getNome();
         byte[] pdf = montarPdfComparativo(
                 "Relatório Comparativo por Curso",
-                "Curso: " + nomeCurso,
+                "Curso: " + Optional.ofNullable(curso.getNome()).orElse("ID " + cursoId),
                 agruparPorInstrutor(avaliacoes)
         );
 
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.CURSO);
         r.setDocumento(pdf);
+        r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
 
     public Relatorio gerarRelatorioComparativoPorInstrutor(String instrutorId) {
-        Usuario i = usuarioRepositorio.findById(instrutorId).orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
+        Usuario i = usuarioRepositorio.findById(instrutorId)
+                .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
         if (i.getTipoUsuario() != Usuario.TipoUsuario.Instrutor) {
             throw new IllegalArgumentException("ID provido não é de um instrutor");
         }
@@ -89,6 +110,7 @@ public class RelatorioService {
 
         String subtitulo = "Instrutor: " + avaliacoes.stream()
                 .map(Avaliacao::getInstrutor)
+                .filter(Objects::nonNull)
                 .map(Instrutor::getNome)
                 .findFirst()
                 .orElse("ID " + instrutorId);
@@ -102,6 +124,7 @@ public class RelatorioService {
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.INSTRUTOR);
         r.setDocumento(pdf);
+        r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
 
@@ -118,11 +141,13 @@ public class RelatorioService {
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.ALUNO);
         r.setDocumento(pdf);
+        r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
 
     public Relatorio gerarRelatorioAlunosDoCurso(Long cursoId) {
-        Curso curso = cursoRepositorio.findById(cursoId).orElseThrow(() -> new RuntimeException("Curso não encontrado"));
+        Curso curso = cursoRepositorio.findById(cursoId)
+                .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(cursoId);
 
         byte[] pdf = montarPdfComparativo(
@@ -134,8 +159,10 @@ public class RelatorioService {
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.CURSO);
         r.setDocumento(pdf);
+        r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
+
 
     private Map<String, List<Avaliacao>> agruparPorInstrutor(List<Avaliacao> avaliacoes) {
         return agrupar(avaliacoes, this::chaveInstrutor);
@@ -150,6 +177,7 @@ public class RelatorioService {
     }
 
     private Map<String, List<Avaliacao>> agrupar(List<Avaliacao> avaliacoes, Function<Avaliacao, String> keyFn) {
+        if (avaliacoes == null) return Collections.emptyMap();
         return avaliacoes.stream()
                 .collect(Collectors.groupingBy(
                         keyFn,
@@ -159,36 +187,39 @@ public class RelatorioService {
     }
 
     private String chaveCurso(Avaliacao a) {
-        Curso c = a.getCurso();
+        Curso c = a == null ? null : a.getCurso();
         if (c == null) return "Curso ?";
         String nome = c.getNome();
-        return (!nome.isBlank()) ? nome : ("Curso " + c.getId());
+        return (nome != null && !nome.isBlank()) ? nome : ("Curso " + c.getId());
     }
 
     private String chaveInstrutor(Avaliacao a) {
-        Instrutor i = a.getInstrutor();
+        Instrutor i = a == null ? null : a.getInstrutor();
         if (i == null) return "Instrutor ?";
         String nome = i.getNome();
-        return (!nome.isBlank()) ? nome : ("Instrutor " + i.getId());
+        return (nome != null && !nome.isBlank()) ? nome : ("Instrutor " + i.getId());
     }
 
     private String chaveAluno(Avaliacao a) {
-        Aluno al = a.getAluno();
+        Aluno al = a == null ? null : a.getAluno();
         if (al == null) return "Aluno ?";
         String nome = al.getNome();
-        return (!nome.isBlank()) ? nome : ("Aluno " + al.getId());
+        return (nome != null && !nome.isBlank()) ? nome : ("Aluno " + al.getId());
     }
+
 
     private List<Avaliacao> obterAvaliacoesDeInstrutor(String instrutorId) {
         return avaliacaoRepositorio.findByInstrutorId(instrutorId);
     }
+
     private List<Avaliacao> obterAvaliacoesDeCurso(Long cursoID) {
         return avaliacaoRepositorio.findByCursoId(cursoID);
     }
-    
+
     private List<Avaliacao> obterAvaliacoesDeAluno(String alunoId) {
         return avaliacaoRepositorio.findByAlunoId(alunoId);
     }
+
 
     private BigDecimal calcularMediaPonderada(double nota, double freqPercent) {
         double wNota = 0.7;
@@ -200,35 +231,39 @@ public class RelatorioService {
     }
 
     private Double extrairFrequenciaPercentual(Avaliacao a) {
+        if (a == null || a.getNotas() == null) return 0.0;
         return a.getNotas().stream()
-                .filter(n -> n.getPergunta().getTipo() == Pergunta.TipoPergunta.FREQUENCIA)
+                .filter(n -> n != null && n.getPergunta() != null && n.getPergunta().getTipo() == Pergunta.TipoPergunta.FREQUENCIA)
                 .map(Nota::getNota)
-                .findFirst()
+                .filter(Objects::nonNull)
                 .map(Integer::doubleValue)
+                .findFirst()
                 .orElse(0.0);
     }
 
     private Double media(List<Double> valores) {
+        if (valores == null || valores.isEmpty()) return 0.0;
         double soma = 0d;
         for (Double v : valores) {
-            soma += v;
+            soma += (v == null ? 0d : v);
         }
-        return soma/ valores.size();
+        return soma / valores.size();
     }
 
     private BigDecimal mediaPonderadaGrupo(List<Avaliacao> lista) {
+        if (lista == null || lista.isEmpty()) return BigDecimal.ZERO;
         Double mediaNota = media(lista.stream()
                 .map(Avaliacao::getMedia)
-                .toList());
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
         Double mediaFreq = media(lista.stream()
                 .map(this::extrairFrequenciaPercentual)
-                .toList());
+                .collect(Collectors.toList()));
         return calcularMediaPonderada(
                 mediaNota,
                 mediaFreq
         );
     }
-
 
 
     public Relatorio gerarRelatorioCurso(Long cursoId) {
@@ -241,6 +276,7 @@ public class RelatorioService {
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.CURSO);
         r.setDocumento(pdf);
+        r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
 
@@ -257,6 +293,7 @@ public class RelatorioService {
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.INSTRUTOR);
         r.setDocumento(pdf);
+        r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
 
@@ -277,17 +314,17 @@ public class RelatorioService {
             PdfPTable table = criarTabelaDetalhada(widths,
                     new String[]{"Curso", "Instrutor", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
 
-            Status Status = new Status();
+            Status status = new Status();
             for (Avaliacao a : avaliacoes) {
                 String col1 = nomeOuIdCurso(a.getCurso());
                 String col2 = nomeOuIdInstrutor(a.getInstrutor());
                 Metricas m = calcularMetricasLinha(a);
                 adicionarLinhaDetalhada(table, col1, col2, m);
-                acumular(Status, m);
+                acumular(status, m);
             }
 
             db.doc.add(table);
-            adicionarResumo(db.doc, db.fonts, Status);
+            adicionarResumo(db.doc, db.fonts, status);
 
             db.doc.close();
             return db.baos.toByteArray();
@@ -313,17 +350,17 @@ public class RelatorioService {
             PdfPTable table = criarTabelaDetalhada(widths,
                     new String[]{"Aluno", "Instrutor", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
 
-            Status Status = new Status();
+            Status status = new Status();
             for (Avaliacao a : avaliacoes) {
                 String col1 = nomeOuIdAluno(a.getAluno());
                 String col2 = nomeOuIdInstrutor(a.getInstrutor());
                 Metricas m = calcularMetricasLinha(a);
                 adicionarLinhaDetalhada(table, col1, col2, m);
-                acumular(Status, m);
+                acumular(status, m);
             }
 
             db.doc.add(table);
-            adicionarResumo(db.doc, db.fonts, Status);
+            adicionarResumo(db.doc, db.fonts, status);
 
             db.doc.close();
             return db.baos.toByteArray();
@@ -349,17 +386,17 @@ public class RelatorioService {
             PdfPTable table = criarTabelaDetalhada(widths,
                     new String[]{"Curso", "Aluno", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
 
-            Status Status = new Status();
+            Status status = new Status();
             for (Avaliacao a : avaliacoes) {
                 String col1 = nomeOuIdCurso(a.getCurso());
                 String col2 = nomeOuIdAluno(a.getAluno());
                 Metricas m = calcularMetricasLinha(a);
                 adicionarLinhaDetalhada(table, col1, col2, m);
-                acumular(Status, m);
+                acumular(status, m);
             }
 
             db.doc.add(table);
-            adicionarResumo(db.doc, db.fonts, Status);
+            adicionarResumo(db.doc, db.fonts, status);
 
             db.doc.close();
             return db.baos.toByteArray();
@@ -386,11 +423,11 @@ public class RelatorioService {
 
                 Double mediaNota = media(lista.stream()
                         .map(a -> Optional.ofNullable(a.getMedia()).orElse(0d))
-                        .toList());
+                        .collect(Collectors.toList()));
 
                 Double mediaFreq = media(lista.stream()
                         .map(this::extrairFrequenciaPercentual)
-                        .toList());
+                        .collect(Collectors.toList()));
 
                 BigDecimal mediaPond = calcularMediaPonderada(mediaNota, mediaFreq);
 
@@ -407,7 +444,7 @@ public class RelatorioService {
                 adicionarCell(table, nomeGrupo);
                 adicionarCell(table, String.valueOf(mediaNota));
                 adicionarCell(table, String.valueOf(mediaFreq));
-                adicionarCell(table, String.valueOf(mediaPond));
+                adicionarCell(table, mediaPond.toPlainString());
                 adicionarCell(table, String.valueOf(pos));
                 adicionarCell(table, String.valueOf(neu));
                 adicionarCell(table, String.valueOf(neg));
@@ -421,6 +458,7 @@ public class RelatorioService {
             throw new RuntimeException("Erro ao gerar PDF", e);
         }
     }
+
 
     private void adicionarHeader(PdfPTable table, String texto) {
         PdfPCell cell = new PdfPCell(new Paragraph(texto, new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD)));
@@ -438,6 +476,7 @@ public class RelatorioService {
         final Font h1;
         final Font h2;
         final Font normal;
+
         Fontes() {
             this.h1 = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
             this.h2 = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
@@ -449,8 +488,11 @@ public class RelatorioService {
         final Document doc;
         final ByteArrayOutputStream baos;
         final Fontes fonts;
+
         Doc(Document d, ByteArrayOutputStream b, Fontes f) {
-            this.doc = d; this.baos = b; this.fonts = f;
+            this.doc = d;
+            this.baos = b;
+            this.fonts = f;
         }
     }
 
@@ -460,8 +502,13 @@ public class RelatorioService {
         final BigDecimal pond;
         final Sentimento sentimento;
         final String feedbackResumo;
+
         Metricas(Double mediaNota, double freq, BigDecimal pond, Sentimento sentimento, String feedbackResumo) {
-            this.mediaNota = mediaNota; this.freq = freq; this.pond = pond; this.sentimento = sentimento; this.feedbackResumo = feedbackResumo;
+            this.mediaNota = mediaNota;
+            this.freq = freq;
+            this.pond = pond;
+            this.sentimento = sentimento;
+            this.feedbackResumo = feedbackResumo;
         }
     }
 
@@ -531,15 +578,15 @@ public class RelatorioService {
         s.freqs.add(m.freq);
     }
 
-    private void adicionarResumo(Document doc, Fontes fonts, Status Status) throws Exception {
+    private void adicionarResumo(Document doc, Fontes fonts, Status status) throws Exception {
         doc.add(new Paragraph("\nResumo", fonts.h2));
-        BigDecimal mediaNotasGeral = BigDecimal.valueOf(media(Status.notas)).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal mediaFreqsGeral = BigDecimal.valueOf(media(Status.freqs)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal mediaNotasGeral = BigDecimal.valueOf(media(status.notas)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal mediaFreqsGeral = BigDecimal.valueOf(media(status.freqs)).setScale(2, RoundingMode.HALF_UP);
         BigDecimal pondGeral = calcularMediaPonderada(mediaNotasGeral.doubleValue(), mediaFreqsGeral.doubleValue());
         doc.add(new Paragraph("Média das Notas: " + mediaNotasGeral.toPlainString(), fonts.normal));
         doc.add(new Paragraph("Média de Frequência (%): " + mediaFreqsGeral.toPlainString(), fonts.normal));
         doc.add(new Paragraph("Média Ponderada Geral: " + pondGeral.toPlainString(), fonts.normal));
-        doc.add(new Paragraph("Sentimentos — Positivos: " + Status.pos + ", Neutros: " + Status.neu + ", Negativos: " + Status.neg, fonts.normal));
+        doc.add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal));
     }
 
     private String nomeOuIdCurso(Curso c) {
@@ -589,13 +636,143 @@ public class RelatorioService {
     }
 
     private Integer extrairFeedbackNumerico(Avaliacao a) {
-        if (a.getNotas() == null) return null;
+        if (a == null || a.getNotas() == null) return null;
         return a.getNotas().stream()
+                .filter(Objects::nonNull)
                 .map(Nota::getNota)
-                .filter(v -> v >= 1 && v <= 5)
+                .filter(v -> v != null && v >= 1 && v <= 5)
                 .findFirst()
                 .orElse(null);
     }
 
     private enum Sentimento { POSITIVO, NEUTRO, NEGATIVO }
+    public void exportarCsv(File destino) {
+        try (CSVWriter writer = new CSVWriter(new FileWriter(destino))) {
+            String[] header = {"avaliacaoId", "cursoNome", "instrutorNome", "alunoNome", "notaMedia", "data"};
+            writer.writeNext(header);
+
+            List<Avaliacao> avaliacoes = avaliacaoRepositorio.findAll();
+            for (Avaliacao a : avaliacoes) {
+                String id = a.getId() != null ? String.valueOf(a.getId()) : "";
+                String curso = Optional.ofNullable(a.getCurso()).map(Curso::getNome).orElse("");
+                String instrutor = Optional.ofNullable(a.getInstrutor()).map(Instrutor::getNome).orElse("");
+                String aluno = Optional.ofNullable(a.getAluno()).map(Aluno::getNome).orElse("");
+                double media = 0.0;
+                if (a.getNotas() != null && !a.getNotas().isEmpty()) {
+                    double soma = 0.0;
+                    int cont = 0;
+                    for (Nota n : a.getNotas()) {
+                        if (n != null && n.getNota() != null) {
+                            soma += n.getNota().doubleValue();
+                            cont++;
+                        }
+                    }
+                    if (cont > 0) media = soma / cont;
+                }
+                String data = Optional.ofNullable(a.getData()).map(Object::toString).orElse("");
+                String[] row = {id, curso, instrutor, aluno, String.format(Locale.US, "%.2f", media), data};
+                writer.writeNext(row);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao exportar CSV de avaliações", e);
+        }
+    }
+
+
+    private byte[] gerarGraficoMediaPorCursoBytes(int largura, int altura) {
+        try {
+            List<Avaliacao> avaliacoes = avaliacaoRepositorio.findAll();
+
+            Map<String, double[]> somaCont = new HashMap<>();
+            for (Avaliacao a : avaliacoes) {
+                String cursoNome = Optional.ofNullable(a.getCurso()).map(Curso::getNome).orElse("Curso ?");
+                double soma = 0;
+                int cont = 0;
+                if (a.getNotas() != null) {
+                    for (Nota n : a.getNotas()) {
+                        if (n != null && n.getNota() != null) {
+                            soma += n.getNota().doubleValue();
+                            cont++;
+                        }
+                    }
+                }
+                somaCont.computeIfAbsent(cursoNome, k -> new double[]{0.0, 0.0});
+                somaCont.get(cursoNome)[0] += soma;
+                somaCont.get(cursoNome)[1] += cont;
+            }
+
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            for (Map.Entry<String, double[]> e : somaCont.entrySet()) {
+                double soma = e.getValue()[0];
+                double cont = e.getValue()[1];
+                double media = (cont == 0) ? 0.0 : (soma / cont);
+                dataset.addValue(media, "Média", e.getKey());
+            }
+
+            JFreeChart chart = ChartFactory.createBarChart(
+                    "Média de Avaliações por Curso",
+                    "Curso",
+                    "Média (1-5)",
+                    dataset
+            );
+
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                ChartUtils.writeChartAsPNG(baos, chart, largura, altura);
+                return baos.toByteArray();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar gráfico", e);
+        }
+    }
+
+
+    public void exportarPdfComGraficos(File destino) {
+        try {
+            try (OutputStream out = Files.newOutputStream(destino.toPath())) {
+                Document document = new Document();
+                PdfWriter.getInstance(document, out);
+                document.open();
+
+                Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+                Paragraph title = new Paragraph("Relatório de Avaliações - Com Gráfico", titleFont);
+                title.setAlignment(Element.ALIGN_CENTER);
+                document.add(title);
+                document.add(new Paragraph(" "));
+
+                List<Avaliacao> avaliacoes = avaliacaoRepositorio.findAll();
+                int totalAvaliacoes = avaliacoes.size();
+                double somaAll = 0.0;
+                int countAll = 0;
+                for (Avaliacao a : avaliacoes) {
+                    if (a.getNotas() != null) {
+                        for (Nota n : a.getNotas()) {
+                            if (n != null && n.getNota() != null) {
+                                somaAll += n.getNota().doubleValue();
+                                countAll++;
+                            }
+                        }
+                    }
+                }
+                double mediaGeral = (countAll == 0) ? 0.0 : somaAll / countAll;
+
+                Paragraph stats = new Paragraph(
+                        String.format(Locale.US, "Total de avaliações: %d\nMédia geral: %.2f", totalAvaliacoes, mediaGeral)
+                );
+                document.add(stats);
+                document.add(new Paragraph(" "));
+
+                byte[] grafico = gerarGraficoMediaPorCursoBytes(800, 400);
+                if (grafico != null && grafico.length > 0) {
+                    Image img = Image.getInstance(grafico);
+                    img.scaleToFit(520, 260);
+                    img.setAlignment(Element.ALIGN_CENTER);
+                    document.add(img);
+                }
+
+                document.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao exportar PDF com gráficos", e);
+        }
+    }
 }

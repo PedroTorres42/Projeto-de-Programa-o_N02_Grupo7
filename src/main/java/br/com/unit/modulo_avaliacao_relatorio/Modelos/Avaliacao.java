@@ -47,4 +47,11 @@ public class Avaliacao {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "formulario_id", nullable = false)
     private Formulario formulario;
+
+    @PrePersist
+    private void prePersist() {
+        if (this.data == null) {
+            this.data = LocalDate.now();
+        }
+    }
 }

@@ -20,33 +20,31 @@ public class AvaliacaoService {
     public Avaliacao salvarAvaliacao(Long avaliacaoId) {
         Avaliacao avaliacao = avaliacaoRepositorio.findById(avaliacaoId)
                 .orElseThrow(() -> new RuntimeException("Avaliação não encontrada"));
-
         if (avaliacao.getData() == null) {
             avaliacao.setData(LocalDate.now());
         }
 
-        List<Nota> respostas = notaRespositorio.buscarRespostasPorAvaliacao(avaliacaoId);
-
-        if (!respostas.isEmpty()) {
-            double mediaCalculada = respostas.stream()
-                    .filter(r -> r.getNota() != null)
+        if (avaliacao.getNota() < 0 || avaliacao.getNota() > 10) {
+            throw new IllegalArgumentException("A nota deve estar entre 0 e 10.");
                     .mapToDouble(Nota::getNota)
                     .average()
                     .orElse(0.0);
             avaliacao.setMedia(mediaCalculada);
-
-            String comentarios = respostas.stream()
-                    .map(r -> r.getPergunta().getTexto() + ": " + r.getNota())
-                    .reduce((c1, c2) -> c1 + "; " + c2)
-                    .orElse("");
-            avaliacao.getFeedback().setComentario(comentarios);
         }
 
-        if (avaliacao.getMedia() < 0 || avaliacao.getMedia() > 10) {
+        if (avaliacao.getNotas() != null) {
+            avaliacao.getNotas().forEach(n -> n.setAvaliacao(avaliacao));
+        }
+
+       
+        if (avaliacao.getFeedback() != null) {
+            Feedback fb = avaliacao.getFeedback();
+            fb.setAvaliacao(avaliacao);
+        }
+
+        if (avaliacao.getMedia() != null && (avaliacao.getMedia() < 0 || avaliacao.getMedia() > 10)) {
             throw new IllegalArgumentException("A média deve ser entre 0 e 10.");
-        }
-        if (avaliacao.getFeedback().getComentario() == null || avaliacao.getFeedback().getComentario().isEmpty()) {
-            throw new IllegalArgumentException("O comentário não pode estar vazio.");
+
         }
 
         return avaliacaoRepositorio.save(avaliacao);

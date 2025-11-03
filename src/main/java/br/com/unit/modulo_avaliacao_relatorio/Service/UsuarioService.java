@@ -7,8 +7,7 @@ import br.com.unit.modulo_avaliacao_relatorio.Modelos.Usuario;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.UsuarioRepositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,4 +38,18 @@ public class UsuarioService {
     public void deletarUsuario(String id) {
         usuarioRepositorio.deleteById(id);
     }
+
+    public List<Aluno> listarAlunos() {
+    return usuarioRepositorio.findAll().stream()
+        .filter(u -> u instanceof Aluno)
+        .map(u -> (Aluno) u)
+        .collect(Collectors.toList());
+}
+
+public List<Instrutor> listarInstrutores() {
+    return usuarioRepositorio.findAll().stream()
+        .filter(u -> u instanceof Instrutor)
+        .map(u -> (Instrutor) u)
+        .collect(Collectors.toList());
+}
 }

@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pergunta {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -20,10 +21,12 @@ public class Pergunta {
     @Column(nullable = false)
     private String texto;
 
+
     @OneToMany(mappedBy = "pergunta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Nota> notas;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pergunta", nullable = false)
     private TipoPergunta tipo;
 
     public enum TipoPergunta {
@@ -34,5 +37,4 @@ public class Pergunta {
     @ManyToOne
     @JoinColumn(name = "formulario_id")
     private Formulario formulario;
-
 }
