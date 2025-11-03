@@ -240,13 +240,10 @@ public class RelatorioService {
     }
 
     private Double extrairFrequenciaPercentual(Avaliacao a) {
-        if (a == null || a.getNotas() == null) return 0.0;
-        return a.getNotas().stream()
-                .filter(n -> n != null && n.getPergunta() != null && n.getPergunta().getTipo() == Pergunta.TipoPergunta.FREQUENCIA)
-                .map(Nota::getNota)
-                .filter(Objects::nonNull)
+        if (a == null) return 0.0;
+        
+        return notaRespositorio.findFrequenciaByAvaliacao(a)
                 .map(Integer::doubleValue)
-                .findFirst()
                 .orElse(0.0);
     }
 
