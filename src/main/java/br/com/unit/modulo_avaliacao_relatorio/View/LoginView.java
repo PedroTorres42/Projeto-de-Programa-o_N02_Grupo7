@@ -21,6 +21,9 @@ public class LoginView extends JFrame {
     
     @Autowired
     private InicialView inicialView;
+    
+    @Autowired
+    private MenuView menuView;
 
     public LoginView(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
@@ -143,10 +146,18 @@ public class LoginView extends JFrame {
                 "Sucesso",
                 JOptionPane.INFORMATION_MESSAGE);
             
-            // TODO: Redirecionar para a tela principal do sistema
-            // Por enquanto, apenas fecha a tela de login
+            // Abrir o menu com o usuário logado e ocultar a tela de login
             limparCampos();
             this.setVisible(false);
+            if (menuView != null) {
+                menuView.setUsuarioAtual(usuario);
+                menuView.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Menu não disponível. Não foi possível abrir o menu após o login.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            }
             
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,

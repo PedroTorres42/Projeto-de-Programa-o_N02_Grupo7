@@ -34,6 +34,9 @@ public class CadastroView extends JFrame {
     @Autowired
     private InicialView inicialView;
     
+    @Autowired
+    private MenuView menuView;
+    
     public CadastroView(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
         initComponents();
@@ -398,8 +401,18 @@ public class CadastroView extends JFrame {
                 "Cadastro realizado",
                 JOptionPane.INFORMATION_MESSAGE);
             
-            // Limpar campos
+            // Após cadastro, abrir o Menu com o usuário recém-criado
             limparCampos();
+            this.setVisible(false);
+            if (menuView != null) {
+                menuView.setUsuarioAtual(usuario);
+                menuView.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Menu não disponível. Não foi possível abrir o menu após o cadastro.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            }
             
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
