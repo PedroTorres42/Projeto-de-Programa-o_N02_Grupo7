@@ -140,7 +140,6 @@ public class AvaliacaoView extends JFrame {
             avaliacao.setCurso(curso);
             avaliacao.setFormulario(formulario);
 
-            // >>> aqui é a correção: o método retorna Avaliacao
             Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
             JOptionPane.showMessageDialog(this, "Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"));
 

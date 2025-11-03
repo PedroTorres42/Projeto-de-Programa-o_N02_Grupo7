@@ -5,14 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-<<<<<<< Updated upstream
-@Table(name = "perguntas")
-=======
 import java.util.List;
 
->>>>>>> Stashed changes
-@Entity
 @Table(name = "perguntas")
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,8 +21,7 @@ public class Pergunta {
     @Column(nullable = false)
     private String texto;
 
-<<<<<<< Updated upstream
-=======
+
     @OneToMany(mappedBy = "pergunta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Nota> notas;
 
@@ -39,7 +34,6 @@ public class Pergunta {
         OUTRO
     }
 
->>>>>>> Stashed changes
     @ManyToOne
     @JoinColumn(name = "formulario_id")
     private Formulario formulario;

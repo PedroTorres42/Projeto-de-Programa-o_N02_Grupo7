@@ -49,7 +49,6 @@ public class RelatorioService {
         this.formularioRepositorio = formularioRepositorio;
     }
 
-    /* ---------------------- CRUD Relatorio ---------------------- */
 
     public Relatorio pegarRelatorioPorId(Long id) {
         return relatorioRepositorio.findById(id)
@@ -83,7 +82,6 @@ public class RelatorioService {
         relatorioRepositorio.deleteById(id);
     }
 
-    /* ---------------------- Geração de relatórios (alta-nível) ---------------------- */
 
     public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
@@ -165,7 +163,6 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
-    /* ---------------------- Agrupamentos utilitários ---------------------- */
 
     private Map<String, List<Avaliacao>> agruparPorInstrutor(List<Avaliacao> avaliacoes) {
         return agrupar(avaliacoes, this::chaveInstrutor);
@@ -210,7 +207,6 @@ public class RelatorioService {
         return (nome != null && !nome.isBlank()) ? nome : ("Aluno " + al.getId());
     }
 
-    /* ---------------------- Obtenção de avaliações (dependente do repositório) ---------------------- */
 
     private List<Avaliacao> obterAvaliacoesDeInstrutor(String instrutorId) {
         return avaliacaoRepositorio.findByInstrutorId(instrutorId);
@@ -224,7 +220,6 @@ public class RelatorioService {
         return avaliacaoRepositorio.findByAlunoId(alunoId);
     }
 
-    /* ---------------------- Cálculos e métricas ---------------------- */
 
     private BigDecimal calcularMediaPonderada(double nota, double freqPercent) {
         double wNota = 0.7;
@@ -270,7 +265,6 @@ public class RelatorioService {
         );
     }
 
-    /* ---------------------- Montagem de PDFs (detalhado) ---------------------- */
 
     public Relatorio gerarRelatorioCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
@@ -465,7 +459,6 @@ public class RelatorioService {
         }
     }
 
-    /* ---------------------- Helpers PDF / Tabela ---------------------- */
 
     private void adicionarHeader(PdfPTable table, String texto) {
         PdfPCell cell = new PdfPCell(new Paragraph(texto, new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD)));
@@ -614,7 +607,6 @@ public class RelatorioService {
         return (nome != null && !nome.isBlank()) ? nome : ("Aluno " + a.getId());
     }
 
-    /* ---------------------- Análise de sentimento / utilitários ---------------------- */
 
     private Sentimento analisarSentimentoTexto(String texto) {
         if (texto == null || texto.isBlank()) return Sentimento.NEUTRO;
@@ -654,9 +646,6 @@ public class RelatorioService {
     }
 
     private enum Sentimento { POSITIVO, NEUTRO, NEGATIVO }
-
-    /* ---------------------- Export CSV ---------------------- */
-
     public void exportarCsv(File destino) {
         try (CSVWriter writer = new CSVWriter(new FileWriter(destino))) {
             String[] header = {"avaliacaoId", "cursoNome", "instrutorNome", "alunoNome", "notaMedia", "data"};
@@ -689,7 +678,6 @@ public class RelatorioService {
         }
     }
 
-    /* ---------------------- Gráfico (JFreeChart) ---------------------- */
 
     private byte[] gerarGraficoMediaPorCursoBytes(int largura, int altura) {
         try {
@@ -737,7 +725,6 @@ public class RelatorioService {
         }
     }
 
-    /* ---------------------- PDF com Gráfico ---------------------- */
 
     public void exportarPdfComGraficos(File destino) {
         try {

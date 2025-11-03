@@ -1,13 +1,9 @@
 package br.com.unit.modulo_avaliacao_relatorio.Modelos;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-
 import java.time.LocalDate;
 import java.util.List;
-
 
 @Entity
 @Table(name = "avaliacoes")
@@ -15,31 +11,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Avaliacao {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @CreatedDate
     @Column(updatable = false)
     private LocalDate data;
 
     @Column(nullable = false)
     private Double media;
 
-<<<<<<< Updated upstream
-    @Column(length = 1000, nullable = false)
-    private String comentario;
-=======
-    /**
-     * Novo campo para suportar setComentario(String) usado na View.
-     */
-    @Column(columnDefinition = "TEXT")
-    private String comentario;
-
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
->>>>>>> Stashed changes
 
     @ManyToOne
     @JoinColumn(name = "aluno_id")
@@ -54,14 +39,14 @@ public class Avaliacao {
     private Curso curso;
 
     @OneToMany(mappedBy = "avaliacao", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Resposta> respostas;
+    private List<Nota> notas;
+
+    @OneToOne(mappedBy = "avaliacao", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Feedback feedback;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "formulario_id", nullable = false)
     private Formulario formulario;
-<<<<<<< Updated upstream
-}
-=======
 
     @PrePersist
     private void prePersist() {
@@ -70,4 +55,3 @@ public class Avaliacao {
         }
     }
 }
->>>>>>> Stashed changes

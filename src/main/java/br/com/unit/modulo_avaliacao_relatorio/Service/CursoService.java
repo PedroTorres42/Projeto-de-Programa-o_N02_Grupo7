@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-@ServiceProjeto-de-Programa-o_N02_Grupo7/src/main/java/Servicos/AvaliacaoService.java Projeto-de-Programa-o_N02_Grupo7/src/main/java/Servicos/CursoService.java Projeto-de-Programa-o_N02_Grupo7/src/main/java/Servicos/FormularioService.java Projeto-de-Programa-o_N02_Grupo7/src/main/java/Servicos/RelatorioService.java Projeto-de-Programa-o_N02_Grupo7/src/main/java/Servicos/UsuarioService.java
+@Service
 @RequiredArgsConstructor
 public class CursoService {
 
@@ -29,12 +29,12 @@ public class CursoService {
     }
 
 
-    public Optional<Curso> buscarPorId(String id) {
+    public Optional<Curso> buscarPorId(Long id) {
         return cursoRepositorio.findById(id);
     }
 
 
-    public void deletarCurso(String id) {
+    public void deletarCurso(Long id) {
         cursoRepositorio.deleteById(id);
     }
 }
