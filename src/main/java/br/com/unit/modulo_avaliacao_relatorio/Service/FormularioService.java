@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -63,5 +65,41 @@ public class FormularioService {
         }
         formulario.setPerguntas(perguntas);
         return formularioRepositorio.save(formulario);
+    }
+
+    public Formulario obterOuCriarFormularioAlunoPadrao() {
+        final String titulo = "Avaliação do Curso e Instrutor (Aluno)";
+        Optional<Formulario> existente = formularioRepositorio.findByTituloAndTipo(
+                titulo, Formulario.TipoFormulario.ALUNO);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        // Cria perguntas padronizadas (escala 1 a 5)
+        List<Pergunta> perguntas = new ArrayList<>();
+        perguntas.add(novaPergunta("Qualidade do conteúdo"));
+        perguntas.add(novaPergunta("Didática do instrutor"));
+        perguntas.add(novaPergunta("Carga horária"));
+        perguntas.add(novaPergunta("Organização"));
+        perguntas.add(novaPergunta("Avaliação geral"));
+
+        Formulario formulario = new Formulario();
+        formulario.setTitulo(titulo);
+        formulario.setTipo(Formulario.TipoFormulario.ALUNO);
+
+        // owning side das perguntas
+        for (Pergunta p : perguntas) {
+            p.setFormulario(formulario);
+        }
+        formulario.setPerguntas(perguntas);
+
+        return formularioRepositorio.save(formulario);
+    }
+
+    private Pergunta novaPergunta(String texto) {
+        Pergunta p = new Pergunta();
+        p.setTexto(texto);
+        p.setTipo(Pergunta.TipoPergunta.OUTRO);
+        return p;
     }
 }
