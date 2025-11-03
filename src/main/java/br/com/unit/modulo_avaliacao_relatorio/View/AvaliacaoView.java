@@ -3,11 +3,17 @@ package br.com.unit.modulo_avaliacao_relatorio.View;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.*;
 import br.com.unit.modulo_avaliacao_relatorio.Service.*;
 import javax.swing.*;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+@Lazy
+@Component
 public class AvaliacaoView extends JFrame {
 
     private JTextField campoMedia;
