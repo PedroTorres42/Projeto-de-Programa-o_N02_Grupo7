@@ -22,6 +22,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
@@ -39,6 +41,9 @@ public class RelatorioService {
     private final CursoRepositorio cursoRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
     private final NotaRespositorio notaRespositorio;
+
+    // Larguras padrão das tabelas detalhadas (7 colunas)
+    private static final float[] WIDTHS_DETALHADO = new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
 
     @Transactional(readOnly = true)
     public Relatorio pegarRelatorioPorId(Long id) {
@@ -158,7 +163,18 @@ public class RelatorioService {
         }
 
         List<Avaliacao> avaliacoes = obterAvaliacoesDeAluno(alunoId);
-        byte[] pdf = montarPdfAluno(u, avaliacoes);
+    String nomeAluno = Optional.ofNullable(u.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
+    String subtitulo = "Aluno: " + nomeAluno + " (ID: " + u.getId() + ")";
+    byte[] pdf = montarPdfDetalhado(
+        "Relatório de Desempenho do Aluno",
+        subtitulo,
+        "Não há avaliações registradas para este aluno.",
+        "Curso",
+        "Instrutor",
+        a -> nomeOuIdCurso(a.getCurso()),
+        a -> nomeOuIdInstrutor(a.getInstrutor()),
+        avaliacoes
+    );
 
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.ALUNO);
@@ -173,7 +189,7 @@ public class RelatorioService {
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(cursoId);
 
-        byte[] pdf = montarPdfComparativo(
+    byte[] pdf = montarPdfComparativo(
                 "Relatório de Alunos do Curso",
                 "Curso: " + Optional.ofNullable(curso.getNome()).orElse("ID " + cursoId),
                 agruparPorAluno(avaliacoes)
@@ -211,23 +227,17 @@ public class RelatorioService {
 
     private String chaveCurso(Avaliacao a) {
         Curso c = a == null ? null : a.getCurso();
-        if (c == null) return "Curso ?";
-        String nome = c.getNome();
-        return (nome != null && !nome.isBlank()) ? nome : ("Curso " + c.getId());
+        return c != null ? nomeOuIdCurso(c) : "Curso ?";
     }
 
     private String chaveInstrutor(Avaliacao a) {
         Instrutor i = a == null ? null : a.getInstrutor();
-        if (i == null) return "Instrutor ?";
-        String nome = i.getNome();
-        return (nome != null && !nome.isBlank()) ? nome : ("Instrutor " + i.getId());
+        return i != null ? nomeOuIdInstrutor(i) : "Instrutor ?";
     }
 
     private String chaveAluno(Avaliacao a) {
         Aluno al = a == null ? null : a.getAluno();
-        if (al == null) return "Aluno ?";
-        String nome = al.getNome();
-        return (nome != null && !nome.isBlank()) ? nome : ("Aluno " + al.getId());
+        return al != null ? nomeOuIdAluno(al) : "Aluno ?";
     }
 
 
@@ -319,99 +329,62 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
-    private byte[] montarPdfAluno(Usuario aluno, List<Avaliacao> avaliacoes) {
-        try {
-            Doc db = iniciarPdf();
-            String nomeAluno = Optional.ofNullable(aluno.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
-            adicionarTituloCabecalho(db.doc(), db.fonts(), "Relatório de Desempenho do Aluno",
-                    "Aluno: " + nomeAluno + " (ID: " + aluno.getId() + ")");
-
-            if (avaliacoes == null || avaliacoes.isEmpty()) {
-                db.doc().add(new Paragraph("Não há avaliações registradas para este aluno.", db.fonts().normal()));
-                db.doc().close();
-                return db.baos().toByteArray();
-            }
-
-            float[] widths = new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
-            PdfPTable table = criarTabelaDetalhada(widths,
-                    new String[]{"Curso", "Instrutor", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
-
-            Status status = new Status();
-            for (Avaliacao a : avaliacoes) {
-                String col1 = nomeOuIdCurso(a.getCurso());
-                String col2 = nomeOuIdInstrutor(a.getInstrutor());
-                Metricas m = calcularMetricasLinha(a);
-                adicionarLinhaDetalhada(table, col1, col2, m);
-                acumular(status, m);
-            }
-
-            db.doc().add(table);
-            adicionarResumo(db.doc(), db.fonts(), status);
-
-            db.doc().close();
-            return db.baos().toByteArray();
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar PDF do aluno", e);
-        }
-    }
-
     private byte[] montarPdfCurso(Curso curso, List<Avaliacao> avaliacoes) {
-        try {
-            Doc db = iniciarPdf();
-            String nomeCurso = Optional.ofNullable(curso.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
-            adicionarTituloCabecalho(db.doc(), db.fonts(), "Relatório Detalhado do Curso",
-                    "Curso: " + nomeCurso + " (ID: " + curso.getId() + ")");
-
-            if (avaliacoes == null || avaliacoes.isEmpty()) {
-                db.doc().add(new Paragraph("Não há avaliações registradas para este curso.", db.fonts().normal()));
-                db.doc().close();
-                return db.baos().toByteArray();
-            }
-
-            float[] widths = new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
-            PdfPTable table = criarTabelaDetalhada(widths,
-                    new String[]{"Aluno", "Instrutor", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
-
-            Status status = new Status();
-            for (Avaliacao a : avaliacoes) {
-                String col1 = nomeOuIdAluno(a.getAluno());
-                String col2 = nomeOuIdInstrutor(a.getInstrutor());
-                Metricas m = calcularMetricasLinha(a);
-                adicionarLinhaDetalhada(table, col1, col2, m);
-                acumular(status, m);
-            }
-
-            db.doc().add(table);
-            adicionarResumo(db.doc(), db.fonts(), status);
-
-            db.doc().close();
-            return db.baos().toByteArray();
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar PDF do curso", e);
-        }
+        String nomeCurso = Optional.ofNullable(curso.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
+        String subtitulo = "Curso: " + nomeCurso + " (ID: " + curso.getId() + ")";
+        return montarPdfDetalhado(
+                "Relatório Detalhado do Curso",
+                subtitulo,
+                "Não há avaliações registradas para este curso.",
+                "Aluno",
+                "Instrutor",
+                a -> nomeOuIdAluno(a.getAluno()),
+                a -> nomeOuIdInstrutor(a.getInstrutor()),
+                avaliacoes
+        );
     }
 
     private byte[] montarPdfInstrutor(Usuario instrutor, List<Avaliacao> avaliacoes) {
+        String nomeInstrutor = Optional.ofNullable(instrutor.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
+        String subtitulo = "Instrutor: " + nomeInstrutor + " (ID: " + instrutor.getId() + ")";
+        return montarPdfDetalhado(
+                "Relatório Detalhado do Instrutor",
+                subtitulo,
+                "Não há avaliações registradas para este instrutor.",
+                "Curso",
+                "Aluno",
+                a -> nomeOuIdCurso(a.getCurso()),
+                a -> nomeOuIdAluno(a.getAluno()),
+                avaliacoes
+        );
+    }
+
+    // Método genérico para reduzir duplicação entre PDFs detalhados
+    private byte[] montarPdfDetalhado(String titulo,
+                                      String subtitulo,
+                                      String mensagemVazio,
+                                      String col1Label,
+                                      String col2Label,
+                                      Function<Avaliacao, String> col1Fn,
+                                      Function<Avaliacao, String> col2Fn,
+                                      List<Avaliacao> avaliacoes) {
         try {
             Doc db = iniciarPdf();
-            String nomeInstrutor = Optional.ofNullable(instrutor.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
-            adicionarTituloCabecalho(db.doc(), db.fonts(), "Relatório Detalhado do Instrutor",
-                    "Instrutor: " + nomeInstrutor + " (ID: " + instrutor.getId() + ")");
+            adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
 
             if (avaliacoes == null || avaliacoes.isEmpty()) {
-                db.doc().add(new Paragraph("Não há avaliações registradas para este instrutor.", db.fonts().normal()));
+                db.doc().add(new Paragraph(mensagemVazio, db.fonts().normal()));
                 db.doc().close();
                 return db.baos().toByteArray();
             }
 
-            float[] widths = new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
-            PdfPTable table = criarTabelaDetalhada(widths,
-                    new String[]{"Curso", "Aluno", "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"});
+            String[] headers = new String[]{col1Label, col2Label, "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"};
+            PdfPTable table = criarTabelaDetalhada(WIDTHS_DETALHADO, headers);
 
             Status status = new Status();
             for (Avaliacao a : avaliacoes) {
-                String col1 = nomeOuIdCurso(a.getCurso());
-                String col2 = nomeOuIdAluno(a.getAluno());
+                String col1 = col1Fn.apply(a);
+                String col2 = col2Fn.apply(a);
                 Metricas m = calcularMetricasLinha(a);
                 adicionarLinhaDetalhada(table, col1, col2, m);
                 acumular(status, m);
@@ -423,7 +396,7 @@ public class RelatorioService {
             db.doc().close();
             return db.baos().toByteArray();
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar PDF do instrutor", e);
+            throw new RuntimeException("Erro ao gerar PDF", e);
         }
     }
 
@@ -570,22 +543,25 @@ public class RelatorioService {
         doc.add(new Paragraph("Média Ponderada Geral: " + pondGeral.toPlainString(), fonts.normal()));
         doc.add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal()));
     }
+    // Helper genérico para reduzir duplicação
+    private <T> String nomeOuIdGenerico(T entidade, Function<T, String> nomeFn, Function<T, Object> idFn, String tipo) {
+        if (entidade == null) return tipo + " ?";
+        String nome = nomeFn.apply(entidade);
+        if (nome != null && !nome.isBlank()) return nome;
+        Object id = idFn.apply(entidade);
+        return tipo + " " + (id != null ? id.toString() : "?");
+    }
+
     private String nomeOuIdCurso(Curso c) {
-        if (c == null) return "Curso ?";
-        String nome = c.getNome();
-        return (nome != null && !nome.isBlank()) ? nome : ("Curso " + c.getId());
+        return nomeOuIdGenerico(c, Curso::getNome, Curso::getId, "Curso");
     }
 
     private String nomeOuIdInstrutor(Instrutor i) {
-        if (i == null) return "Instrutor ?";
-        String nome = i.getNome();
-        return (nome != null && !nome.isBlank()) ? nome : ("Instrutor " + i.getId());
+        return nomeOuIdGenerico(i, Instrutor::getNome, Instrutor::getId, "Instrutor");
     }
 
     private String nomeOuIdAluno(Aluno a) {
-        if (a == null) return "Aluno ?";
-        String nome = a.getNome();
-        return (nome != null && !nome.isBlank()) ? nome : ("Aluno " + a.getId());
+        return nomeOuIdGenerico(a, Aluno::getNome, Aluno::getId, "Aluno");
     }
 
 
@@ -713,5 +689,60 @@ public class RelatorioService {
         return new Paragraph(String.format(Locale.US, "Total de avaliações: %d\nMédia geral: %.2f", totalAvaliacoes, mediaGeral));
     }
 
+    // ====== PDF por avaliação (individual) ======
+    @Transactional(readOnly = true)
+    public void exportarPdfDaAvaliacao(Long avaliacaoId, File destino) {
+        Avaliacao a = avaliacaoRepositorio.findById(avaliacaoId)
+                .orElseThrow(() -> new RuntimeException("Avaliação não encontrada"));
+        byte[] pdf = montarPdfAvaliacaoUnica(a);
+        try {
+            Path p = destino.toPath();
+            Files.createDirectories(p.getParent() != null ? p.getParent() : destino.toPath().toAbsolutePath().getParent());
+            Files.write(p, pdf, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar PDF da avaliação", e);
+        }
+    }
+
+    private byte[] montarPdfAvaliacaoUnica(Avaliacao a) {
+        try {
+            Doc db = iniciarPdf();
+            String titulo = "Avaliação";
+            String subtitulo = String.format("Aluno: %s | Curso: %s | Instrutor: %s | ID: %s",
+                    nomeOuIdAluno(a.getAluno()),
+                    nomeOuIdCurso(a.getCurso()),
+                    nomeOuIdInstrutor(a.getInstrutor()),
+                    Optional.ofNullable(a.getId()).map(Object::toString).orElse("—"));
+
+            adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
+
+            // Tabela de perguntas e notas
+            float[] widths = new float[]{4f, 1f};
+            PdfPTable table = criarTabelaDetalhada(widths, new String[]{"Pergunta", "Nota"});
+            List<Nota> notas = Optional.ofNullable(a.getNotas()).orElse(Collections.emptyList());
+            for (Nota n : notas) {
+                String pergunta = Optional.ofNullable(n.getPergunta()).map(Pergunta::getTexto).orElse("—");
+                String notaStr = Optional.ofNullable(n.getNota()).map(Object::toString).orElse("—");
+                adicionarCell(table, pergunta);
+                adicionarCell(table, notaStr);
+            }
+            db.doc().add(table);
+
+            // Comentário
+            db.doc().add(new Paragraph("\nFeedback:", db.fonts().h2()));
+            String fb = Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse("—");
+            db.doc().add(new Paragraph(fb, db.fonts().normal()));
+
+            // Média (se disponível)
+            if (a.getMedia() != null) {
+                db.doc().add(new Paragraph("\nMédia informada: " + a.getMedia(), db.fonts().normal()));
+            }
+
+            db.doc().close();
+            return db.baos().toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar PDF da avaliação", e);
+        }
+    }
     
 }
