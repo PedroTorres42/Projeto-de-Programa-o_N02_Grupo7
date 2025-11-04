@@ -253,6 +253,14 @@ public class RelatorioService {
         return avaliacaoRepositorio.findByAlunoId(alunoId);
     }
 
+    // Exposto para camadas de visualização: listar avaliações relacionadas a um instrutor específico
+    @Transactional(readOnly = true)
+    public List<Avaliacao> listarAvaliacoesDoInstrutor(String instrutorId) {
+        if (instrutorId == null || instrutorId.isBlank()) return Collections.emptyList();
+        // Busca com associações para evitar LazyInitialization em UI
+        return avaliacaoRepositorio.findByInstrutorIdComAssociacoes(instrutorId);
+    }
+
 
     private BigDecimal calcularMediaPonderada(double nota, double freqPercent) {
         double wNota = 0.7;

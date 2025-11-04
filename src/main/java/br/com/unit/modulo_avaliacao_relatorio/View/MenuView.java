@@ -76,6 +76,10 @@ public class MenuView extends JFrame {
 			btnAvaliarAluno.addActionListener(e -> abrirAvaliacaoView());
 			panelBotoes.add(btnAvaliarAluno);
 
+			JButton btnVisualizarRelatorio = new JButton("Visualizar Relatório");
+			btnVisualizarRelatorio.addActionListener(e -> abrirRelatoriosInstrutor());
+			panelBotoes.add(btnVisualizarRelatorio);
+
 		} else if (usuarioAtual instanceof Administrador) {
 			lblUsuario.setText("Administrador: " + safe(usuarioAtual.getNome()));
 
@@ -122,6 +126,18 @@ public class MenuView extends JFrame {
 			tela.setVisible(true);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Falha ao abrir AvaliacaoInstrutorView: " + ex.getMessage());
+		}
+	}
+
+	private void abrirRelatoriosInstrutor() {
+		try {
+			RelatoriosInstrutorView tela = ctx.getBean(RelatoriosInstrutorView.class);
+			if (usuarioAtual instanceof Instrutor i) {
+				tela.setInstrutorAtual(i);
+			}
+			tela.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Falha ao abrir Relatórios do Instrutor: " + ex.getMessage());
 		}
 	}
 
