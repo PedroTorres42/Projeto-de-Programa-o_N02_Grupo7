@@ -24,7 +24,8 @@ public class AvaliacaoAlunoView extends JFrame {
 	private final AvaliacaoService avaliacaoService;
 	private final FormularioService formularioService;
 
-	private JComboBox<Aluno> comboAluno;
+	private JLabel labelAluno;
+	private Aluno alunoAtual;
 	private JComboBox<Curso> comboCurso;
 	private JComboBox<Instrutor> comboInstrutor;
 	private JTextArea campoFeedback;
@@ -56,13 +57,12 @@ public class AvaliacaoAlunoView extends JFrame {
 	}
 
 	private void initComponents() {
-		comboAluno = new JComboBox<>();
 		comboCurso = new JComboBox<>();
 		comboInstrutor = new JComboBox<>();
 		campoFeedback = new JTextArea(4, 20);
+        labelAluno = new JLabel("(não definido)");
 
-		// Popular combos
-		usuarioService.listarAlunos().forEach(comboAluno::addItem);
+		// Popular combos (aluno é o logado, não há seleção aqui)
 		cursoService.listarCursos().forEach(comboCurso::addItem);
 		usuarioService.listarInstrutores().forEach(comboInstrutor::addItem);
 
@@ -74,9 +74,9 @@ public class AvaliacaoAlunoView extends JFrame {
 
 		int row = 0;
 
-		// Seleções
+		// Seleções (Aluno logado)
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Aluno:"), gbc);
-		gbc.gridx = 1; panel.add(comboAluno, gbc); row++;
+		gbc.gridx = 1; panel.add(labelAluno, gbc); row++;
 
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Curso:"), gbc);
 		gbc.gridx = 1; panel.add(comboCurso, gbc); row++;
@@ -94,8 +94,8 @@ public class AvaliacaoAlunoView extends JFrame {
 			row++;
 		}
 
-		// Feedback
-		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Feedback (opcional):"), gbc);
+		// Feedback (obrigatório)
+		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Feedback:"), gbc);
 		gbc.gridx = 1; panel.add(new JScrollPane(campoFeedback), gbc); row++;
 
 		// Botão salvar
@@ -108,11 +108,22 @@ public class AvaliacaoAlunoView extends JFrame {
 
 	private void salvar(ActionEvent e) {
 		try {
-			Aluno aluno = (Aluno) comboAluno.getSelectedItem();
+			Aluno aluno = alunoAtual;
 			Curso curso = (Curso) comboCurso.getSelectedItem();
 			Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
-			if (aluno == null || curso == null || instrutor == null) {
-				JOptionPane.showMessageDialog(this, "Selecione aluno, curso e instrutor.");
+			if (aluno == null) {
+				JOptionPane.showMessageDialog(this, "Aluno não definido. Abra esta tela a partir do menu após realizar login como Aluno.");
+				return;
+			}
+			if (curso == null || instrutor == null) {
+				JOptionPane.showMessageDialog(this, "Selecione curso e instrutor.");
+				return;
+			}
+
+			// Feedback obrigatório
+			String fbTxt = campoFeedback.getText();
+			if (fbTxt == null || fbTxt.isBlank()) {
+				JOptionPane.showMessageDialog(this, "O feedback é obrigatório.");
 				return;
 			}
 
@@ -144,13 +155,11 @@ public class AvaliacaoAlunoView extends JFrame {
 			// Link inverso das notas
 			notas.forEach(n -> n.setAvaliacao(avaliacao));
 
-			String fbTxt = campoFeedback.getText();
-			if (fbTxt != null && !fbTxt.isBlank()) {
-				Feedback fb = new Feedback();
-				fb.setComentario(fbTxt.trim());
-				fb.setAvaliacao(avaliacao);
-				avaliacao.setFeedback(fb);
-			}
+
+			Feedback fb = new Feedback();
+			fb.setComentario(fbTxt.trim());
+			fb.setAvaliacao(avaliacao);
+			avaliacao.setFeedback(fb);
 
 			Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
 			JOptionPane.showMessageDialog(this, "Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"));
@@ -161,6 +170,13 @@ public class AvaliacaoAlunoView extends JFrame {
 
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
+		}
+	}
+
+	public void setAlunoAtual(Aluno aluno) {
+		this.alunoAtual = aluno;
+		if (labelAluno != null) {
+			labelAluno.setText(aluno != null ? aluno.getNome() : "(não definido)");
 		}
 	}
 }

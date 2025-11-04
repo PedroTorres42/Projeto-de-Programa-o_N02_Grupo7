@@ -97,6 +97,9 @@ public class MenuView extends JFrame {
 	private void abrirAvaliacaoAluno() {
 		try {
 			AvaliacaoAlunoView tela = ctx.getBean("avaliacaoAlunoView", AvaliacaoAlunoView.class);
+			if (usuarioAtual instanceof Aluno a) {
+				tela.setAlunoAtual(a);
+			}
 			tela.setVisible(true);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Falha ao abrir AvaliacaoAlunoView: " + ex.getMessage());
