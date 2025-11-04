@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Desktop;
+import java.io.File;
 import java.util.List;
 
 @Lazy
@@ -29,6 +31,7 @@ public class AvaliacaoView extends JFrame {
     private final UsuarioService usuarioService;
     private final CursoService cursoService;
     private final FormularioService formularioService;
+    private final RelatorioService relatorioService;
 
     // Simulação: Instrutor “logado”
     private Instrutor instrutorLogado;
@@ -37,12 +40,14 @@ public class AvaliacaoView extends JFrame {
             AvaliacaoService avaliacaoService,
             UsuarioService usuarioService,
             CursoService cursoService,
-            FormularioService formularioService) {
+            FormularioService formularioService,
+            RelatorioService relatorioService) {
 
         this.avaliacaoService = avaliacaoService;
         this.usuarioService = usuarioService;
         this.cursoService = cursoService;
         this.formularioService = formularioService;
+        this.relatorioService = relatorioService;
 
         // Pega o primeiro instrutor da lista para simular login
         List<Instrutor> instrutores = usuarioService.listarInstrutores();
@@ -171,7 +176,41 @@ public class AvaliacaoView extends JFrame {
             avaliacao.setFormulario(formulario);
 
             Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
-            JOptionPane.showMessageDialog(this, "Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"));
+
+            // Dialogo com opção de salvar PDF
+            Object[] options = {"OK", "Salvar PDF..."};
+            int opt = JOptionPane.showOptionDialog(this,
+                    "Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"),
+                    "Sucesso",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    options,
+                    options[0]);
+            if (opt == 1 && salva != null && salva.getId() != null) {
+                JFileChooser fc = new JFileChooser();
+                fc.setDialogTitle("Salvar PDF da avaliação");
+                fc.setSelectedFile(new File("avaliacao-" + salva.getId() + ".pdf"));
+                int r = fc.showSaveDialog(this);
+                if (r == JFileChooser.APPROVE_OPTION) {
+                    File f = fc.getSelectedFile();
+                    if (!f.getName().toLowerCase().endsWith(".pdf")) {
+                        f = new File(f.getParentFile(), f.getName() + ".pdf");
+                    }
+                    if (f.exists()) {
+                        int ow = JOptionPane.showConfirmDialog(this,
+                                "O arquivo já existe. Deseja sobrescrever?",
+                                "Confirmar",
+                                JOptionPane.YES_NO_OPTION);
+                        if (ow != JOptionPane.YES_OPTION) return;
+                    }
+                    relatorioService.exportarPdfDaAvaliacao(salva.getId(), f);
+                    int open = JOptionPane.showConfirmDialog(this, "PDF salvo. Deseja abrir agora?", "Abrir PDF", JOptionPane.YES_NO_OPTION);
+                    if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
+                        Desktop.getDesktop().open(f);
+                    }
+                }
+            }
 
             campoMedia.setText("");
             campoComentario.setText("");
