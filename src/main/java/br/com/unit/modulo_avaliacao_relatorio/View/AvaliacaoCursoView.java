@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.Desktop;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,12 +19,13 @@ import java.util.stream.Collectors;
 
 @Lazy
 @Component
-public class AvaliacaoAlunoView extends JFrame {
+public class AvaliacaoCursoView extends JFrame {
 
 	private final UsuarioService usuarioService;
 	private final CursoService cursoService;
 	private final AvaliacaoService avaliacaoService;
 	private final FormularioService formularioService;
+    private final RelatorioService relatorioService;
 
 	private JLabel labelAluno;
 	private Aluno alunoAtual;
@@ -39,18 +42,20 @@ public class AvaliacaoAlunoView extends JFrame {
 			"Avaliação geral"
 	);
 
-	public AvaliacaoAlunoView(UsuarioService usuarioService,
-						  CursoService cursoService,
-						  AvaliacaoService avaliacaoService,
-						  FormularioService formularioService) {
+	public AvaliacaoCursoView(UsuarioService usuarioService,
+					  CursoService cursoService,
+					  AvaliacaoService avaliacaoService,
+					  FormularioService formularioService,
+					  RelatorioService relatorioService) {
 		this.usuarioService = usuarioService;
 		this.cursoService = cursoService;
 		this.avaliacaoService = avaliacaoService;
 		this.formularioService = formularioService;
+        this.relatorioService = relatorioService;
 
-		setTitle("Avaliação de Curso/Instrutor (Aluno)");
+		setTitle("Avaliação de Curso (Aluno)");
 		setSize(600, 520);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(null);
 
 		initComponents();
@@ -98,10 +103,16 @@ public class AvaliacaoAlunoView extends JFrame {
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Feedback:"), gbc);
 		gbc.gridx = 1; panel.add(new JScrollPane(campoFeedback), gbc); row++;
 
-		// Botão salvar
-		JButton btnSalvar = new JButton("Salvar Avaliação");
-		btnSalvar.addActionListener(this::salvar);
-		gbc.gridx = 1; gbc.gridy = row; panel.add(btnSalvar, gbc);
+	// Botões
+	JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	JButton btnVoltar = new JButton("Voltar");
+	btnVoltar.addActionListener(evt -> dispose());
+	JButton btnSalvar = new JButton("Salvar Avaliação");
+	btnSalvar.addActionListener(this::salvar);
+	botoes.add(btnVoltar);
+	botoes.add(btnSalvar);
+	gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.EAST;
+	panel.add(botoes, gbc);
 
 		add(panel);
 	}
@@ -161,12 +172,54 @@ public class AvaliacaoAlunoView extends JFrame {
 			fb.setAvaliacao(avaliacao);
 			avaliacao.setFeedback(fb);
 
+
 			Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
-			JOptionPane.showMessageDialog(this, "Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"));
+
+			// Diálogo com opção de salvar PDF
+			Object[] options = {"OK", "Salvar PDF..."};
+			int opt = JOptionPane.showOptionDialog(this,
+					"Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"),
+					"Sucesso",
+					JOptionPane.DEFAULT_OPTION,
+					JOptionPane.INFORMATION_MESSAGE,
+					null,
+					options,
+					options[0]);
+
+			if (opt == 1 && salva != null && salva.getId() != null) {
+				JFileChooser fc = new JFileChooser();
+				fc.setDialogTitle("Salvar PDF da avaliação");
+				fc.setSelectedFile(new File("avaliacao-" + salva.getId() + ".pdf"));
+				int r = fc.showSaveDialog(this);
+				if (r == JFileChooser.APPROVE_OPTION) {
+					File f = fc.getSelectedFile();
+					if (!f.getName().toLowerCase().endsWith(".pdf")) {
+						f = new File(f.getParentFile(), f.getName() + ".pdf");
+					}
+					if (f.exists()) {
+						int ow = JOptionPane.showConfirmDialog(this,
+								"O arquivo já existe. Deseja sobrescrever?",
+								"Confirmar",
+								JOptionPane.YES_NO_OPTION);
+						if (ow != JOptionPane.YES_OPTION) return;
+					}
+					relatorioService.exportarPdfDaAvaliacao(salva.getId(), f);
+					int open = JOptionPane.showConfirmDialog(this, "PDF salvo. Deseja abrir agora?", "Abrir PDF", JOptionPane.YES_NO_OPTION);
+					if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
+						Desktop.getDesktop().open(f);
+					}
+					dispose(); // voltar ao menu após salvar PDF
+				}
+			}
 
 			// Reset simples
 			combosNotas.forEach(cb -> cb.setSelectedItem(5));
 			campoFeedback.setText("");
+
+			// Se o usuário escolheu apenas OK (ou após reset), voltar ao menu
+			if (opt == 0) {
+				dispose();
+			}
 
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());

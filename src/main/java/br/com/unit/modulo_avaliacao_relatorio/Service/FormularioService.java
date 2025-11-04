@@ -102,6 +102,36 @@ public class FormularioService {
         return formularioRepositorio.save(formulario);
     }
 
+    @Transactional
+    public Formulario obterOuCriarFormularioInstrutorPadrao() {
+        final String titulo = "Avaliação do Instrutor (Aluno)";
+        Optional<Formulario> existente = formularioRepositorio.findByTituloAndTipo(
+                titulo, Formulario.TipoFormulario.INSTRUTOR);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        // Perguntas específicas para o instrutor (1 a 5)
+        List<Pergunta> perguntas = new ArrayList<>();
+        perguntas.add(novaPergunta("Didática"));
+        perguntas.add(novaPergunta("Domínio do conteúdo"));
+        perguntas.add(novaPergunta("Clareza"));
+        perguntas.add(novaPergunta("Assiduidade"));
+        perguntas.add(novaPergunta("Interação com a turma"));
+        perguntas.add(novaPergunta("Capacidade de resolver dúvidas"));
+
+        Formulario formulario = new Formulario();
+        formulario.setTitulo(titulo);
+        formulario.setTipo(Formulario.TipoFormulario.INSTRUTOR);
+
+        for (Pergunta p : perguntas) {
+            p.setFormulario(formulario);
+        }
+        formulario.setPerguntas(perguntas);
+
+        return formularioRepositorio.save(formulario);
+    }
+
     private Pergunta novaPergunta(String texto) {
         Pergunta p = new Pergunta();
         p.setTexto(texto);

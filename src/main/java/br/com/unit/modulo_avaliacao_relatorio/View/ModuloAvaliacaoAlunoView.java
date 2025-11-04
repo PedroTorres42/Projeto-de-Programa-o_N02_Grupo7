@@ -20,7 +20,7 @@ public class ModuloAvaliacaoAlunoView {
                         .run(args);
 
         SwingUtilities.invokeLater(() -> {
-                AvaliacaoAlunoView view = context.getBean("avaliacaoAlunoView", AvaliacaoAlunoView.class);
+                AvaliacaoCursoView view = context.getBean(AvaliacaoCursoView.class);
             view.setVisible(true);
         });
     }
