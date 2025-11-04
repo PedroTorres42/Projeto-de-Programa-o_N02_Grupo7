@@ -17,6 +17,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartUtils;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -39,19 +40,23 @@ public class RelatorioService {
     private final UsuarioRepositorio usuarioRepositorio;
     private final NotaRespositorio notaRespositorio;
 
+    @Transactional(readOnly = true)
     public Relatorio pegarRelatorioPorId(Long id) {
         return relatorioRepositorio.findById(id)
                 .orElseThrow(() -> new RuntimeException("Relatório não encontrado"));
     }
 
+    @Transactional(readOnly = true)
     public Iterable<Relatorio> pegarTodosRelatorios() {
         return relatorioRepositorio.findAll();
     }
 
+    @Transactional
     public void salvarRelatorio(Relatorio relatorio) {
         relatorioRepositorio.save(relatorio);
     }
 
+    @Transactional
     public Relatorio editarRelatorio(Long id, Relatorio novosDados) {
         Relatorio existente = relatorioRepositorio.findById(id)
                 .orElseThrow(() -> new RuntimeException("Relatório não encontrado"));
@@ -67,31 +72,37 @@ public class RelatorioService {
         return relatorioRepositorio.save(existente);
     }
 
+    @Transactional
     public void excluirRelatorio(Long id) {
         relatorioRepositorio.deleteById(id);
     }
 
 
+    @Transactional(readOnly = true)
     public List<Relatorio> filtrarRelatoriosPorAluno() {
         return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.ALUNO);
     }
 
 
+    @Transactional(readOnly = true)
     public List<Relatorio> filtrarRelatoriosPorInstrutor() {
         return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.INSTRUTOR);
     }
 
 
+    @Transactional(readOnly = true)
     public List<Relatorio> filtrarRelatoriosPorCurso() {
         return relatorioRepositorio.findByTipoOrderByDataDesc(Relatorio.TipoRelatorio.CURSO);
     }
 
 
+    @Transactional(readOnly = true)
     public List<Relatorio> filtrarRelatoriosPorTipo(Relatorio.TipoRelatorio tipo) {
         return relatorioRepositorio.findByTipoOrderByDataDesc(tipo);
     }
 
 
+    @Transactional
     public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
@@ -109,6 +120,7 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
+    @Transactional
     public Relatorio gerarRelatorioComparativoPorInstrutor(String instrutorId) {
         Usuario i = usuarioRepositorio.findById(instrutorId)
                 .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
@@ -137,6 +149,7 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
+    @Transactional
     public Relatorio gerarRelatorioAluno(String alunoId) {
         Usuario u = usuarioRepositorio.findById(alunoId)
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
@@ -154,6 +167,7 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
+    @Transactional
     public Relatorio gerarRelatorioAlunosDoCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
@@ -272,6 +286,7 @@ public class RelatorioService {
     }
 
 
+    @Transactional
     public Relatorio gerarRelatorioCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
@@ -286,6 +301,7 @@ public class RelatorioService {
         return relatorioRepositorio.save(r);
     }
 
+    @Transactional
     public Relatorio gerarRelatorioDetalhadoInstrutor(String instrutorId) {
         Usuario u = usuarioRepositorio.findById(instrutorId)
                 .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));

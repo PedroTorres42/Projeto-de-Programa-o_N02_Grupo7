@@ -5,6 +5,7 @@ import br.com.unit.modulo_avaliacao_relatorio.Service.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ public class DataLoader implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         // 1. Criar Administrador
         Administrador admin = new Administrador();
@@ -85,9 +87,9 @@ public class DataLoader implements CommandLineRunner {
         cursoWeb.setCargaHoraria(45);
         cursoWeb.setInstrutores(Arrays.asList(instrutor3));
 
-        cursoService.criarCurso(cursoJava);
-        cursoService.criarCurso(cursoPython);
-        cursoService.criarCurso(cursoWeb);
+        cursoJava = cursoService.criarCurso(cursoJava);
+        cursoPython = cursoService.criarCurso(cursoPython);
+        cursoWeb = cursoService.criarCurso(cursoWeb);
 
         // 4. Criar Alunos
         Aluno aluno1 = new Aluno();
@@ -148,6 +150,7 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("DataLoader finalizado: dados de teste inseridos com sucesso!");
     }
 
+    @Transactional
     private Instrutor resolveInstrutor(Instrutor novo) {
         var existente = usuarioService.buscarPorEmail(novo.getEmail()).orElse(null);
         if (existente == null) return (Instrutor) usuarioService.salvarUsuario(novo);
@@ -156,6 +159,7 @@ public class DataLoader implements CommandLineRunner {
         return novo; // retorna objeto local apenas para seguir fluxo, não persistido
     }
 
+    @Transactional
     private Aluno resolveAluno(Aluno novo) {
         var existente = usuarioService.buscarPorEmail(novo.getEmail()).orElse(null);
         if (existente == null) return (Aluno) usuarioService.salvarUsuario(novo);

@@ -5,6 +5,7 @@ import br.com.unit.modulo_avaliacao_relatorio.Modelos.Pergunta;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.FormularioRepositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.ArrayList;
@@ -20,8 +21,8 @@ public class FormularioService {
     private final FormularioRepositorio formularioRepositorio;
     
 
-
-    public Formulario criarFormulario(String titulo, List<Pergunta> perguntas) {
+    @Transactional
+    public void criarFormulario(String titulo, List<Pergunta> perguntas) {
         Formulario formulario = new Formulario();
         formulario.setTitulo(titulo);
 
@@ -36,22 +37,26 @@ public class FormularioService {
         formulario.setPerguntas(perguntas);
 
         // Deixe o cascade do Formulario persistir as Perguntas
-        return formularioRepositorio.save(formulario);
+        formularioRepositorio.save(formulario);
     }
 
 
+    @Transactional(readOnly = true)
     public List<Formulario> listarFormularios() {
         return formularioRepositorio.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Formulario pegarFormulario(Long id) {
         return formularioRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Formulario não encontrado"));
     }
 
+    @Transactional
     public void deletarFormulario(Long id) {
         formularioRepositorio.deleteById(id);
     }
 
+    @Transactional
     public Formulario editarFormulario(Long id, List<Pergunta> perguntas, String titulo) {
         Formulario formulario = pegarFormulario(id);
         formulario.setTitulo(titulo);
@@ -67,6 +72,7 @@ public class FormularioService {
         return formularioRepositorio.save(formulario);
     }
 
+    @Transactional
     public Formulario obterOuCriarFormularioAlunoPadrao() {
         final String titulo = "Avaliação do Curso e Instrutor (Aluno)";
         Optional<Formulario> existente = formularioRepositorio.findByTituloAndTipo(

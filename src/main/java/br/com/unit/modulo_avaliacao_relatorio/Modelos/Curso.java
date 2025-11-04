@@ -15,14 +15,14 @@ import java.util.List;
 @AllArgsConstructor
 public class Curso {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nome;
     private String descricao;
     private Integer cargaHoraria;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "curso_instrutor")
     private List<Instrutor> instrutores;
 

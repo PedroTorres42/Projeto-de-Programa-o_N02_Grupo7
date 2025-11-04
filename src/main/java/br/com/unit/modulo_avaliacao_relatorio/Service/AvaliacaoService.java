@@ -6,6 +6,7 @@ import br.com.unit.modulo_avaliacao_relatorio.Modelos.Nota;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.AvaliacaoRepositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +17,7 @@ public class AvaliacaoService {
 
     private final AvaliacaoRepositorio avaliacaoRepositorio;
 
+    @Transactional
     public Avaliacao salvarAvaliacao(Avaliacao avaliacao) {
         if (avaliacao == null) throw new IllegalArgumentException("Avaliação inválida");
 
@@ -39,15 +41,18 @@ public class AvaliacaoService {
         return avaliacaoRepositorio.save(avaliacao);
     }
 
+    @Transactional(readOnly = true)
     public List<Avaliacao> listarAvaliacoes() {
         return avaliacaoRepositorio.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Avaliacao buscarPorId(Long id) {
         return avaliacaoRepositorio.findById(id)
                 .orElseThrow(() -> new RuntimeException("Avaliação não encontrada para ID: " + id));
     }
 
+    @Transactional
     public Avaliacao atualizarAvaliacao(Long id, Avaliacao dados) {
         Avaliacao existente = buscarPorId(id);
 
@@ -76,19 +81,23 @@ public class AvaliacaoService {
         return avaliacaoRepositorio.save(existente);
     }
 
+    @Transactional
     public void deletarAvaliacao(Long id) {
         Avaliacao avaliacao = buscarPorId(id);
         avaliacaoRepositorio.delete(avaliacao);
     }
 
+    @Transactional(readOnly = true)
     public List<Avaliacao> listarPorCurso(Long cursoId) {
         return avaliacaoRepositorio.findByCursoId(cursoId);
     }
 
+    @Transactional(readOnly = true)
     public List<Avaliacao> listarPorInstrutor(String instrutorId) {
         return avaliacaoRepositorio.findByInstrutorId(instrutorId);
     }
 
+    @Transactional(readOnly = true)
     public List<Avaliacao> listarPorAluno(String alunoId) {
         return avaliacaoRepositorio.findByAlunoId(alunoId);
     }
