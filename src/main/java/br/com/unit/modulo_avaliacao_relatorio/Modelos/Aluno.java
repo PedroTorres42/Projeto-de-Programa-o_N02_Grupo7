@@ -13,7 +13,7 @@ import java.util.List;
 public class Aluno extends Usuario {
     private String matricula;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "curso_id")
     private Curso cursoAtual;
 

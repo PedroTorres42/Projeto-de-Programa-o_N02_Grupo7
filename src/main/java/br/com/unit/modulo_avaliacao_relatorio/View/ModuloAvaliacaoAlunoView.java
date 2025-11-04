@@ -6,7 +6,6 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
-// (Sem import necessário: mesma package)
 
 @SpringBootApplication(scanBasePackages = "br.com.unit.modulo_avaliacao_relatorio")
 public class ModuloAvaliacaoAlunoView {
