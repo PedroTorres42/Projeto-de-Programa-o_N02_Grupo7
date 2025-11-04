@@ -62,11 +62,9 @@ public class MenuView extends JFrame {
 			panelBotoes.add(dica);
 		} else if (usuarioAtual instanceof Aluno) {
 			lblUsuario.setText("Aluno: " + safe(usuarioAtual.getNome()));
-
 			JButton btnAvaliarInstrutor = new JButton("Avaliar Instrutor");
-			btnAvaliarInstrutor.addActionListener(e -> abrirAvaliacaoAluno());
+			btnAvaliarInstrutor.addActionListener(e -> abrirAvaliacaoInstrutor());
 			panelBotoes.add(btnAvaliarInstrutor);
-
 			JButton btnAvaliarCurso = new JButton("Avaliar Curso");
 			btnAvaliarCurso.addActionListener(e -> abrirAvaliacaoCurso());
 			panelBotoes.add(btnAvaliarCurso);
@@ -94,15 +92,15 @@ public class MenuView extends JFrame {
 		panelBotoes.repaint();
 	}
 
-	private void abrirAvaliacaoAluno() {
+	private void abrirAvaliacaoCurso() {
 		try {
-			AvaliacaoAlunoView tela = ctx.getBean("avaliacaoAlunoView", AvaliacaoAlunoView.class);
+			AvaliacaoCursoView tela = ctx.getBean(AvaliacaoCursoView.class);
 			if (usuarioAtual instanceof Aluno a) {
 				tela.setAlunoAtual(a);
 			}
 			tela.setVisible(true);
 		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(this, "Falha ao abrir AvaliacaoAlunoView: " + ex.getMessage());
+			JOptionPane.showMessageDialog(this, "Falha ao abrir AvaliacaoCursoView: " + ex.getMessage());
 		}
 	}
 
@@ -115,9 +113,19 @@ public class MenuView extends JFrame {
 		}
 	}
 
-	private void abrirAvaliacaoCurso() {
-		JOptionPane.showMessageDialog(this, "Tela de Avaliação de Curso (em breve).");
+	private void abrirAvaliacaoInstrutor() {
+		try {
+			AvaliacaoInstrutorView tela = ctx.getBean(AvaliacaoInstrutorView.class);
+			if (usuarioAtual instanceof Aluno a) {
+				tela.setAlunoAtual(a);
+			}
+			tela.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Falha ao abrir AvaliacaoInstrutorView: " + ex.getMessage());
+		}
 	}
+
+    
 
 	private void verRelatorios() {
 		JOptionPane.showMessageDialog(this, "Módulo de Relatórios será implementado em breve.");
