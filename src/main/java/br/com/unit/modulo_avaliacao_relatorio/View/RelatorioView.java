@@ -6,6 +6,7 @@ import javax.swing.*;
 
 public class RelatorioView extends JFrame {
     private final RelatorioService relatorioService;
+    
     public RelatorioView(RelatorioService relatorioService) {
         this.relatorioService = relatorioService;
     }
