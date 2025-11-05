@@ -28,7 +28,7 @@ public class AvaliacaoInstrutorView extends JFrame {
 	private JLabel labelAluno;
 	private Aluno alunoAtual;
 	private JComboBox<Instrutor> comboInstrutor;
-	private JTextArea campoFeedback; // opcional
+	private JTextArea campoFeedback;
 	private final List<JComboBox<Integer>> combosNotas = new ArrayList<>();
 
 	private static final List<String> QUESTOES = Arrays.asList(
@@ -61,7 +61,7 @@ public class AvaliacaoInstrutorView extends JFrame {
 		campoFeedback = new JTextArea(4, 20);
 		labelAluno = new JLabel("(não definido)");
 
-	// Preenchimento será feito quando o aluno atual for definido (com base no curso dele)
+
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -71,15 +71,12 @@ public class AvaliacaoInstrutorView extends JFrame {
 
 		int row = 0;
 
-		// Aluno logado
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Aluno:"), gbc);
 		gbc.gridx = 1; panel.add(labelAluno, gbc); row++;
 
-		// Instrutor
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Instrutor:"), gbc);
 		gbc.gridx = 1; panel.add(comboInstrutor, gbc); row++;
 
-		// Questões 1..5
 		for (String q : QUESTOES) {
 			gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel(q + ":"), gbc);
 			JComboBox<Integer> cb = new JComboBox<>(new Integer[]{1,2,3,4,5});
@@ -89,11 +86,9 @@ public class AvaliacaoInstrutorView extends JFrame {
 			row++;
 		}
 
-		// Feedback (opcional)
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Feedback (opcional):"), gbc);
 		gbc.gridx = 1; panel.add(new JScrollPane(campoFeedback), gbc); row++;
 
-		// Botões
 		JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JButton btnVoltar = new JButton("Voltar");
 		btnVoltar.addActionListener(evt -> dispose());
@@ -121,10 +116,8 @@ public class AvaliacaoInstrutorView extends JFrame {
 				return;
 			}
 
-			// Formulário padrão de instrutor (6 questões)
 			Formulario formulario = formularioService.obterOuCriarFormularioInstrutorPadrao();
 
-			// Vincular notas às perguntas do formulário (por texto)
 			Map<String, Pergunta> porTexto = formulario.getPerguntas().stream()
 					.collect(Collectors.toMap(Pergunta::getTexto, Function.identity()));
 
@@ -157,7 +150,6 @@ public class AvaliacaoInstrutorView extends JFrame {
 
 			Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
 
-			// Diálogo com opção de salvar PDF e retorno ao menu
 			Object[] options = {"OK", "Salvar PDF..."};
 			int opt = JOptionPane.showOptionDialog(this,
 					"Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"),
@@ -184,14 +176,13 @@ public class AvaliacaoInstrutorView extends JFrame {
 								"Confirmar",
 								JOptionPane.YES_NO_OPTION);
 						if (ow != JOptionPane.YES_OPTION) {
-							// não retorna ainda; deixa o usuário tentar novamente se quiser
 						} else {
 							relatorioService.exportarPdfDaAvaliacao(salva.getId(), f);
 							int open = JOptionPane.showConfirmDialog(this, "PDF salvo. Deseja abrir agora?", "Abrir PDF", JOptionPane.YES_NO_OPTION);
 							if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
 								Desktop.getDesktop().open(f);
 							}
-							dispose(); // voltar ao menu
+							dispose();
 							return;
 						}
 					} else {
@@ -200,13 +191,12 @@ public class AvaliacaoInstrutorView extends JFrame {
 						if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
 							Desktop.getDesktop().open(f);
 						}
-						dispose(); // voltar ao menu
+						dispose();
 						return;
 					}
 				}
 			}
 
-			// Se escolher OK, apenas fecha e volta ao menu
 			dispose();
 
 		} catch (Exception ex) {
@@ -219,7 +209,6 @@ public class AvaliacaoInstrutorView extends JFrame {
 		if (labelAluno != null) {
 			labelAluno.setText(aluno != null ? aluno.getNome() : "(não definido)");
 		}
-		// Recarrega instrutores elegíveis: apenas dos cursos em que o aluno está inscrito (cursoAtual)
 		comboInstrutor.removeAllItems();
 		if (aluno != null && aluno.getCursoAtual() != null && aluno.getCursoAtual().getInstrutores() != null) {
 			aluno.getCursoAtual().getInstrutores().forEach(comboInstrutor::addItem);

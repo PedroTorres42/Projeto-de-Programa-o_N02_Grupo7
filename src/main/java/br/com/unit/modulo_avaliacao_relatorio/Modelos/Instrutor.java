@@ -19,7 +19,6 @@ public class Instrutor extends Usuario {
     @OneToMany(mappedBy = "instrutor")
     private List<Avaliacao> avaliacoes;
 
-    // Evitar carregar relacionamentos LAZY em renderizações de UI
     @Override
     public String toString() {
         return (getNome() != null && !getNome().isBlank()) ? getNome() : ("Instrutor#" + getId());

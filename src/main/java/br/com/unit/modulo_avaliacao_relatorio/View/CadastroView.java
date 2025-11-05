@@ -43,125 +43,113 @@ public class CadastroView extends JFrame {
     }
     
     private void initComponents() {
-        // Configurações da janela
         setTitle("Sistema de Avaliação - Cadastro de Usuário");
         setSize(500, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        
-        // Painel principal
+
         JPanel painelPrincipal = new JPanel();
         painelPrincipal.setLayout(new BorderLayout(10, 10));
         painelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         painelPrincipal.setBackground(new Color(240, 240, 245));
-        
-        // Painel do título
+
         JPanel painelTitulo = new JPanel();
         painelTitulo.setBackground(new Color(240, 240, 245));
         JLabel lblTitulo = new JLabel("Cadastro de Usuário");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
         lblTitulo.setForeground(new Color(51, 51, 51));
         painelTitulo.add(lblTitulo);
-        
-        // Painel central com os campos
+
         JPanel painelCampos = new JPanel();
         painelCampos.setLayout(new GridBagLayout());
         painelCampos.setBackground(new Color(240, 240, 245));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        // Nome
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0.3;
         JLabel lblNome = new JLabel("Nome:");
         lblNome.setFont(new Font("Arial", Font.BOLD, 12));
         painelCampos.add(lblNome, gbc);
-        
+
         gbc.gridx = 1;
         gbc.weightx = 0.7;
         nomeField = new JTextField(25);
         painelCampos.add(nomeField, gbc);
-        
-        // Email
+
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0.3;
         JLabel lblEmail = new JLabel("Email:");
         lblEmail.setFont(new Font("Arial", Font.BOLD, 12));
         painelCampos.add(lblEmail, gbc);
-        
+
         gbc.gridx = 1;
         gbc.weightx = 0.7;
         emailField = new JTextField(25);
         painelCampos.add(emailField, gbc);
-        
-        // Senha
+
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0.3;
         JLabel lblSenha = new JLabel("Senha:");
         lblSenha.setFont(new Font("Arial", Font.BOLD, 12));
         painelCampos.add(lblSenha, gbc);
-        
+
         gbc.gridx = 1;
         gbc.weightx = 0.7;
         senhaField = new JPasswordField(25);
         painelCampos.add(senhaField, gbc);
-        
-        // Confirmar Senha
+
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.weightx = 0.3;
         JLabel lblConfirmarSenha = new JLabel("Confirmar Senha:");
         lblConfirmarSenha.setFont(new Font("Arial", Font.BOLD, 12));
         painelCampos.add(lblConfirmarSenha, gbc);
-        
+
         gbc.gridx = 1;
         gbc.weightx = 0.7;
         confirmarSenhaField = new JPasswordField(25);
         painelCampos.add(confirmarSenhaField, gbc);
-        
-        // Tipo de Usuário
+
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.weightx = 0.3;
         JLabel lblTipoUsuario = new JLabel("Tipo de Usuário:");
         lblTipoUsuario.setFont(new Font("Arial", Font.BOLD, 12));
         painelCampos.add(lblTipoUsuario, gbc);
-        
+
         gbc.gridx = 1;
         gbc.weightx = 0.7;
         String[] tipos = {"Aluno", "Instrutor"};
         tipoUsuarioCombo = new JComboBox<>(tipos);
         tipoUsuarioCombo.addActionListener(e -> atualizarCamposEspecificos());
         painelCampos.add(tipoUsuarioCombo, gbc);
-        
-        // Painel para campos específicos (matrícula ou especialidade)
+
         painelCamposEspecificos = new JPanel();
         painelCamposEspecificos.setLayout(new GridBagLayout());
         painelCamposEspecificos.setBackground(new Color(240, 240, 245));
-        
+
         GridBagConstraints gbcEsp = new GridBagConstraints();
         gbcEsp.insets = new Insets(8, 8, 8, 8);
         gbcEsp.fill = GridBagConstraints.HORIZONTAL;
-        
-        // Label e campo para Matrícula (Aluno)
+
         gbcEsp.gridx = 0;
         gbcEsp.gridy = 0;
         gbcEsp.weightx = 0.3;
         lblMatricula = new JLabel("Matrícula:");
         lblMatricula.setFont(new Font("Arial", Font.BOLD, 12));
         painelCamposEspecificos.add(lblMatricula, gbcEsp);
-        
+
         gbcEsp.gridx = 1;
         gbcEsp.weightx = 0.7;
         matriculaField = new JTextField(25);
         painelCamposEspecificos.add(matriculaField, gbcEsp);
-        
-        // Label e campo para Especialidade (Instrutor)
+
         gbcEsp.gridx = 0;
         gbcEsp.gridy = 1;
         gbcEsp.weightx = 0.3;
@@ -169,23 +157,22 @@ public class CadastroView extends JFrame {
         lblEspecialidade.setFont(new Font("Arial", Font.BOLD, 12));
         lblEspecialidade.setVisible(false);
         painelCamposEspecificos.add(lblEspecialidade, gbcEsp);
-        
+
         gbcEsp.gridx = 1;
         gbcEsp.weightx = 0.7;
         especialidadeField = new JTextField(25);
         especialidadeField.setVisible(false);
         painelCamposEspecificos.add(especialidadeField, gbcEsp);
-        
+
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.gridwidth = 2;
         painelCampos.add(painelCamposEspecificos, gbc);
-        
-        // Painel de botões
+
         JPanel painelBotoes = new JPanel();
         painelBotoes.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         painelBotoes.setBackground(new Color(240, 240, 245));
-        
+
         btnCadastrar = new JButton("Cadastrar");
         btnCadastrar.setPreferredSize(new Dimension(120, 35));
         btnCadastrar.setBackground(new Color(60, 179, 113));
@@ -195,7 +182,7 @@ public class CadastroView extends JFrame {
         btnCadastrar.setBorderPainted(false);
         btnCadastrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnCadastrar.addActionListener(e -> cadastrarUsuario());
-        
+
         btnLimpar = new JButton("Limpar");
         btnLimpar.setPreferredSize(new Dimension(120, 35));
         btnLimpar.setBackground(new Color(255, 165, 0));
@@ -205,7 +192,7 @@ public class CadastroView extends JFrame {
         btnLimpar.setBorderPainted(false);
         btnLimpar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnLimpar.addActionListener(e -> limparCampos());
-        
+
         btnVoltar = new JButton("Voltar");
         btnVoltar.setPreferredSize(new Dimension(120, 35));
         btnVoltar.setBackground(new Color(220, 53, 69));
@@ -215,20 +202,17 @@ public class CadastroView extends JFrame {
         btnVoltar.setBorderPainted(false);
         btnVoltar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnVoltar.addActionListener(e -> voltar());
-        
+
         painelBotoes.add(btnCadastrar);
         painelBotoes.add(btnLimpar);
         painelBotoes.add(btnVoltar);
-        
-        // Adicionar painéis ao painel principal
+
         painelPrincipal.add(painelTitulo, BorderLayout.NORTH);
         painelPrincipal.add(painelCampos, BorderLayout.CENTER);
         painelPrincipal.add(painelBotoes, BorderLayout.SOUTH);
-        
-        // Adicionar painel principal à janela
+
         add(painelPrincipal);
-        
-        // Adicionar efeitos hover
+
         adicionarEfeitosHover();
     }
     
@@ -264,13 +248,11 @@ public class CadastroView extends JFrame {
     private void atualizarCamposEspecificos() {
         String tipoSelecionado = (String) tipoUsuarioCombo.getSelectedItem();
         
-        // Ocultar todos primeiro
         lblMatricula.setVisible(false);
         matriculaField.setVisible(false);
         lblEspecialidade.setVisible(false);
         especialidadeField.setVisible(false);
-        
-        // Mostrar campos específicos baseado no tipo
+
         switch (tipoSelecionado) {
             case "Aluno":
                 lblMatricula.setVisible(true);
@@ -281,7 +263,6 @@ public class CadastroView extends JFrame {
                 especialidadeField.setVisible(true);
                 break;
             case "Administrador":
-                // Nenhum campo adicional
                 break;
         }
         
@@ -291,7 +272,6 @@ public class CadastroView extends JFrame {
     
     private void cadastrarUsuario() {
         try {
-            // Validar campos obrigatórios
             String nome = nomeField.getText().trim();
             String email = emailField.getText().trim();
             String senha = new String(senhaField.getPassword());
@@ -306,7 +286,6 @@ public class CadastroView extends JFrame {
                 return;
             }
             
-            // Validar formato de email
             if (!email.contains("@") || !email.contains(".")) {
                 JOptionPane.showMessageDialog(this,
                     "Por favor, insira um email válido!",
@@ -314,8 +293,7 @@ public class CadastroView extends JFrame {
                     JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
-            // Verificar se o email já existe
+
             if (usuarioService.buscarPorEmail(email).isPresent()) {
                 JOptionPane.showMessageDialog(this,
                     "Este email já está cadastrado no sistema!",
@@ -323,8 +301,7 @@ public class CadastroView extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Validar senha
+
             if (senha.length() < 6) {
                 JOptionPane.showMessageDialog(this,
                     "A senha deve ter no mínimo 6 caracteres!",
@@ -332,8 +309,7 @@ public class CadastroView extends JFrame {
                     JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
-            // Verificar se as senhas coincidem
+
             if (!senha.equals(confirmarSenha)) {
                 JOptionPane.showMessageDialog(this,
                     "As senhas não coincidem!",
@@ -341,10 +317,9 @@ public class CadastroView extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Criar usuário baseado no tipo
+
             Usuario usuario = null;
-            
+
             switch (tipoUsuario) {
                 case "Aluno":
                     String matricula = matriculaField.getText().trim();
@@ -388,11 +363,9 @@ public class CadastroView extends JFrame {
                     usuario = admin;
                     break;
             }
-            
-            // Salvar no banco de dados
+
             usuarioService.salvarUsuario(usuario);
-            
-            // Mensagem de sucesso
+
             JOptionPane.showMessageDialog(this,
                 "Usuário cadastrado com sucesso!\n\n" +
                 "Nome: " + nome + "\n" +
@@ -400,8 +373,7 @@ public class CadastroView extends JFrame {
                 "Tipo: " + tipoUsuario,
                 "Cadastro realizado",
                 JOptionPane.INFORMATION_MESSAGE);
-            
-            // Após cadastro, abrir o Menu com o usuário recém-criado
+
             limparCampos();
             this.setVisible(false);
             if (menuView != null) {

@@ -312,7 +312,6 @@ public class RelatorioView extends JFrame {
             if (result == JFileChooser.APPROVE_OPTION) {
                 File arquivo = fileChooser.getSelectedFile();
                 
-                // Adicionar extensão .pdf se não tiver
                 if (!arquivo.getName().toLowerCase().endsWith(".pdf")) {
                     arquivo = new File(arquivo.getAbsolutePath() + ".pdf");
                 }

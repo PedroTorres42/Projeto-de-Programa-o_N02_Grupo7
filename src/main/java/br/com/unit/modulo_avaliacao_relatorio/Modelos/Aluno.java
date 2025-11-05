@@ -21,7 +21,6 @@ public class Aluno extends Usuario {
     @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL)
     private List<Avaliacao> avaliacoes;
 
-    // Evitar tocar relacionamentos LAZY ao renderizar em componentes Swing
     @Override
     public String toString() {
         String base = (getNome() != null && !getNome().isBlank()) ? getNome() : ("Aluno#" + getId());

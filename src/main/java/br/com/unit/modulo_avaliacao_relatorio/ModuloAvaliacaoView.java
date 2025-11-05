@@ -15,17 +15,16 @@ import java.util.logging.Logger;
 public class ModuloAvaliacaoView {
 
     public static void main(String[] args) {
-        System.setProperty("java.awt.headless", "false"); // Habilita GUI
+    System.setProperty("java.awt.headless", "false");
 
         ConfigurableApplicationContext context =
                 new SpringApplicationBuilder(ModuloAvaliacaoView.class)
                         .headless(false)
-                        .web(WebApplicationType.NONE) // Desativa o servidor web
+                        .web(WebApplicationType.NONE)
                         .run(args);
 
         SwingUtilities.invokeLater(() -> {
             try {
-                // Opcional: aplicar Look & Feel do sistema para uma aparência nativa
                 try {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 } catch (Exception lnf) {

@@ -11,12 +11,12 @@ import javax.swing.*;
 public class ModuloAvaliacaoAlunoView {
 
     public static void main(String[] args) {
-        System.setProperty("java.awt.headless", "false"); // Habilita GUI
+    System.setProperty("java.awt.headless", "false");
 
         ConfigurableApplicationContext context =
                 new SpringApplicationBuilder(ModuloAvaliacaoAlunoView.class)
                         .headless(false)
-                        .web(WebApplicationType.NONE) // Desativa o servidor web
+                        .web(WebApplicationType.NONE)
                         .run(args);
 
         SwingUtilities.invokeLater(() -> {

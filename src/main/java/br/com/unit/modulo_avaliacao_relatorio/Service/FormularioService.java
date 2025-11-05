@@ -26,7 +26,6 @@ public class FormularioService {
         Formulario formulario = new Formulario();
         formulario.setTitulo(titulo);
 
-        // Garanta o lado "dono" (Pergunta) apontando para o formulário
         if (perguntas != null) {
             for (Pergunta p : perguntas) {
                 if (p != null) {
@@ -35,8 +34,6 @@ public class FormularioService {
             }
         }
         formulario.setPerguntas(perguntas);
-
-        // Deixe o cascade do Formulario persistir as Perguntas
         formularioRepositorio.save(formulario);
     }
 
@@ -81,7 +78,6 @@ public class FormularioService {
             return existente.get();
         }
 
-        // Cria perguntas padronizadas (escala 1 a 5)
         List<Pergunta> perguntas = new ArrayList<>();
         perguntas.add(novaPergunta("Qualidade do conteúdo"));
         perguntas.add(novaPergunta("Didática do instrutor"));
@@ -93,7 +89,6 @@ public class FormularioService {
         formulario.setTitulo(titulo);
         formulario.setTipo(Formulario.TipoFormulario.ALUNO);
 
-        // owning side das perguntas
         for (Pergunta p : perguntas) {
             p.setFormulario(formulario);
         }
@@ -111,7 +106,6 @@ public class FormularioService {
             return existente.get();
         }
 
-        // Perguntas específicas para o instrutor (1 a 5)
         List<Pergunta> perguntas = new ArrayList<>();
         perguntas.add(novaPergunta("Didática"));
         perguntas.add(novaPergunta("Domínio do conteúdo"));

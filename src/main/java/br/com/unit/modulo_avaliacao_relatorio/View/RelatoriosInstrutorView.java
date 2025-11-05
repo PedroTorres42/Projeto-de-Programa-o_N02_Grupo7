@@ -29,14 +29,12 @@ public class RelatoriosInstrutorView extends JFrame {
     private JTable tabela;
     private DefaultTableModel modelo;
 
-    // Painel de detalhes (expansível)
     private JPanel detalhesPanel;
     private JTable detalhesTabela;
     private DefaultTableModel detalhesModelo;
     private JLabel lblMedia;
     private JLabel lblFeedback;
 
-    // Cache de avaliações carregadas (mesma ordem das linhas da tabela)
     private List<Avaliacao> cacheAvaliacoes = Collections.emptyList();
     private int linhaExpandida = -1;
 
@@ -56,7 +54,6 @@ public class RelatoriosInstrutorView extends JFrame {
         lblInstrutor.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         add(lblInstrutor, BorderLayout.NORTH);
 
-        // Tabela principal
         String[] colunas = {"Data", "Curso", "Aluno (anônimo)", "Média"};
         modelo = new DefaultTableModel(colunas, 0) {
             @Override
@@ -69,11 +66,9 @@ public class RelatoriosInstrutorView extends JFrame {
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scroll = new JScrollPane(tabela);
 
-        // Painel de detalhes (inicialmente oculto)
         detalhesPanel = new JPanel(new BorderLayout());
         detalhesPanel.setBorder(BorderFactory.createTitledBorder("Detalhes da Avaliação"));
 
-        // Topo do detalhe com média e feedback (se houver)
         JPanel topoDetalhe = new JPanel(new GridLayout(0,1));
         lblMedia = new JLabel("Média: —");
         lblFeedback = new JLabel("Feedback: —");
@@ -81,7 +76,6 @@ public class RelatoriosInstrutorView extends JFrame {
         topoDetalhe.add(lblFeedback);
         detalhesPanel.add(topoDetalhe, BorderLayout.NORTH);
 
-        // Tabela de perguntas x notas
         detalhesModelo = new DefaultTableModel(new String[]{"Pergunta", "Nota"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -92,20 +86,17 @@ public class RelatoriosInstrutorView extends JFrame {
         detalhesPanel.add(new JScrollPane(detalhesTabela), BorderLayout.CENTER);
         detalhesPanel.setVisible(false);
 
-        // Centro com tabela principal e detalhes abaixo
         JPanel center = new JPanel(new BorderLayout());
         center.add(scroll, BorderLayout.CENTER);
         center.add(detalhesPanel, BorderLayout.SOUTH);
         add(center, BorderLayout.CENTER);
 
-        // Rodapé
         JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnFechar = new JButton("Fechar");
         btnFechar.addActionListener(e -> dispose());
         south.add(btnFechar);
         add(south, BorderLayout.SOUTH);
 
-        // Listener de seleção para "expandir" detalhes
         tabela.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
@@ -116,7 +107,6 @@ public class RelatoriosInstrutorView extends JFrame {
                     return;
                 }
                 if (linhaExpandida == row && detalhesPanel.isVisible()) {
-                    // Se clicar novamente na mesma linha, recolhe
                     esconderDetalhes();
                 } else {
                     mostrarDetalhes(row);
@@ -142,7 +132,7 @@ public class RelatoriosInstrutorView extends JFrame {
             String data = a.getData() != null ? a.getData().format(fmt) : "—";
             Curso c = a.getCurso();
             String curso = c != null && c.getNome() != null && !c.getNome().isBlank() ? c.getNome() : (c != null && c.getId() != null ? "Curso " + c.getId() : "—");
-            String alunoAnonimo = "Anônimo"; // Nunca exibir nome do aluno
+            String alunoAnonimo = "Anônimo";
             String media = a.getMedia() != null ? String.format(java.util.Locale.US, "%.2f", a.getMedia()) : "—";
             modelo.addRow(new Object[]{data, curso, alunoAnonimo, media});
         }
@@ -155,13 +145,11 @@ public class RelatoriosInstrutorView extends JFrame {
         linhaExpandida = row;
         Avaliacao a = cacheAvaliacoes.get(row);
 
-        // Média e feedback
         lblMedia.setText("Média: " + (a.getMedia() != null ? String.format(java.util.Locale.US, "%.2f", a.getMedia()) : "—"));
         String fb = a.getFeedback() != null && a.getFeedback().getComentario() != null && !a.getFeedback().getComentario().isBlank()
                 ? a.getFeedback().getComentario() : "—";
         lblFeedback.setText("Feedback: " + fb);
 
-        // Perguntas e notas
         detalhesModelo.setRowCount(0);
         List<Nota> notas = a.getNotas();
         if (notas != null && !notas.isEmpty()) {

@@ -59,9 +59,7 @@ public class AvaliacaoCursoView extends JFrame {
 		comboCurso = new JComboBox<>();
 		comboInstrutor = new JComboBox<>();
 		campoFeedback = new JTextArea(4, 20);
-        labelAluno = new JLabel("(não definido)");
-
-	// Popular combos será realizado quando o aluno atual for definido (com base na inscrição)
+	labelAluno = new JLabel("(não definido)");
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -71,7 +69,6 @@ public class AvaliacaoCursoView extends JFrame {
 
 		int row = 0;
 
-		// Seleções (Aluno logado)
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Aluno:"), gbc);
 		gbc.gridx = 1; panel.add(labelAluno, gbc); row++;
 
@@ -81,7 +78,6 @@ public class AvaliacaoCursoView extends JFrame {
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Instrutor:"), gbc);
 		gbc.gridx = 1; panel.add(comboInstrutor, gbc); row++;
 
-		// Questões 1..5
 		for (String q : QUESTOES) {
 			gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel(q + ":"), gbc);
 			JComboBox<Integer> cb = new JComboBox<>(new Integer[]{1,2,3,4,5});
@@ -91,11 +87,10 @@ public class AvaliacaoCursoView extends JFrame {
 			row++;
 		}
 
-		// Feedback (obrigatório)
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Feedback:"), gbc);
 		gbc.gridx = 1; panel.add(new JScrollPane(campoFeedback), gbc); row++;
 
-	// Botões
+	
 	JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	JButton btnVoltar = new JButton("Voltar");
 	btnVoltar.addActionListener(evt -> dispose());
@@ -123,17 +118,14 @@ public class AvaliacaoCursoView extends JFrame {
 				return;
 			}
 
-			// Feedback obrigatório
 			String fbTxt = campoFeedback.getText();
 			if (fbTxt == null || fbTxt.isBlank()) {
 				JOptionPane.showMessageDialog(this, "O feedback é obrigatório.");
 				return;
 			}
 
-			// Garante existir um formulário padrão ALUNO com as questões
 			Formulario formulario = formularioService.obterOuCriarFormularioAlunoPadrao();
 
-			// Mapa de perguntas por texto (para vincular às notas)
 			Map<String, Pergunta> porTexto = formulario.getPerguntas().stream()
 					.collect(Collectors.toMap(Pergunta::getTexto, Function.identity()));
 
@@ -141,7 +133,7 @@ public class AvaliacaoCursoView extends JFrame {
 			for (int i = 0; i < QUESTOES.size(); i++) {
 				String texto = QUESTOES.get(i);
 				Pergunta p = porTexto.get(texto);
-				if (p == null) continue; // degradar graciosamente
+				if (p == null) continue;
 				Integer valor = (Integer) combosNotas.get(i).getSelectedItem();
 				Nota n = new Nota();
 				n.setNota(valor);
@@ -155,7 +147,6 @@ public class AvaliacaoCursoView extends JFrame {
 			avaliacao.setInstrutor(instrutor);
 			avaliacao.setFormulario(formulario);
 			avaliacao.setNotas(notas);
-			// Link inverso das notas
 			notas.forEach(n -> n.setAvaliacao(avaliacao));
 
 
@@ -166,8 +157,6 @@ public class AvaliacaoCursoView extends JFrame {
 
 
 			Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
-
-			// Diálogo com opção de salvar PDF
 			Object[] options = {"OK", "Salvar PDF..."};
 			int opt = JOptionPane.showOptionDialog(this,
 					"Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"),
@@ -200,15 +189,13 @@ public class AvaliacaoCursoView extends JFrame {
 					if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
 						Desktop.getDesktop().open(f);
 					}
-					dispose(); // voltar ao menu após salvar PDF
+					dispose();
 				}
 			}
 
-			// Reset simples
 			combosNotas.forEach(cb -> cb.setSelectedItem(5));
 			campoFeedback.setText("");
 
-			// Se o usuário escolheu apenas OK (ou após reset), voltar ao menu
 			if (opt == 0) {
 				dispose();
 			}
@@ -223,7 +210,6 @@ public class AvaliacaoCursoView extends JFrame {
 		if (labelAluno != null) {
 			labelAluno.setText(aluno != null ? aluno.getNome() : "(não definido)");
 		}
-		// Recarrega curso e instrutores permitidos: somente o cursoAtual e seus instrutores
 		comboCurso.removeAllItems();
 		comboInstrutor.removeAllItems();
 		if (aluno != null && aluno.getCursoAtual() != null) {

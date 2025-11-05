@@ -26,7 +26,6 @@ public class Curso {
     @JoinTable(name = "curso_instrutor")
     private List<Instrutor> instrutores;
 
-        // Evitar carregar coleções LAZY em renderizações de UI (toString em combos)
         @Override
         public String toString() {
             return (nome != null && !nome.isBlank()) ? nome : ("Curso#" + id);

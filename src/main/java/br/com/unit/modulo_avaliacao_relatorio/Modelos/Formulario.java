@@ -34,7 +34,6 @@ public class Formulario {
         CURSO
     }
 
-    // Exibir apenas o título em componentes de UI sem tocar nas perguntas (LAZY)
     @Override
     public String toString() {
         return (titulo != null && !titulo.isBlank()) ? titulo : ("Formulario#" + id);
