@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +43,6 @@ public class RelatorioService {
     private final UsuarioRepositorio usuarioRepositorio;
     private final NotaRespositorio notaRespositorio;
 
-    // Larguras padrão das tabelas detalhadas (7 colunas)
     private static final float[] WIDTHS_DETALHADO = new float[]{2.5f, 2.2f, 1.2f, 1.2f, 1.3f, 1.2f, 4f};
 
     @Transactional(readOnly = true)
@@ -69,7 +69,7 @@ public class RelatorioService {
         if (novosDados.getTipo() != null) {
             existente.setTipo(novosDados.getTipo());
         }
-        if (novosDados.getDocumento() != null && novosDados.getDocumento().length > 0) {
+        if (novosDados.getDocumento() != null && !novosDados.getDocumento().isEmpty()) {
             existente.setDocumento(novosDados.getDocumento());
         }
 
@@ -108,10 +108,15 @@ public class RelatorioService {
 
 
     @Transactional
-    public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
+    public Relatorio gerarRelatorioComparativoInstrutoresPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(curso.getId());
+        
+        if (avaliacoes == null || avaliacoes.isEmpty()) {
+            throw new RuntimeException("Não há avaliações para o curso selecionado.");
+        }
+        
         byte[] pdf = montarPdfComparativo(
                 "Relatório Comparativo por Curso",
                 "Curso: " + Optional.ofNullable(curso.getNome()).orElse("ID " + cursoId),
@@ -120,19 +125,25 @@ public class RelatorioService {
 
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.CURSO);
-        r.setDocumento(pdf);
+        r.setDescricao("Comparativo_Curso");
+        r.setNomeEntidade(Optional.ofNullable(curso.getNome()).orElse("Curso_" + cursoId));
+        r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
 
     @Transactional
-    public Relatorio gerarRelatorioComparativoPorInstrutor(String instrutorId) {
+    public Relatorio gerarRelatorioComparativoCursosPorInstrutor(String instrutorId) {
         Usuario i = usuarioRepositorio.findById(instrutorId)
                 .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
-        if (i.getTipoUsuario() != Usuario.TipoUsuario.Instrutor) {
+        if (!(i instanceof Instrutor)) {
             throw new IllegalArgumentException("ID provido não é de um instrutor");
         }
         List<Avaliacao> avaliacoes = obterAvaliacoesDeInstrutor(instrutorId);
+        
+        if (avaliacoes == null || avaliacoes.isEmpty()) {
+            throw new RuntimeException("Não há avaliações para o instrutor selecionado.");
+        }
 
         String subtitulo = "Instrutor: " + avaliacoes.stream()
                 .map(Avaliacao::getInstrutor)
@@ -147,9 +158,13 @@ public class RelatorioService {
                 agruparPorCurso(avaliacoes)
         );
 
+        String nomeInstrutor = Optional.ofNullable(i.getNome()).orElse("Instrutor_" + instrutorId);
+        
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.INSTRUTOR);
-        r.setDocumento(pdf);
+        r.setDescricao("Comparativo_Instrutor");
+        r.setNomeEntidade(nomeInstrutor);
+        r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
@@ -158,11 +173,16 @@ public class RelatorioService {
     public Relatorio gerarRelatorioAluno(String alunoId) {
         Usuario u = usuarioRepositorio.findById(alunoId)
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
-        if (u.getTipoUsuario() != Usuario.TipoUsuario.Aluno) {
+        if (!(u instanceof Aluno)) {
             throw new IllegalArgumentException("ID provido não é de um aluno");
         }
 
         List<Avaliacao> avaliacoes = obterAvaliacoesDeAluno(alunoId);
+        
+        if (avaliacoes == null || avaliacoes.isEmpty()) {
+            throw new RuntimeException("Não há avaliações para o aluno selecionado.");
+        }
+        
     String nomeAluno = Optional.ofNullable(u.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
     String subtitulo = "Aluno: " + nomeAluno + " (ID: " + u.getId() + ")";
     byte[] pdf = montarPdfDetalhado(
@@ -176,18 +196,29 @@ public class RelatorioService {
         avaliacoes
     );
 
+        String nomeAlunoFormatado = Optional.ofNullable(u.getNome())
+            .filter(s -> !s.isBlank())
+            .map(s -> s.replaceAll("\\s+", "_"))
+            .orElse("Aluno_" + alunoId);
+
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.ALUNO);
-        r.setDocumento(pdf);
+        r.setDescricao("Individual_Aluno");
+        r.setNomeEntidade(nomeAlunoFormatado);
+        r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
 
     @Transactional
-    public Relatorio gerarRelatorioAlunosDoCurso(Long cursoId) {
+    public Relatorio gerarRelatorioComparativoAlunosPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(cursoId);
+        
+        if (avaliacoes == null || avaliacoes.isEmpty()) {
+            throw new RuntimeException("Não há avaliações para o curso selecionado.");
+        }
 
     byte[] pdf = montarPdfComparativo(
                 "Relatório de Alunos do Curso",
@@ -197,7 +228,9 @@ public class RelatorioService {
 
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.CURSO);
-        r.setDocumento(pdf);
+        r.setDescricao("Alunos_Curso");
+        r.setNomeEntidade(Optional.ofNullable(curso.getNome()).orElse("Curso_" + cursoId));
+        r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
@@ -253,11 +286,9 @@ public class RelatorioService {
         return avaliacaoRepositorio.findByAlunoId(alunoId);
     }
 
-    // Exposto para camadas de visualização: listar avaliações relacionadas a um instrutor específico
     @Transactional(readOnly = true)
     public List<Avaliacao> listarAvaliacoesDoInstrutor(String instrutorId) {
         if (instrutorId == null || instrutorId.isBlank()) return Collections.emptyList();
-        // Busca com associações para evitar LazyInitialization em UI
         return avaliacaoRepositorio.findByInstrutorIdComAssociacoes(instrutorId);
     }
 
@@ -310,11 +341,18 @@ public class RelatorioService {
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
 
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(cursoId);
+        
+        if (avaliacoes == null || avaliacoes.isEmpty()) {
+            throw new RuntimeException("Não há avaliações para o curso selecionado.");
+        }
+        
         byte[] pdf = montarPdfCurso(curso, avaliacoes);
 
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.CURSO);
-        r.setDocumento(pdf);
+        r.setDescricao("Detalhado_Curso");
+        r.setNomeEntidade(Optional.ofNullable(curso.getNome()).orElse("Curso_" + cursoId));
+        r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
@@ -323,16 +361,28 @@ public class RelatorioService {
     public Relatorio gerarRelatorioDetalhadoInstrutor(String instrutorId) {
         Usuario u = usuarioRepositorio.findById(instrutorId)
                 .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
-        if (u.getTipoUsuario() != Usuario.TipoUsuario.Instrutor) {
+        if (!(u instanceof Instrutor)) {
             throw new IllegalArgumentException("ID provido não é de um instrutor");
         }
 
         List<Avaliacao> avaliacoes = obterAvaliacoesDeInstrutor(instrutorId);
+        
+        if (avaliacoes == null || avaliacoes.isEmpty()) {
+            throw new RuntimeException("Não há avaliações para o instrutor selecionado.");
+        }
+        
         byte[] pdf = montarPdfInstrutor(u, avaliacoes);
+
+        String nomeInstrutorFormatado = Optional.ofNullable(u.getNome())
+            .filter(s -> !s.isBlank())
+            .map(s -> s.replaceAll("\\s+", "_"))
+            .orElse("Instrutor_" + instrutorId);
 
         Relatorio r = new Relatorio();
         r.setTipo(Relatorio.TipoRelatorio.INSTRUTOR);
-        r.setDocumento(pdf);
+        r.setDescricao("Detalhado_Instrutor");
+        r.setNomeEntidade(nomeInstrutorFormatado);
+        r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
         return relatorioRepositorio.save(r);
     }
@@ -367,7 +417,6 @@ public class RelatorioService {
         );
     }
 
-    // Método genérico para reduzir duplicação entre PDFs detalhados
     private byte[] montarPdfDetalhado(String titulo,
                                       String subtitulo,
                                       String mensagemVazio,
@@ -697,7 +746,6 @@ public class RelatorioService {
         return new Paragraph(String.format(Locale.US, "Total de avaliações: %d\nMédia geral: %.2f", totalAvaliacoes, mediaGeral));
     }
 
-    // ====== PDF por avaliação (individual) ======
     @Transactional(readOnly = true)
     public void exportarPdfDaAvaliacao(Long avaliacaoId, File destino) {
         Avaliacao a = avaliacaoRepositorio.findById(avaliacaoId)
@@ -724,7 +772,6 @@ public class RelatorioService {
 
             adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
 
-            // Tabela de perguntas e notas
             float[] widths = new float[]{4f, 1f};
             PdfPTable table = criarTabelaDetalhada(widths, new String[]{"Pergunta", "Nota"});
             List<Nota> notas = Optional.ofNullable(a.getNotas()).orElse(Collections.emptyList());
@@ -736,12 +783,10 @@ public class RelatorioService {
             }
             db.doc().add(table);
 
-            // Comentário
             db.doc().add(new Paragraph("\nFeedback:", db.fonts().h2()));
             String fb = Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse("—");
             db.doc().add(new Paragraph(fb, db.fonts().normal()));
 
-            // Média (se disponível)
             if (a.getMedia() != null) {
                 db.doc().add(new Paragraph("\nMédia informada: " + a.getMedia(), db.fonts().normal()));
             }
@@ -750,6 +795,28 @@ public class RelatorioService {
             return db.baos().toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar PDF da avaliação", e);
+        }
+    }
+
+
+    public byte[] decodificarDocumento(Relatorio relatorio) {
+        if (relatorio == null || relatorio.getDocumento() == null || relatorio.getDocumento().isEmpty()) {
+            throw new IllegalArgumentException("Relatório ou documento inválido");
+        }
+        return Base64.getDecoder().decode(relatorio.getDocumento());
+    }
+
+
+    @Transactional(readOnly = true)
+    public void exportarDocumentoRelatorio(Long relatorioId, File destino) {
+        Relatorio relatorio = pegarRelatorioPorId(relatorioId);
+        byte[] pdf = decodificarDocumento(relatorio);
+        try {
+            Path p = destino.toPath();
+            Files.createDirectories(p.getParent() != null ? p.getParent() : destino.toPath().toAbsolutePath().getParent());
+            Files.write(p, pdf, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar documento do relatório", e);
         }
     }
     

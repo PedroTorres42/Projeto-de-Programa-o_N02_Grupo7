@@ -30,7 +30,10 @@ public class Relatorio {
     @CreatedDate
     private LocalDate data;
 
+    private String descricao; 
+    private String nomeEntidade;
 
     @Lob
-    private byte[] documento;
+    @Column(columnDefinition = "TEXT")
+    private String documento;
 }
