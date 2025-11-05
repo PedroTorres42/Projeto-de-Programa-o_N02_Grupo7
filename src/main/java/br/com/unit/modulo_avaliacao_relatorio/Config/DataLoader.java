@@ -117,6 +117,71 @@ public class DataLoader implements CommandLineRunner {
         aluno2 = resolveAluno(aluno2);
         aluno3 = resolveAluno(aluno3);
 
+    // 4.1 Criar mais um instrutor por curso (ficando 2 instrutores por curso)
+    Instrutor instrutor1b = new Instrutor();
+    instrutor1b.setNome("Carla Menezes");
+    instrutor1b.setEmail("carla.java@teste.com");
+    instrutor1b.setSenha("1234");
+    instrutor1b.setEspecialidade("Java");
+
+    Instrutor instrutor2b = new Instrutor();
+    instrutor2b.setNome("Bruno Ferreira");
+    instrutor2b.setEmail("bruno.python@teste.com");
+    instrutor2b.setSenha("1234");
+    instrutor2b.setEspecialidade("Python");
+
+    Instrutor instrutor3b = new Instrutor();
+    instrutor3b.setNome("Marina Azevedo");
+    instrutor3b.setEmail("marina.web@teste.com");
+    instrutor3b.setSenha("1234");
+    instrutor3b.setEspecialidade("Front-end");
+
+    instrutor1b = resolveInstrutor(instrutor1b);
+    instrutor2b = resolveInstrutor(instrutor2b);
+    instrutor3b = resolveInstrutor(instrutor3b);
+
+    // Atualiza os cursos para conter 2 instrutores cada
+    List<Instrutor> instrJava = new ArrayList<>(cursoJava.getInstrutores());
+    if (!instrJava.contains(instrutor1b)) instrJava.add(instrutor1b);
+    cursoJava.setInstrutores(instrJava);
+    cursoJava = cursoService.criarCurso(cursoJava); // save/update
+
+    List<Instrutor> instrPython = new ArrayList<>(cursoPython.getInstrutores());
+    if (!instrPython.contains(instrutor2b)) instrPython.add(instrutor2b);
+    cursoPython.setInstrutores(instrPython);
+    cursoPython = cursoService.criarCurso(cursoPython);
+
+    List<Instrutor> instrWeb = new ArrayList<>(cursoWeb.getInstrutores());
+    if (!instrWeb.contains(instrutor3b)) instrWeb.add(instrutor3b);
+    cursoWeb.setInstrutores(instrWeb);
+    cursoWeb = cursoService.criarCurso(cursoWeb);
+
+    // 4.2 Criar mais um aluno por curso (ficando 2 alunos por curso)
+    Aluno aluno1b = new Aluno();
+    aluno1b.setNome("Rafael Costa");
+    aluno1b.setEmail("rafael.java@teste.com");
+    aluno1b.setSenha("1234");
+    aluno1b.setMatricula("2025101");
+    aluno1b.setCursoAtual(cursoJava);
+
+    Aluno aluno2b = new Aluno();
+    aluno2b.setNome("Bianca Alves");
+    aluno2b.setEmail("bianca.python@teste.com");
+    aluno2b.setSenha("1234");
+    aluno2b.setMatricula("2025102");
+    aluno2b.setCursoAtual(cursoPython);
+
+    Aluno aluno3b = new Aluno();
+    aluno3b.setNome("Camila Nunes");
+    aluno3b.setEmail("camila.web@teste.com");
+    aluno3b.setSenha("1234");
+    aluno3b.setMatricula("2025103");
+    aluno3b.setCursoAtual(cursoWeb);
+
+    aluno1b = resolveAluno(aluno1b);
+    aluno2b = resolveAluno(aluno2b);
+    aluno3b = resolveAluno(aluno3b);
+
         // 5. Criar Formulários e Perguntas
         // Para cada formulário, crie novas instâncias de Pergunta
         List<Pergunta> perguntasInstrutor = new ArrayList<>();
