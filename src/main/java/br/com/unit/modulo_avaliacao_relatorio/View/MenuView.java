@@ -141,10 +141,13 @@ public class MenuView extends JFrame {
 		}
 	}
 
-    
-
 	private void verRelatorios() {
-		JOptionPane.showMessageDialog(this, "Módulo de Relatórios será implementado em breve.");
+		try {
+			RelatorioView tela = ctx.getBean(RelatorioView.class);
+			tela.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Falha ao abrir Relatórios: " + ex.getMessage());
+		}
 	}
 
 	private String safe(String s) {
