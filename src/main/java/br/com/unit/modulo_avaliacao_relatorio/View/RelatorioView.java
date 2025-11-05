@@ -357,12 +357,12 @@ public class RelatorioView extends JFrame {
     
     private void abrirDialogoGerarRelatorio() {
         String[] opcoes = {
-            "Comparativo por Curso",
-            "Comparativo por Instrutor",
-            "Aluno (Individual)",
-            "Alunos do Curso",
-            "Curso Detalhado",
-            "Instrutor Detalhado"
+            "Comparar Instrutores de um Curso",
+            "Comparar Cursos de um Instrutor",
+            "Relatório Individual de Aluno",
+            "Comparar Alunos de um Curso",
+            "Relatório Detalhado de Curso",
+            "Relatório Detalhado de Instrutor"
         };
         
         String escolha = (String) JOptionPane.showInputDialog(
@@ -379,22 +379,22 @@ public class RelatorioView extends JFrame {
         
         try {
             switch (escolha) {
-                case "Comparativo por Curso":
+                case "Comparar Instrutores de um Curso":
                     gerarRelatorioComparativoCurso();
                     break;
-                case "Comparativo por Instrutor":
+                case "Comparar Cursos de um Instrutor":
                     gerarRelatorioComparativoInstrutor();
                     break;
-                case "Aluno (Individual)":
+                case "Relatório Individual de Aluno":
                     gerarRelatorioAluno();
                     break;
-                case "Alunos do Curso":
+                case "Comparar Alunos de um Curso":
                     gerarRelatorioAlunosCurso();
                     break;
-                case "Curso Detalhado":
+                case "Relatório Detalhado de Curso":
                     gerarRelatorioCursoDetalhado();
                     break;
-                case "Instrutor Detalhado":
+                case "Relatório Detalhado de Instrutor":
                     gerarRelatorioInstrutorDetalhado();
                     break;
             }
@@ -416,8 +416,8 @@ public class RelatorioView extends JFrame {
         
         Curso cursoSelecionado = (Curso) JOptionPane.showInputDialog(
             this,
-            "Selecione o curso:",
-            "Gerar Relatório Comparativo por Curso",
+            "Selecione o curso para comparar seus instrutores:",
+            "Comparar Instrutores de um Curso",
             JOptionPane.QUESTION_MESSAGE,
             null,
             cursos.toArray(),
@@ -426,7 +426,7 @@ public class RelatorioView extends JFrame {
         
         if (cursoSelecionado != null) {
             try {
-                relatorioService.gerarRelatorioComparativoPorCurso(cursoSelecionado.getId());
+                relatorioService.gerarRelatorioComparativoInstrutoresPorCurso(cursoSelecionado.getId());
                 JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                 carregarRelatorios();
             } catch (RuntimeException ex) {
@@ -445,8 +445,8 @@ public class RelatorioView extends JFrame {
         
         Usuario instrutorSelecionado = (Usuario) JOptionPane.showInputDialog(
             this,
-            "Selecione o instrutor:",
-            "Gerar Relatório Comparativo por Instrutor",
+            "Selecione o instrutor para comparar seus cursos:",
+            "Comparar Cursos de um Instrutor",
             JOptionPane.QUESTION_MESSAGE,
             null,
             instrutores.toArray(),
@@ -455,7 +455,7 @@ public class RelatorioView extends JFrame {
         
         if (instrutorSelecionado != null) {
             try {
-                relatorioService.gerarRelatorioComparativoPorInstrutor(instrutorSelecionado.getId());
+                relatorioService.gerarRelatorioComparativoCursosPorInstrutor(instrutorSelecionado.getId());
                 JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                 carregarRelatorios();
             } catch (RuntimeException ex) {
@@ -503,8 +503,8 @@ public class RelatorioView extends JFrame {
         
         Curso cursoSelecionado = (Curso) JOptionPane.showInputDialog(
             this,
-            "Selecione o curso:",
-            "Gerar Relatório de Alunos do Curso",
+            "Selecione o curso para comparar seus alunos:",
+            "Comparar Alunos de um Curso",
             JOptionPane.QUESTION_MESSAGE,
             null,
             cursos.toArray(),
@@ -513,7 +513,7 @@ public class RelatorioView extends JFrame {
         
         if (cursoSelecionado != null) {
             try {
-                relatorioService.gerarRelatorioAlunosDoCurso(cursoSelecionado.getId());
+                relatorioService.gerarRelatorioComparativoAlunosPorCurso(cursoSelecionado.getId());
                 JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                 carregarRelatorios();
             } catch (RuntimeException ex) {

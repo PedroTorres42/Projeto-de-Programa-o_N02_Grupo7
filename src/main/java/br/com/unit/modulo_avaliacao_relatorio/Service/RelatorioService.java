@@ -108,7 +108,7 @@ public class RelatorioService {
 
 
     @Transactional
-    public Relatorio gerarRelatorioComparativoPorCurso(Long cursoId) {
+    public Relatorio gerarRelatorioComparativoInstrutoresPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(curso.getId());
@@ -133,7 +133,7 @@ public class RelatorioService {
     }
 
     @Transactional
-    public Relatorio gerarRelatorioComparativoPorInstrutor(String instrutorId) {
+    public Relatorio gerarRelatorioComparativoCursosPorInstrutor(String instrutorId) {
         Usuario i = usuarioRepositorio.findById(instrutorId)
                 .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
         if (!(i instanceof Instrutor)) {
@@ -211,7 +211,7 @@ public class RelatorioService {
     }
 
     @Transactional
-    public Relatorio gerarRelatorioAlunosDoCurso(Long cursoId) {
+    public Relatorio gerarRelatorioComparativoAlunosPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(cursoId);
@@ -286,11 +286,9 @@ public class RelatorioService {
         return avaliacaoRepositorio.findByAlunoId(alunoId);
     }
 
-    // Exposto para camadas de visualização: listar avaliações relacionadas a um instrutor específico
     @Transactional(readOnly = true)
     public List<Avaliacao> listarAvaliacoesDoInstrutor(String instrutorId) {
         if (instrutorId == null || instrutorId.isBlank()) return Collections.emptyList();
-        // Busca com associações para evitar LazyInitialization em UI
         return avaliacaoRepositorio.findByInstrutorIdComAssociacoes(instrutorId);
     }
 
@@ -419,7 +417,6 @@ public class RelatorioService {
         );
     }
 
-    // Método genérico para reduzir duplicação entre PDFs detalhados
     private byte[] montarPdfDetalhado(String titulo,
                                       String subtitulo,
                                       String mensagemVazio,
