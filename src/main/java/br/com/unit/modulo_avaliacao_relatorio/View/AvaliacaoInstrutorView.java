@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @Component
 public class AvaliacaoInstrutorView extends JFrame {
 
-	private final UsuarioService usuarioService;
 	private final AvaliacaoService avaliacaoService;
 	private final FormularioService formularioService;
 	private final RelatorioService relatorioService;
@@ -41,11 +40,10 @@ public class AvaliacaoInstrutorView extends JFrame {
 			"Capacidade de resolver dúvidas"
 	);
 
-	public AvaliacaoInstrutorView(UsuarioService usuarioService,
+	public AvaliacaoInstrutorView(
 								  AvaliacaoService avaliacaoService,
 								  FormularioService formularioService,
 								  RelatorioService relatorioService) {
-		this.usuarioService = usuarioService;
 		this.avaliacaoService = avaliacaoService;
 		this.formularioService = formularioService;
 		this.relatorioService = relatorioService;
@@ -63,7 +61,7 @@ public class AvaliacaoInstrutorView extends JFrame {
 		campoFeedback = new JTextArea(4, 20);
 		labelAluno = new JLabel("(não definido)");
 
-		usuarioService.listarInstrutores().forEach(comboInstrutor::addItem);
+	// Preenchimento será feito quando o aluno atual for definido (com base no curso dele)
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -220,6 +218,11 @@ public class AvaliacaoInstrutorView extends JFrame {
 		this.alunoAtual = aluno;
 		if (labelAluno != null) {
 			labelAluno.setText(aluno != null ? aluno.getNome() : "(não definido)");
+		}
+		// Recarrega instrutores elegíveis: apenas dos cursos em que o aluno está inscrito (cursoAtual)
+		comboInstrutor.removeAllItems();
+		if (aluno != null && aluno.getCursoAtual() != null && aluno.getCursoAtual().getInstrutores() != null) {
+			aluno.getCursoAtual().getInstrutores().forEach(comboInstrutor::addItem);
 		}
 	}
 }
