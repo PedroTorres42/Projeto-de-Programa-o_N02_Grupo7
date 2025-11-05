@@ -29,6 +29,7 @@ public class RelatorioView extends JFrame {
     private JTable tabelaRelatorios;
     private DefaultTableModel modeloTabela;
     private JComboBox<FiltroTipo> comboFiltro;
+    private JButton btnVisualizar;
     private JButton btnExportarPDF;
     private JButton btnExportarCSV;
     private JButton btnAtualizar;
@@ -112,6 +113,10 @@ public class RelatorioView extends JFrame {
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelInferior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
+        btnVisualizar = new JButton("Visualizar");
+        btnVisualizar.addActionListener(e -> visualizarRelatorio());
+        painelInferior.add(btnVisualizar);
+        
         btnExportarPDF = new JButton("Exportar PDF Selecionado");
         btnExportarPDF.addActionListener(e -> exportarPDF());
         painelInferior.add(btnExportarPDF);
@@ -129,10 +134,12 @@ public class RelatorioView extends JFrame {
         
         tabelaRelatorios.getSelectionModel().addListSelectionListener(e -> {
             boolean temSelecao = tabelaRelatorios.getSelectedRow() != -1;
+            btnVisualizar.setEnabled(temSelecao);
             btnExportarPDF.setEnabled(temSelecao);
             btnExcluir.setEnabled(temSelecao);
         });
         
+        btnVisualizar.setEnabled(false);
         btnExportarPDF.setEnabled(false);
         btnExcluir.setEnabled(false);
     }
@@ -234,6 +241,50 @@ public class RelatorioView extends JFrame {
             return String.format("%.1f KB", bytes / 1024.0);
         } else {
             return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+        }
+    }
+    
+    private void visualizarRelatorio() {
+        int linhaSelecionada = tabelaRelatorios.getSelectedRow();
+        if (linhaSelecionada == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Selecione um relatório para visualizar.",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        try {
+            Relatorio relatorio = relatoriosCarregados.get(linhaSelecionada);
+            byte[] pdfBytes = java.util.Base64.getDecoder().decode(relatorio.getDocumento());
+            
+            File tempFile = File.createTempFile("relatorio_", ".pdf");
+            tempFile.deleteOnExit();
+            java.nio.file.Files.write(tempFile.toPath(), pdfBytes);
+            
+            if (Desktop.isDesktopSupported()) {
+                Desktop desktop = Desktop.getDesktop();
+                if (desktop.isSupported(Desktop.Action.OPEN)) {
+                    desktop.open(tempFile);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Não foi possível abrir o visualizador de PDF.\nUse 'Exportar PDF' para salvar o arquivo.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Visualização não suportada neste sistema.\nUse 'Exportar PDF' para salvar o arquivo.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+            
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao visualizar relatório: " + ex.getMessage(),
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
     
