@@ -117,6 +117,31 @@ public class DataLoader implements CommandLineRunner {
         aluno2 = resolveAluno(aluno2);
         aluno3 = resolveAluno(aluno3);
 
+        Aluno aluno1b = new Aluno();
+        aluno1b.setNome("Rafael Costa");
+        aluno1b.setEmail("rafael.java@teste.com");
+        aluno1b.setSenha("1234");
+        aluno1b.setMatricula("2025101");
+        aluno1b.setCursoAtual(cursoJava);
+
+        Aluno aluno2b = new Aluno();
+        aluno2b.setNome("Bianca Alves");
+        aluno2b.setEmail("bianca.python@teste.com");
+        aluno2b.setSenha("1234");
+        aluno2b.setMatricula("2025102");
+        aluno2b.setCursoAtual(cursoPython);
+
+        Aluno aluno3b = new Aluno();
+        aluno3b.setNome("Camila Nunes");
+        aluno3b.setEmail("camila.web@teste.com");
+        aluno3b.setSenha("1234");
+        aluno3b.setMatricula("2025103");
+        aluno3b.setCursoAtual(cursoWeb);
+
+        aluno1b = resolveAluno(aluno1b);
+        aluno2b = resolveAluno(aluno2b);
+        aluno3b = resolveAluno(aluno3b);
+
     // 4.1 Criar mais um instrutor por curso (ficando 2 instrutores por curso)
     Instrutor instrutor1b = new Instrutor();
     instrutor1b.setNome("Carla Menezes");
@@ -156,31 +181,7 @@ public class DataLoader implements CommandLineRunner {
     cursoWeb.setInstrutores(instrWeb);
     cursoWeb = cursoService.criarCurso(cursoWeb);
 
-    // 4.2 Criar mais um aluno por curso (ficando 2 alunos por curso)
-    Aluno aluno1b = new Aluno();
-    aluno1b.setNome("Rafael Costa");
-    aluno1b.setEmail("rafael.java@teste.com");
-    aluno1b.setSenha("1234");
-    aluno1b.setMatricula("2025101");
-    aluno1b.setCursoAtual(cursoJava);
 
-    Aluno aluno2b = new Aluno();
-    aluno2b.setNome("Bianca Alves");
-    aluno2b.setEmail("bianca.python@teste.com");
-    aluno2b.setSenha("1234");
-    aluno2b.setMatricula("2025102");
-    aluno2b.setCursoAtual(cursoPython);
-
-    Aluno aluno3b = new Aluno();
-    aluno3b.setNome("Camila Nunes");
-    aluno3b.setEmail("camila.web@teste.com");
-    aluno3b.setSenha("1234");
-    aluno3b.setMatricula("2025103");
-    aluno3b.setCursoAtual(cursoWeb);
-
-    aluno1b = resolveAluno(aluno1b);
-    aluno2b = resolveAluno(aluno2b);
-    aluno3b = resolveAluno(aluno3b);
 
         // 5. Criar Formulários e Perguntas
         // Para cada formulário, crie novas instâncias de Pergunta

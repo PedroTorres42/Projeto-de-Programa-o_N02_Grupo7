@@ -140,21 +140,25 @@ public class AvaliacaoView extends JFrame {
         comboCurso.removeAllItems();
         comboInstrutor.removeAllItems();
 
-        // Se houver instrutor logado, restringe por cursos ministrados e alunos inscritos neles
+    // Se houver instrutor logado, restringe por cursos ministrados e alunos inscritos neles
         if (instrutorLogado != null) {
             // Instrutor fixo e bloqueado
             comboInstrutor.addItem(instrutorLogado);
             comboInstrutor.setSelectedItem(instrutorLogado);
             comboInstrutor.setEnabled(false);
 
-            List<Curso> cursosDoInstrutor = cursoService.listarCursos().stream()
-                    .filter(c -> c.getInstrutores() != null && c.getInstrutores().contains(instrutorLogado))
-                    .toList();
+        // Evitar comparação por identidade de objeto (pode vir de contextos diferentes). Comparar por ID.
+        String instrutorId = instrutorLogado.getId();
+        List<Curso> cursosDoInstrutor = cursoService.listarCursos().stream()
+            .filter(c -> c.getInstrutores() != null && c.getInstrutores().stream()
+                .anyMatch(i -> i != null && i.getId() != null && i.getId().equals(instrutorId)))
+            .toList();
             cursosDoInstrutor.forEach(comboCurso::addItem);
 
-            List<Aluno> alunosElegiveis = usuarioService.listarAlunos().stream()
-                    .filter(a -> a.getCursoAtual() != null && cursosDoInstrutor.contains(a.getCursoAtual()))
-                    .toList();
+        List<Aluno> alunosElegiveis = usuarioService.listarAlunos().stream()
+            .filter(a -> a.getCursoAtual() != null && cursosDoInstrutor.stream()
+                .anyMatch(c -> c.getId() != null && a.getCursoAtual().getId() != null && c.getId().equals(a.getCursoAtual().getId())))
+            .toList();
             alunosElegiveis.forEach(comboAluno::addItem);
         } else {
             // Sem instrutor logado (fallback): mantém comportamento anterior
