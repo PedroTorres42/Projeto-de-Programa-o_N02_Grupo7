@@ -5,11 +5,8 @@ import br.com.unit.modulo_avaliacao_relatorio.Service.RelatorioService;
 import javax.swing.*;
 
 public class RelatorioView extends JFrame {
-    private final RelatorioService relatorioService;
-    
-    public RelatorioView(RelatorioService relatorioService) {
-        this.relatorioService = relatorioService;
-    }
+    // Placeholder view; wiring will be added when features are implemented
+    public RelatorioView(RelatorioService relatorioService) { }
     //TODO: Seleção de qual tipo de relatório(Comparativo[Instrutor, Curso], Individual[Aluno, Curso, Instrutor]) gerar
     //TODO: Exportar para PDF
     //TODO: Criar e exportar CSV

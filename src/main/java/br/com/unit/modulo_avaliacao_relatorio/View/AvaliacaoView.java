@@ -136,19 +136,32 @@ public class AvaliacaoView extends JFrame {
     }
 
     private void popularCombos() {
-        List<Aluno> alunos = usuarioService.listarAlunos();
-        alunos.forEach(comboAluno::addItem);
+        comboAluno.removeAllItems();
+        comboCurso.removeAllItems();
+        comboInstrutor.removeAllItems();
 
-        // Preenche o combo de instrutores, mas seleciona o logado
-        List<Instrutor> instrutores = usuarioService.listarInstrutores();
-        instrutores.forEach(comboInstrutor::addItem);
+        // Se houver instrutor logado, restringe por cursos ministrados e alunos inscritos neles
         if (instrutorLogado != null) {
+            // Instrutor fixo e bloqueado
+            comboInstrutor.addItem(instrutorLogado);
             comboInstrutor.setSelectedItem(instrutorLogado);
-            comboInstrutor.setEnabled(false); // bloqueia edição
-        }
+            comboInstrutor.setEnabled(false);
 
-        List<Curso> cursos = cursoService.listarCursos();
-        cursos.forEach(comboCurso::addItem);
+            List<Curso> cursosDoInstrutor = cursoService.listarCursos().stream()
+                    .filter(c -> c.getInstrutores() != null && c.getInstrutores().contains(instrutorLogado))
+                    .toList();
+            cursosDoInstrutor.forEach(comboCurso::addItem);
+
+            List<Aluno> alunosElegiveis = usuarioService.listarAlunos().stream()
+                    .filter(a -> a.getCursoAtual() != null && cursosDoInstrutor.contains(a.getCursoAtual()))
+                    .toList();
+            alunosElegiveis.forEach(comboAluno::addItem);
+        } else {
+            // Sem instrutor logado (fallback): mantém comportamento anterior
+            usuarioService.listarAlunos().forEach(comboAluno::addItem);
+            usuarioService.listarInstrutores().forEach(comboInstrutor::addItem);
+            cursoService.listarCursos().forEach(comboCurso::addItem);
+        }
 
         List<Formulario> formularios = formularioService.listarFormularios();
         formularios.forEach(comboFormulario::addItem);

@@ -20,9 +20,7 @@ import java.util.stream.Collectors;
 @Lazy
 @Component
 public class AvaliacaoCursoView extends JFrame {
-
-	private final UsuarioService usuarioService;
-	private final CursoService cursoService;
+ 
 	private final AvaliacaoService avaliacaoService;
 	private final FormularioService formularioService;
     private final RelatorioService relatorioService;
@@ -42,13 +40,9 @@ public class AvaliacaoCursoView extends JFrame {
 			"Avaliação geral"
 	);
 
-	public AvaliacaoCursoView(UsuarioService usuarioService,
-					  CursoService cursoService,
-					  AvaliacaoService avaliacaoService,
+	public AvaliacaoCursoView(AvaliacaoService avaliacaoService,
 					  FormularioService formularioService,
 					  RelatorioService relatorioService) {
-		this.usuarioService = usuarioService;
-		this.cursoService = cursoService;
 		this.avaliacaoService = avaliacaoService;
 		this.formularioService = formularioService;
         this.relatorioService = relatorioService;
@@ -67,9 +61,7 @@ public class AvaliacaoCursoView extends JFrame {
 		campoFeedback = new JTextArea(4, 20);
         labelAluno = new JLabel("(não definido)");
 
-		// Popular combos (aluno é o logado, não há seleção aqui)
-		cursoService.listarCursos().forEach(comboCurso::addItem);
-		usuarioService.listarInstrutores().forEach(comboInstrutor::addItem);
+	// Popular combos será realizado quando o aluno atual for definido (com base na inscrição)
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -230,6 +222,16 @@ public class AvaliacaoCursoView extends JFrame {
 		this.alunoAtual = aluno;
 		if (labelAluno != null) {
 			labelAluno.setText(aluno != null ? aluno.getNome() : "(não definido)");
+		}
+		// Recarrega curso e instrutores permitidos: somente o cursoAtual e seus instrutores
+		comboCurso.removeAllItems();
+		comboInstrutor.removeAllItems();
+		if (aluno != null && aluno.getCursoAtual() != null) {
+			Curso curso = aluno.getCursoAtual();
+			comboCurso.addItem(curso);
+			if (curso.getInstrutores() != null) {
+				curso.getInstrutores().forEach(comboInstrutor::addItem);
+			}
 		}
 	}
 }
