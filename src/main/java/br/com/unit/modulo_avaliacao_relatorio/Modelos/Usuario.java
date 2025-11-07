@@ -27,10 +27,8 @@ public class Usuario {
     @Column(nullable = false)
     private String senha;
 
-    // ⚠️ NÃO mapear este campo à coluna — evitar conflito com @DiscriminatorColumn.
-    // Se quiser manter no código para uso em DTOs/Views, deixe como não persistente:
     @Transient
-    private TipoUsuario tipoUsuario; // apenas informativo/derivado
+    private TipoUsuario tipoUsuario;
 
     public enum TipoUsuario {
         Administrador,

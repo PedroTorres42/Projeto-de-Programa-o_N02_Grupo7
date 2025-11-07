@@ -124,7 +124,6 @@ public class LoginView extends JFrame {
             
             Usuario usuario = usuarioOptional.get();
             
-            // Verificar senha
             if (!usuario.getSenha().equals(senha)) {
                 JOptionPane.showMessageDialog(this,
                     "Senha incorreta!",
@@ -146,7 +145,6 @@ public class LoginView extends JFrame {
                 "Sucesso",
                 JOptionPane.INFORMATION_MESSAGE);
             
-            // Abrir o menu com o usuário logado e ocultar a tela de login
             limparCampos();
             this.setVisible(false);
             if (menuView != null) {

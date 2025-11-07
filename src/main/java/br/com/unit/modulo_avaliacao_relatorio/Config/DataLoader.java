@@ -31,7 +31,6 @@ public class DataLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // 1. Criar Administrador
         Administrador admin = new Administrador();
         admin.setNome("Admin Sistema");
         admin.setEmail("admin@sistema.com");
@@ -45,7 +44,6 @@ public class DataLoader implements CommandLineRunner {
             System.out.println("[DataLoader] Email admin@sistema.com já existe para outro tipo de usuário. Mantendo existente e seguindo.");
         }
 
-        // 2. Criar Instrutores
         Instrutor instrutor1 = new Instrutor();
         instrutor1.setNome("Carlos Silva");
         instrutor1.setEmail("carlos@teste.com");
@@ -68,7 +66,6 @@ public class DataLoader implements CommandLineRunner {
         instrutor2 = resolveInstrutor(instrutor2);
         instrutor3 = resolveInstrutor(instrutor3);
 
-        // 3. Criar Cursos
         Curso cursoJava = new Curso();
         cursoJava.setNome("Curso Java");
         cursoJava.setDescricao("Aprendizado de Java básico e avançado");
@@ -91,7 +88,6 @@ public class DataLoader implements CommandLineRunner {
         cursoPython = cursoService.criarCurso(cursoPython);
         cursoWeb = cursoService.criarCurso(cursoWeb);
 
-        // 4. Criar Alunos
         Aluno aluno1 = new Aluno();
         aluno1.setNome("Pedro Torres");
         aluno1.setEmail("pedro@teste.com");
@@ -142,7 +138,6 @@ public class DataLoader implements CommandLineRunner {
         aluno2b = resolveAluno(aluno2b);
         aluno3b = resolveAluno(aluno3b);
 
-    // 4.1 Criar mais um instrutor por curso (ficando 2 instrutores por curso)
     Instrutor instrutor1b = new Instrutor();
     instrutor1b.setNome("Carla Menezes");
     instrutor1b.setEmail("carla.java@teste.com");
@@ -165,11 +160,10 @@ public class DataLoader implements CommandLineRunner {
     instrutor2b = resolveInstrutor(instrutor2b);
     instrutor3b = resolveInstrutor(instrutor3b);
 
-    // Atualiza os cursos para conter 2 instrutores cada
     List<Instrutor> instrJava = new ArrayList<>(cursoJava.getInstrutores());
     if (!instrJava.contains(instrutor1b)) instrJava.add(instrutor1b);
     cursoJava.setInstrutores(instrJava);
-    cursoJava = cursoService.criarCurso(cursoJava); // save/update
+    cursoJava = cursoService.criarCurso(cursoJava);
 
     List<Instrutor> instrPython = new ArrayList<>(cursoPython.getInstrutores());
     if (!instrPython.contains(instrutor2b)) instrPython.add(instrutor2b);
@@ -181,10 +175,9 @@ public class DataLoader implements CommandLineRunner {
     cursoWeb.setInstrutores(instrWeb);
     cursoWeb = cursoService.criarCurso(cursoWeb);
 
-
-
-        // 5. Criar Formulários e Perguntas
-        // Para cada formulário, crie novas instâncias de Pergunta
+        
+        
+        
         List<Pergunta> perguntasInstrutor = new ArrayList<>();
         Pergunta p1a = new Pergunta();
         p1a.setTexto("Como você avalia o domínio do conteúdo pelo instrutor?");
@@ -209,9 +202,9 @@ public class DataLoader implements CommandLineRunner {
 
         formularioService.criarFormulario("Avaliação do Curso", perguntasCurso);
 
-        // 6. Criar algumas Avaliações
-        // Para simulação, não associe o Formulario diretamente, pois o método criarFormulario retorna o Formulario persistido
-        // Se necessário, busque o Formulario pelo título ou ID
+        
+        
+        
 
         System.out.println("DataLoader finalizado: dados de teste inseridos com sucesso!");
     }
@@ -222,7 +215,7 @@ public class DataLoader implements CommandLineRunner {
         if (existente == null) return (Instrutor) usuarioService.salvarUsuario(novo);
         if (existente instanceof Instrutor i) return i;
         System.out.println("[DataLoader] Email " + novo.getEmail() + " já utilizado por outro tipo de usuário. Pulando criação do Instrutor.");
-        return novo; // retorna objeto local apenas para seguir fluxo, não persistido
+    return novo;
     }
 
     @Transactional
@@ -231,6 +224,6 @@ public class DataLoader implements CommandLineRunner {
         if (existente == null) return (Aluno) usuarioService.salvarUsuario(novo);
         if (existente instanceof Aluno a) return a;
         System.out.println("[DataLoader] Email " + novo.getEmail() + " já utilizado por outro tipo de usuário. Pulando criação do Aluno.");
-        return novo; // retorna objeto local apenas para seguir fluxo, não persistido
+    return novo;
     }
 }

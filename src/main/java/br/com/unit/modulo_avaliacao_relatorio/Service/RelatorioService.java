@@ -600,7 +600,6 @@ public class RelatorioService {
         doc.add(new Paragraph("Média Ponderada Geral: " + pondGeral.toPlainString(), fonts.normal()));
         doc.add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal()));
     }
-    // Helper genérico para reduzir duplicação
     private <T> String nomeOuIdGenerico(T entidade, Function<T, String> nomeFn, Function<T, Object> idFn, String tipo) {
         if (entidade == null) return tipo + " ?";
         String nome = nomeFn.apply(entidade);

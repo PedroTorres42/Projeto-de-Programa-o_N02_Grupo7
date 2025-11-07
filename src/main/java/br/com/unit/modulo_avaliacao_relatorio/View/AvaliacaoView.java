@@ -33,7 +33,6 @@ public class AvaliacaoView extends JFrame {
     private final FormularioService formularioService;
     private final RelatorioService relatorioService;
 
-    // Simulação: Instrutor “logado”
     private Instrutor instrutorLogado;
 
     public AvaliacaoView(
@@ -49,7 +48,6 @@ public class AvaliacaoView extends JFrame {
         this.formularioService = formularioService;
         this.relatorioService = relatorioService;
 
-        // Pega o primeiro instrutor da lista para simular login
         List<Instrutor> instrutores = usuarioService.listarInstrutores();
         if (!instrutores.isEmpty()) {
             instrutorLogado = instrutores.get(0);
@@ -87,41 +85,34 @@ public class AvaliacaoView extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Linha 0: Instrutor logado
         gbc.gridx = 0; gbc.gridy = 0;
         panel.add(lblInstrutorLogado, gbc);
 
-        // Linha 1: Aluno
         gbc.gridx = 0; gbc.gridy = 1;
         panel.add(lblAluno, gbc);
         gbc.gridx = 1; gbc.gridy = 1;
         panel.add(comboAluno, gbc);
 
-        // Linha 2: Curso
         gbc.gridx = 0; gbc.gridy = 2;
         panel.add(lblCurso, gbc);
         gbc.gridx = 1; gbc.gridy = 2;
         panel.add(comboCurso, gbc);
 
-        // Linha 3: Média
         gbc.gridx = 0; gbc.gridy = 3;
         panel.add(lblMedia, gbc);
         gbc.gridx = 1; gbc.gridy = 3;
         panel.add(campoMedia, gbc);
 
-        // Linha 4: Comentário
         gbc.gridx = 0; gbc.gridy = 4;
         panel.add(lblComentario, gbc);
         gbc.gridx = 1; gbc.gridy = 4;
         panel.add(new JScrollPane(campoComentario), gbc);
 
-        // Linha 5: Formulário
         gbc.gridx = 0; gbc.gridy = 5;
         panel.add(new JLabel("Formulário:"), gbc);
         gbc.gridx = 1; gbc.gridy = 5;
         panel.add(comboFormulario, gbc);
 
-        // Linha 6: Botão salvar
         gbc.gridx = 1; gbc.gridy = 6;
         panel.add(btnSalvar, gbc);
 
@@ -140,14 +131,11 @@ public class AvaliacaoView extends JFrame {
         comboCurso.removeAllItems();
         comboInstrutor.removeAllItems();
 
-    // Se houver instrutor logado, restringe por cursos ministrados e alunos inscritos neles
         if (instrutorLogado != null) {
-            // Instrutor fixo e bloqueado
             comboInstrutor.addItem(instrutorLogado);
             comboInstrutor.setSelectedItem(instrutorLogado);
             comboInstrutor.setEnabled(false);
 
-        // Evitar comparação por identidade de objeto (pode vir de contextos diferentes). Comparar por ID.
         String instrutorId = instrutorLogado.getId();
         List<Curso> cursosDoInstrutor = cursoService.listarCursos().stream()
             .filter(c -> c.getInstrutores() != null && c.getInstrutores().stream()
@@ -161,7 +149,6 @@ public class AvaliacaoView extends JFrame {
             .toList();
             alunosElegiveis.forEach(comboAluno::addItem);
         } else {
-            // Sem instrutor logado (fallback): mantém comportamento anterior
             usuarioService.listarAlunos().forEach(comboAluno::addItem);
             usuarioService.listarInstrutores().forEach(comboInstrutor::addItem);
             cursoService.listarCursos().forEach(comboCurso::addItem);
@@ -182,7 +169,6 @@ public class AvaliacaoView extends JFrame {
 
             Avaliacao avaliacao = new Avaliacao();
             avaliacao.setMedia(media);
-            // Garante que Feedback seja criado antes de acessar
             Feedback feedback = new Feedback();
             feedback.setComentario(comentario);
             feedback.setAvaliacao(avaliacao);
@@ -194,7 +180,6 @@ public class AvaliacaoView extends JFrame {
 
             Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
 
-            // Dialogo com opção de salvar PDF
             Object[] options = {"OK", "Salvar PDF..."};
             int opt = JOptionPane.showOptionDialog(this,
                     "Avaliação salva com ID: " + (salva != null ? salva.getId() : "—"),

@@ -28,7 +28,6 @@ public class ModuloMenuView {
                 MenuView menu = ctx.getBean(MenuView.class);
                 UsuarioService us = ctx.getBean(UsuarioService.class);
 
-                // Simples: escolhe um usuário para demonstrar o menu
                 Usuario u = null;
                 List<Aluno> alunos = us.listarAlunos();
                 if (!alunos.isEmpty()) u = alunos.get(0);
@@ -36,7 +35,6 @@ public class ModuloMenuView {
                     List<Instrutor> instrs = us.listarInstrutores();
                     if (!instrs.isEmpty()) u = instrs.get(0);
                 }
-                // Se nenhum, deixa sem usuário para mostrar mensagem padrão
                 if (u != null) menu.setUsuarioAtual(u);
 
                 menu.setVisible(true);
