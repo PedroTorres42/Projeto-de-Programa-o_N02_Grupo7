@@ -124,7 +124,11 @@ public class RelatorioView extends JFrame {
         btnExportarCSV = new JButton("Exportar CSV (Avaliações)");
         btnExportarCSV.addActionListener(e -> exportarCSV());
         painelInferior.add(btnExportarCSV);
-        
+
+        JButton btnExportarPDFGraficos = new JButton("Exportar PDF com Gráficos");
+        btnExportarPDFGraficos.addActionListener(e -> exportarPDFComGraficos());
+        painelInferior.add(btnExportarPDFGraficos);
+
         btnExcluir = new JButton("Excluir Selecionado");
         btnExcluir.addActionListener(e -> excluirRelatorio());
         btnExcluir.setForeground(Color.RED);
@@ -332,7 +336,49 @@ public class RelatorioView extends JFrame {
                 JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
+        private void exportarPDFComGraficos() {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            String dataAtual = LocalDate.now().format(formatter);
+            String nomeArquivo = "relatorio_geral_graficos_" + dataAtual + ".pdf";
+
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Salvar PDF com Gráficos");
+            fileChooser.setFileFilter(new FileNameExtensionFilter("PDF files", "pdf"));
+            fileChooser.setSelectedFile(new File(nomeArquivo));
+
+            int result = fileChooser.showSaveDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File arquivo = fileChooser.getSelectedFile();
+
+                if (!arquivo.getName().toLowerCase().endsWith(".pdf")) {
+                    arquivo = new File(arquivo.getAbsolutePath() + ".pdf");
+                }
+                
+                int incluirSatisfacao = JOptionPane.showConfirmDialog(this,
+                    "Deseja incluir o gráfico de satisfação (sentimento) no PDF?",
+                    "Opções de Exportação",
+                    JOptionPane.YES_NO_OPTION);
+                
+                boolean incluir = incluirSatisfacao == JOptionPane.YES_OPTION;
+
+                relatorioService.exportarPdfComGraficos(arquivo, incluir);
+
+                JOptionPane.showMessageDialog(this,
+                    "PDF com gráficos exportado com sucesso!",
+                    "Sucesso",
+                    JOptionPane.INFORMATION_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao exportar PDF com gráficos: " + ex.getMessage(),
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void exportarCSV() {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
