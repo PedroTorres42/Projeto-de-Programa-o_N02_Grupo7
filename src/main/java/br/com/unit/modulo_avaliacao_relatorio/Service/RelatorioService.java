@@ -56,8 +56,8 @@ public class RelatorioService {
     }
 
     @Transactional(readOnly = true)
-    public Iterable<Relatorio> pegarTodosRelatorios() {
-        return relatorioRepositorio.findAll();
+    public List<Relatorio> pegarTodosRelatorios() {
+        return relatorioRepositorio.findAllOrderByDataDesc();
     }
 
     @Transactional
@@ -699,6 +699,10 @@ public class RelatorioService {
                     dataset
             );
 
+            chart.setBackgroundPaint(Color.WHITE);
+            chart.getPlot().setBackgroundPaint(new Color(245, 245, 250));
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(70, 130, 180));
+
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 ChartUtils.writeChartAsPNG(baos, chart, largura, altura);
                 return baos.toByteArray();
@@ -732,7 +736,6 @@ public class RelatorioService {
                 int largura = 800;
                 int altura = 400;
                 
-                // Gráfico de Desempenho
                 byte[] graficoDesempenho = gerarGraficoMediaPorCursoBytes(largura, altura);
                 if (graficoDesempenho.length > 0) {
                     document.add(new Paragraph("Gráfico de Desempenho (Média Ponderada)", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)));
@@ -743,7 +746,6 @@ public class RelatorioService {
                     document.add(new Paragraph(" "));
                 }
                 
-                // Gráfico de Satisfação 
                 if (incluirSatisfacao) {
                     byte[] graficoSatisfacao = gerarGraficoSatisfacaoPorCursoBytes(largura, altura);
                     if (graficoSatisfacao.length > 0) {
@@ -866,9 +868,11 @@ public class RelatorioService {
                     false
             );
             
-            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(50, 200, 50));
-            chart.getCategoryPlot().getRenderer().setSeriesPaint(1, new Color(255, 200, 0)); 
-            chart.getCategoryPlot().getRenderer().setSeriesPaint(2, new Color(200, 50, 50)); 
+            chart.setBackgroundPaint(Color.WHITE);
+            chart.getPlot().setBackgroundPaint(new Color(245, 245, 250));
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(60, 179, 113));
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(1, new Color(255, 193, 7)); 
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(2, new Color(220, 53, 69)); 
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 ChartUtils.writeChartAsPNG(baos, chart, largura, altura);
