@@ -18,6 +18,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 @Lazy
 @Component
@@ -31,12 +35,12 @@ public class RelatorioView extends JFrame {
     private JComboBox<FiltroTipo> comboFiltro;
     private JButton btnVisualizar;
     private JButton btnExportarPDF;
-    private JButton btnExportarCSV;
-    private JButton btnAtualizar;
     private JButton btnExcluir;
+    private JButton btnAtualizar;
     private JButton btnGerarNovo;
-    
-    private List<Relatorio> relatoriosCarregados = new ArrayList<>();
+    private boolean loading = false;
+
+    private final List<Relatorio> relatoriosCarregados = new ArrayList<>();
     
     private enum FiltroTipo {
         TODOS("Todos"),
@@ -65,7 +69,10 @@ public class RelatorioView extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
-        carregarRelatorios();
+        addWindowListener(new WindowAdapter() {
+            @Override public void windowOpened(WindowEvent e) { carregarRelatorios(); }
+            @Override public void windowActivated(WindowEvent e) { carregarRelatorios(); }
+        });
     }
     
     private void initComponents() {
@@ -78,11 +85,12 @@ public class RelatorioView extends JFrame {
         comboFiltro = new JComboBox<>(FiltroTipo.values());
         comboFiltro.addActionListener(e -> filtrarRelatorios());
         painelSuperior.add(comboFiltro);
-        
-        btnAtualizar = new JButton("Atualizar");
+
+        btnAtualizar = new JButton("Recarregar (F5)");
+        btnAtualizar.setToolTipText("Recarregar lista de relatórios do banco (F5)");
         btnAtualizar.addActionListener(e -> carregarRelatorios());
         painelSuperior.add(btnAtualizar);
-        
+
         btnGerarNovo = new JButton("Gerar Novo Relatório");
         btnGerarNovo.addActionListener(e -> abrirDialogoGerarRelatorio());
         painelSuperior.add(btnGerarNovo);
@@ -120,8 +128,8 @@ public class RelatorioView extends JFrame {
         btnExportarPDF = new JButton("Exportar PDF Selecionado");
         btnExportarPDF.addActionListener(e -> exportarPDF());
         painelInferior.add(btnExportarPDF);
-        
-        btnExportarCSV = new JButton("Exportar CSV (Avaliações)");
+
+        JButton btnExportarCSV = new JButton("Exportar CSV (Avaliações)");
         btnExportarCSV.addActionListener(e -> exportarCSV());
         painelInferior.add(btnExportarCSV);
 
@@ -138,33 +146,55 @@ public class RelatorioView extends JFrame {
         
         tabelaRelatorios.getSelectionModel().addListSelectionListener(e -> {
             boolean temSelecao = tabelaRelatorios.getSelectedRow() != -1;
-            btnVisualizar.setEnabled(temSelecao);
-            btnExportarPDF.setEnabled(temSelecao);
-            btnExcluir.setEnabled(temSelecao);
+            boolean enable = temSelecao && !loading;
+            btnVisualizar.setEnabled(enable);
+            btnExportarPDF.setEnabled(enable);
+            btnExcluir.setEnabled(enable);
+        });
+
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("F5"), "reload");
+        getRootPane().getActionMap().put("reload", new AbstractAction() {
+            @Override public void actionPerformed(ActionEvent e) { carregarRelatorios(); }
         });
         
         btnVisualizar.setEnabled(false);
         btnExportarPDF.setEnabled(false);
         btnExcluir.setEnabled(false);
     }
+
+    public void exibir() {
+        carregarRelatorios();
+        SwingUtilities.invokeLater(() -> setVisible(true));
+    }
+
+    private void setLoading(boolean value) {
+        loading = value;
+        setCursor(value ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
+        comboFiltro.setEnabled(!value);
+        btnAtualizar.setEnabled(!value);
+        btnGerarNovo.setEnabled(!value);
+        tabelaRelatorios.setEnabled(!value);
+    }
     
     private void carregarRelatorios() {
         try {
+            setLoading(true);
             relatoriosCarregados.clear();
             modeloTabela.setRowCount(0);
             
-            java.awt.event.ActionListener[] listeners = comboFiltro.getActionListeners();
-            for (java.awt.event.ActionListener listener : listeners) {
+            ActionListener[] listeners = comboFiltro.getActionListeners();
+            for (ActionListener listener : listeners) {
                 comboFiltro.removeActionListener(listener);
             }
             
             comboFiltro.setSelectedItem(FiltroTipo.TODOS);
             
-            for (java.awt.event.ActionListener listener : listeners) {
+            for (ActionListener listener : listeners) {
                 comboFiltro.addActionListener(listener);
             }
             
-            Iterable<Relatorio> relatorios = relatorioService.pegarTodosRelatorios();
+            List<Relatorio> relatorios = relatorioService.pegarTodosRelatorios();
             
             for (Relatorio rel : relatorios) {
                 relatoriosCarregados.add(rel);
@@ -176,11 +206,14 @@ public class RelatorioView extends JFrame {
                 "Erro ao carregar relatórios: " + ex.getMessage(),
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
+        } finally {
+            setLoading(false);
         }
     }
     
     private void filtrarRelatorios() {
         try {
+            setLoading(true);
             relatoriosCarregados.clear();
             modeloTabela.setRowCount(0);
             
@@ -188,23 +221,14 @@ public class RelatorioView extends JFrame {
             List<Relatorio> relatorios;
             
             if (filtro == null || filtro == FiltroTipo.TODOS) {
-                relatorios = new ArrayList<>();
-                relatorioService.pegarTodosRelatorios().forEach(relatorios::add);
+                relatorios = relatorioService.pegarTodosRelatorios();
             } else {
-                switch (filtro) {
-                    case CURSO:
-                        relatorios = relatorioService.filtrarRelatoriosPorCurso();
-                        break;
-                    case INSTRUTOR:
-                        relatorios = relatorioService.filtrarRelatoriosPorInstrutor();
-                        break;
-                    case ALUNO:
-                        relatorios = relatorioService.filtrarRelatoriosPorAluno();
-                        break;
-                    default:
-                        relatorios = new ArrayList<>();
-                        relatorioService.pegarTodosRelatorios().forEach(relatorios::add);
-                }
+                relatorios = switch (filtro) {
+                    case CURSO -> relatorioService.filtrarRelatoriosPorCurso();
+                    case INSTRUTOR -> relatorioService.filtrarRelatoriosPorInstrutor();
+                    case ALUNO -> relatorioService.filtrarRelatoriosPorAluno();
+                    default -> relatorioService.pegarTodosRelatorios();
+                };
             }
             
             for (Relatorio rel : relatorios) {
@@ -217,6 +241,8 @@ public class RelatorioView extends JFrame {
                 "Erro ao filtrar relatórios: " + ex.getMessage(),
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
+        } finally {
+            setLoading(false);
         }
     }
     
@@ -288,7 +314,6 @@ public class RelatorioView extends JFrame {
                 "Erro ao visualizar relatório: " + ex.getMessage(),
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
         }
     }
     
@@ -517,7 +542,7 @@ public class RelatorioView extends JFrame {
             JOptionPane.QUESTION_MESSAGE,
             null,
             cursos.toArray(),
-            cursos.get(0)
+            cursos.getFirst()
         );
         
         if (cursoSelecionado != null) {
@@ -546,7 +571,7 @@ public class RelatorioView extends JFrame {
             JOptionPane.QUESTION_MESSAGE,
             null,
             instrutores.toArray(),
-            instrutores.get(0)
+            instrutores.getFirst()
         );
         
         if (instrutorSelecionado != null) {
@@ -575,7 +600,7 @@ public class RelatorioView extends JFrame {
             JOptionPane.QUESTION_MESSAGE,
             null,
             alunos.toArray(),
-            alunos.get(0)
+            alunos.getFirst()
         );
         
         if (alunoSelecionado != null) {
@@ -604,7 +629,7 @@ public class RelatorioView extends JFrame {
             JOptionPane.QUESTION_MESSAGE,
             null,
             cursos.toArray(),
-            cursos.get(0)
+            cursos.getFirst()
         );
         
         if (cursoSelecionado != null) {
@@ -633,7 +658,7 @@ public class RelatorioView extends JFrame {
             JOptionPane.QUESTION_MESSAGE,
             null,
             cursos.toArray(),
-            cursos.get(0)
+            cursos.getFirst()
         );
         
         if (cursoSelecionado != null) {
@@ -662,7 +687,7 @@ public class RelatorioView extends JFrame {
             JOptionPane.QUESTION_MESSAGE,
             null,
             instrutores.toArray(),
-            instrutores.get(0)
+            instrutores.getFirst()
         );
         
         if (instrutorSelecionado != null) {

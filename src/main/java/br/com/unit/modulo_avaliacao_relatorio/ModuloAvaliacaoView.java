@@ -35,7 +35,6 @@ public class ModuloAvaliacaoView {
                 InicialView view = context.getBean(InicialView.class);
                 view.setVisible(true);
             } catch (Exception ex) {
-                ex.printStackTrace();
                 JOptionPane.showMessageDialog(null,
                         "Erro ao iniciar a aplicação: " + ex.getMessage(),
                         "Erro de inicialização",

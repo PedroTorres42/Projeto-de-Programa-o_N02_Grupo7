@@ -11,6 +11,8 @@ import br.com.unit.modulo_avaliacao_relatorio.Service.UsuarioService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 @Component
 public class CadastroView extends JFrame {
@@ -49,21 +51,15 @@ public class CadastroView extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
-        JPanel painelPrincipal = new JPanel();
-        painelPrincipal.setLayout(new BorderLayout(10, 10));
-        painelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        painelPrincipal.setBackground(new Color(240, 240, 245));
+        JPanel painelPrincipal = UIUtils.paddedBorderLayout(20);
 
         JPanel painelTitulo = new JPanel();
-        painelTitulo.setBackground(new Color(240, 240, 245));
-        JLabel lblTitulo = new JLabel("Cadastro de Usuário");
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
-        lblTitulo.setForeground(new Color(51, 51, 51));
+        painelTitulo.setBackground(UIConstants.BG);
+        JLabel lblTitulo = UIUtils.titleLabel("Cadastro de Usuário");
         painelTitulo.add(lblTitulo);
 
-        JPanel painelCampos = new JPanel();
-        painelCampos.setLayout(new GridBagLayout());
-        painelCampos.setBackground(new Color(240, 240, 245));
+        JPanel painelCampos = new JPanel(new GridBagLayout());
+        painelCampos.setBackground(UIConstants.BG);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -130,9 +126,8 @@ public class CadastroView extends JFrame {
         tipoUsuarioCombo.addActionListener(e -> atualizarCamposEspecificos());
         painelCampos.add(tipoUsuarioCombo, gbc);
 
-        painelCamposEspecificos = new JPanel();
-        painelCamposEspecificos.setLayout(new GridBagLayout());
-        painelCamposEspecificos.setBackground(new Color(240, 240, 245));
+        painelCamposEspecificos = new JPanel(new GridBagLayout());
+        painelCamposEspecificos.setBackground(UIConstants.BG);
 
         GridBagConstraints gbcEsp = new GridBagConstraints();
         gbcEsp.insets = new Insets(8, 8, 8, 8);
@@ -169,33 +164,17 @@ public class CadastroView extends JFrame {
         gbc.gridwidth = 2;
         painelCampos.add(painelCamposEspecificos, gbc);
 
-        JPanel painelBotoes = new JPanel();
-        painelBotoes.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        painelBotoes.setBackground(new Color(240, 240, 245));
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        painelBotoes.setBackground(UIConstants.BG);
 
-        btnCadastrar = new JButton("Cadastrar");
+        btnCadastrar = UIUtils.successButton("Cadastrar", this::cadastrarUsuario);
         btnCadastrar.setPreferredSize(new Dimension(120, 35));
-        btnCadastrar.setBackground(new Color(60, 179, 113));
-        btnCadastrar.setForeground(Color.WHITE);
-        btnCadastrar.setFont(new Font("Arial", Font.BOLD, 12));
-        btnCadastrar.setFocusPainted(false);
-        btnCadastrar.setBorderPainted(false);
-        btnCadastrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCadastrar.addActionListener(e -> cadastrarUsuario());
 
-        btnLimpar = new JButton("Limpar");
+        btnLimpar = UIUtils.warningButton("Limpar", this::limparCampos);
         btnLimpar.setPreferredSize(new Dimension(120, 35));
-        btnLimpar.setBackground(new Color(255, 165, 0));
-        btnLimpar.setForeground(Color.WHITE);
-        btnLimpar.setFont(new Font("Arial", Font.BOLD, 12));
-        btnLimpar.setFocusPainted(false);
-        btnLimpar.setBorderPainted(false);
-        btnLimpar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnLimpar.addActionListener(e -> limparCampos());
 
-        btnVoltar = new JButton("Voltar");
+        btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
         btnVoltar.setPreferredSize(new Dimension(120, 35));
-        btnVoltar.setBackground(new Color(220, 53, 69));
         btnVoltar.setForeground(Color.WHITE);
         btnVoltar.setFont(new Font("Arial", Font.BOLD, 12));
         btnVoltar.setFocusPainted(false);
@@ -217,29 +196,29 @@ public class CadastroView extends JFrame {
     }
     
     private void adicionarEfeitosHover() {
-        btnCadastrar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
+        btnCadastrar.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
                 btnCadastrar.setBackground(new Color(46, 139, 87));
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
+            public void mouseExited(MouseEvent evt) {
                 btnCadastrar.setBackground(new Color(60, 179, 113));
             }
         });
-        
-        btnLimpar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
+
+        btnLimpar.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
                 btnLimpar.setBackground(new Color(235, 140, 0));
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
+            public void mouseExited(MouseEvent evt) {
                 btnLimpar.setBackground(new Color(255, 165, 0));
             }
         });
         
-        btnVoltar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
+        btnVoltar.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
                 btnVoltar.setBackground(new Color(200, 35, 51));
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
+            public void mouseExited(MouseEvent evt) {
                 btnVoltar.setBackground(new Color(220, 53, 69));
             }
         });
@@ -263,7 +242,10 @@ public class CadastroView extends JFrame {
                 especialidadeField.setVisible(true);
                 break;
             case "Administrador":
+            case null:
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + tipoSelecionado);
         }
         
         painelCamposEspecificos.revalidate();
@@ -362,6 +344,10 @@ public class CadastroView extends JFrame {
                     admin.setSenha(senha);
                     usuario = admin;
                     break;
+                case null:
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + tipoUsuario);
             }
 
             usuarioService.salvarUsuario(usuario);
@@ -391,7 +377,6 @@ public class CadastroView extends JFrame {
                 "Erro ao cadastrar usuário: " + ex.getMessage(),
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
         }
     }
     
@@ -426,9 +411,7 @@ public class CadastroView extends JFrame {
     }
     
     public void exibir() {
-        SwingUtilities.invokeLater(() -> {
-            setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> setVisible(true));
     }
 }
 

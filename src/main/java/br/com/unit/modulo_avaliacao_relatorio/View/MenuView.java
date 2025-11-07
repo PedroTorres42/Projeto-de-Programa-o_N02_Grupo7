@@ -56,41 +56,50 @@ public class MenuView extends JFrame {
 	private void renderBotoes() {
 		panelBotoes.removeAll();
 
-		if (usuarioAtual == null) {
-			lblUsuario.setText("Usuário: (não definido)");
-			JLabel dica = new JLabel("Faça login/cadastro para ver as opções do seu perfil.");
-			panelBotoes.add(dica);
-		} else if (usuarioAtual instanceof Aluno) {
-			lblUsuario.setText("Aluno: " + safe(usuarioAtual.getNome()));
-			JButton btnAvaliarInstrutor = new JButton("Avaliar Instrutor");
-			btnAvaliarInstrutor.addActionListener(e -> abrirAvaliacaoInstrutor());
-			panelBotoes.add(btnAvaliarInstrutor);
-			JButton btnAvaliarCurso = new JButton("Avaliar Curso");
-			btnAvaliarCurso.addActionListener(e -> abrirAvaliacaoCurso());
-			panelBotoes.add(btnAvaliarCurso);
+        switch (usuarioAtual) {
+            case null -> {
+                lblUsuario.setText("Usuário: (não definido)");
+                JLabel dica = new JLabel("Faça login/cadastro para ver as opções do seu perfil.");
+                panelBotoes.add(dica);
+            }
+            case Aluno aluno -> {
+                lblUsuario.setText("Aluno: " + safe(usuarioAtual.getNome()));
+                JButton btnAvaliarInstrutor = new JButton("Avaliar Instrutor");
+                btnAvaliarInstrutor.addActionListener(e -> abrirAvaliacaoInstrutor());
+                panelBotoes.add(btnAvaliarInstrutor);
+                JButton btnAvaliarCurso = new JButton("Avaliar Curso");
+                btnAvaliarCurso.addActionListener(e -> abrirAvaliacaoCurso());
+                panelBotoes.add(btnAvaliarCurso);
+            }
+            case Instrutor instrutor -> {
+                lblUsuario.setText("Instrutor: " + safe(usuarioAtual.getNome()));
 
-		} else if (usuarioAtual instanceof Instrutor) {
-			lblUsuario.setText("Instrutor: " + safe(usuarioAtual.getNome()));
+                JButton btnAvaliarAluno = new JButton("Avaliar Aluno");
+                btnAvaliarAluno.addActionListener(e -> abrirAvaliacaoView());
+                panelBotoes.add(btnAvaliarAluno);
 
-			JButton btnAvaliarAluno = new JButton("Avaliar Aluno");
-			btnAvaliarAluno.addActionListener(e -> abrirAvaliacaoView());
-			panelBotoes.add(btnAvaliarAluno);
+                JButton btnVisualizarRelatorio = new JButton("Visualizar Relatório");
+                btnVisualizarRelatorio.addActionListener(e -> abrirRelatoriosInstrutor());
+                panelBotoes.add(btnVisualizarRelatorio);
 
-			JButton btnVisualizarRelatorio = new JButton("Visualizar Relatório");
-			btnVisualizarRelatorio.addActionListener(e -> abrirRelatoriosInstrutor());
-			panelBotoes.add(btnVisualizarRelatorio);
+                JButton btnRelatorios = new JButton("Ver Relatórios");
+                btnRelatorios.addActionListener(e -> verRelatorios());
+                panelBotoes.add(btnRelatorios);
 
-		} else if (usuarioAtual instanceof Administrador) {
-			lblUsuario.setText("Administrador: " + safe(usuarioAtual.getNome()));
+            }
+            case Administrador administrador -> {
+                lblUsuario.setText("Administrador: " + safe(usuarioAtual.getNome()));
 
-			JButton btnRelatorios = new JButton("Ver Relatórios");
-			btnRelatorios.addActionListener(e -> verRelatorios());
-			panelBotoes.add(btnRelatorios);
+                JButton btnRelatorios = new JButton("Ver Relatórios");
+                btnRelatorios.addActionListener(e -> verRelatorios());
+                panelBotoes.add(btnRelatorios);
 
-		} else {
-			lblUsuario.setText("Usuário: " + safe(usuarioAtual.getNome()));
-			panelBotoes.add(new JLabel("Perfil não reconhecido."));
-		}
+            }
+            default -> {
+                lblUsuario.setText("Usuário: " + safe(usuarioAtual.getNome()));
+                panelBotoes.add(new JLabel("Perfil não reconhecido."));
+            }
+        }
 
 		panelBotoes.revalidate();
 		panelBotoes.repaint();
@@ -144,9 +153,22 @@ public class MenuView extends JFrame {
 	private void verRelatorios() {
 		try {
 			RelatorioView tela = ctx.getBean(RelatorioView.class);
-			tela.setVisible(true);
-		} catch (Exception ex) {
+            try {
+                java.lang.reflect.Method m = tela.getClass().getMethod("exibir");
+                m.invoke(tela);
+            } catch (NoSuchMethodException | IllegalAccessException |
+                     java.lang.reflect.InvocationTargetException ignored) {
+                TelaRefreshFallback.forcar(tela);
+            }
+        } catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Falha ao abrir Relatórios: " + ex.getMessage());
+		}
+	}
+
+	private static class TelaRefreshFallback {
+		static void forcar(RelatorioView v) {
+			if (v == null) return;
+			v.setVisible(true);
 		}
 	}
 
