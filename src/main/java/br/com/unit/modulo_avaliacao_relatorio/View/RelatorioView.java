@@ -120,6 +120,14 @@ public class RelatorioView extends JFrame {
         
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelInferior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JButton btnVoltar = new JButton("Voltar");
+        btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
+        btnVoltar.addActionListener(e -> {
+            if (loading) return;
+            dispose();
+        });
+        painelInferior.add(btnVoltar);
         
         btnVisualizar = new JButton("Visualizar");
         btnVisualizar.addActionListener(e -> visualizarRelatorio());
@@ -528,7 +536,8 @@ public class RelatorioView extends JFrame {
     }
     
     private void gerarRelatorioComparativoCurso() {
-        List<Curso> cursos = cursoService.listarCursos();
+        // Usa lista única ordenada para evitar duplicidades na escolha
+        List<Curso> cursos = cursoService.listarCursosUnicosOrdenados();
         
         if (cursos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Não há cursos cadastrados.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -615,7 +624,7 @@ public class RelatorioView extends JFrame {
     }
     
     private void gerarRelatorioAlunosCurso() {
-        List<Curso> cursos = cursoService.listarCursos();
+        List<Curso> cursos = cursoService.listarCursosUnicosOrdenados();
         
         if (cursos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Não há cursos cadastrados.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -644,7 +653,7 @@ public class RelatorioView extends JFrame {
     }
     
     private void gerarRelatorioCursoDetalhado() {
-        List<Curso> cursos = cursoService.listarCursos();
+        List<Curso> cursos = cursoService.listarCursosUnicosOrdenados();
         
         if (cursos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Não há cursos cadastrados.", "Aviso", JOptionPane.WARNING_MESSAGE);
