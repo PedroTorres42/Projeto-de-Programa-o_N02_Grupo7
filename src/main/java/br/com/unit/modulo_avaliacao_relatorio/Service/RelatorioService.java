@@ -15,9 +15,12 @@ import lombok.RequiredArgsConstructor;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartUtils;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -29,6 +32,7 @@ import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Base64;
@@ -862,7 +866,7 @@ public class RelatorioService {
                     false
             );
             
-            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(50, 200, 50)); 
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(50, 200, 50));
             chart.getCategoryPlot().getRenderer().setSeriesPaint(1, new Color(255, 200, 0)); 
             chart.getCategoryPlot().getRenderer().setSeriesPaint(2, new Color(200, 50, 50)); 
 
