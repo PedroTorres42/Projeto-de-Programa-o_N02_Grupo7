@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.List;
@@ -24,8 +22,6 @@ public class AvaliacaoView extends JFrame {
     private JComboBox<Instrutor> comboInstrutor;
     private JComboBox<Curso> comboCurso;
     private JComboBox<Formulario> comboFormulario;
-    private JButton btnSalvar;
-    private JLabel lblInstrutorLogado;
 
     private final AvaliacaoService avaliacaoService;
     private final UsuarioService usuarioService;
@@ -50,7 +46,7 @@ public class AvaliacaoView extends JFrame {
 
         List<Instrutor> instrutores = usuarioService.listarInstrutores();
         if (!instrutores.isEmpty()) {
-            instrutorLogado = instrutores.get(0);
+            instrutorLogado = instrutores.getFirst();
         }
 
         setTitle("Cadastro de Avaliação");
@@ -69,7 +65,7 @@ public class AvaliacaoView extends JFrame {
         comboInstrutor = new JComboBox<>();
         comboCurso = new JComboBox<>();
         comboFormulario = new JComboBox<>();
-        btnSalvar = new JButton("Salvar");
+        JButton btnSalvar = new JButton("Salvar");
 
         popularCombos();
 
@@ -78,7 +74,7 @@ public class AvaliacaoView extends JFrame {
         JLabel lblAluno = new JLabel("Aluno:");
         JLabel lblCurso = new JLabel("Curso:");
 
-        lblInstrutorLogado = new JLabel("Instrutor: " + (instrutorLogado != null ? instrutorLogado.getNome() + " (ID: " + instrutorLogado.getId() + ")" : "Nenhum"));
+        JLabel lblInstrutorLogado = new JLabel("Instrutor: " + (instrutorLogado != null ? instrutorLogado.getNome() + " (ID: " + instrutorLogado.getId() + ")" : "Nenhum"));
         
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -118,12 +114,7 @@ public class AvaliacaoView extends JFrame {
 
         add(panel);
 
-        btnSalvar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                salvarAvaliacao();
-            }
-        });
+        btnSalvar.addActionListener(e -> salvarAvaliacao());
     }
 
     private void popularCombos() {
@@ -160,23 +151,7 @@ public class AvaliacaoView extends JFrame {
 
     private void salvarAvaliacao() {
         try {
-            double media = Double.parseDouble(campoMedia.getText());
-            String comentario = campoComentario.getText();
-            Aluno aluno = (Aluno) comboAluno.getSelectedItem();
-            Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
-            Curso curso = (Curso) comboCurso.getSelectedItem();
-            Formulario formulario = (Formulario) comboFormulario.getSelectedItem();
-
-            Avaliacao avaliacao = new Avaliacao();
-            avaliacao.setMedia(media);
-            Feedback feedback = new Feedback();
-            feedback.setComentario(comentario);
-            feedback.setAvaliacao(avaliacao);
-            avaliacao.setFeedback(feedback);
-            avaliacao.setAluno(aluno);
-            avaliacao.setInstrutor(instrutor);
-            avaliacao.setCurso(curso);
-            avaliacao.setFormulario(formulario);
+            Avaliacao avaliacao = getAvaliacao();
 
             Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
 
@@ -221,5 +196,26 @@ public class AvaliacaoView extends JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
         }
+    }
+
+    private Avaliacao getAvaliacao() {
+        double media = Double.parseDouble(campoMedia.getText());
+        String comentario = campoComentario.getText();
+        Aluno aluno = (Aluno) comboAluno.getSelectedItem();
+        Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
+        Curso curso = (Curso) comboCurso.getSelectedItem();
+        Formulario formulario = (Formulario) comboFormulario.getSelectedItem();
+
+        Avaliacao avaliacao = new Avaliacao();
+        avaliacao.setMedia(media);
+        Feedback feedback = new Feedback();
+        feedback.setComentario(comentario);
+        feedback.setAvaliacao(avaliacao);
+        avaliacao.setFeedback(feedback);
+        avaliacao.setAluno(aluno);
+        avaliacao.setInstrutor(instrutor);
+        avaliacao.setCurso(curso);
+        avaliacao.setFormulario(formulario);
+        return avaliacao;
     }
 }
