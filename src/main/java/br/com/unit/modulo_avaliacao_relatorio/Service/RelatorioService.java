@@ -705,7 +705,11 @@ public class RelatorioService {
     }
 
 
-    public void exportarPdfComGraficos(File destino) {
+     public void exportarPdfComGraficos(File destino) {
+        exportarPdfComGraficos(destino, false);
+    }
+
+    public void exportarPdfComGraficos(File destino, boolean incluirSatisfacao) {
         try {
             try (OutputStream out = Files.newOutputStream(destino.toPath())) {
                 Document document = new Document();
@@ -723,12 +727,29 @@ public class RelatorioService {
                 document.add(new Paragraph(" "));
                 int largura = 800;
                 int altura = 400;
-                byte[] grafico = gerarGraficoMediaPorCursoBytes(largura, altura);
-                if (grafico.length > 0) {
-                    Image img = Image.getInstance(grafico);
+                
+                // Gráfico de Desempenho
+                byte[] graficoDesempenho = gerarGraficoMediaPorCursoBytes(largura, altura);
+                if (graficoDesempenho.length > 0) {
+                    document.add(new Paragraph("Gráfico de Desempenho (Média Ponderada)", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)));
+                    Image img = Image.getInstance(graficoDesempenho);
                     img.scaleToFit(520, 260);
                     img.setAlignment(Element.ALIGN_CENTER);
                     document.add(img);
+                    document.add(new Paragraph(" "));
+                }
+                
+                // Gráfico de Satisfação 
+                if (incluirSatisfacao) {
+                    byte[] graficoSatisfacao = gerarGraficoSatisfacaoPorCursoBytes(largura, altura);
+                    if (graficoSatisfacao.length > 0) {
+                        document.add(new Paragraph("Gráfico de Satisfação (Sentimento)", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)));
+                        Image img = Image.getInstance(graficoSatisfacao);
+                        img.scaleToFit(520, 260);
+                        img.setAlignment(Element.ALIGN_CENTER);
+                        document.add(img);
+                        document.add(new Paragraph(" "));
+                    }
                 }
 
                 document.close();
@@ -818,5 +839,56 @@ public class RelatorioService {
             throw new RuntimeException("Erro ao salvar documento do relatório", e);
         }
     }
-    
+     private byte[] gerarGraficoSatisfacaoPorCursoBytes(int largura, int altura) {
+        try {
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            
+            Map<String, Map<Sentimento, Long>> sentimentoPorCurso = calcularSentimentoPorCurso();
+            
+            sentimentoPorCurso.forEach((curso, contagens) -> {
+                dataset.addValue(contagens.getOrDefault(Sentimento.POSITIVO, 0L), "Positivo", curso);
+                dataset.addValue(contagens.getOrDefault(Sentimento.NEUTRO, 0L), "Neutro", curso);
+                dataset.addValue(contagens.getOrDefault(Sentimento.NEGATIVO, 0L), "Negativo", curso);
+            });
+
+            JFreeChart chart = ChartFactory.createStackedBarChart(
+                    "Satisfação (Sentimento) por Curso",
+                    "Curso",
+                    "Contagem de Avaliações",
+                    dataset,
+                    PlotOrientation.VERTICAL,
+                    true,
+                    true,
+                    false
+            );
+            
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(50, 200, 50)); 
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(1, new Color(255, 200, 0)); 
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(2, new Color(200, 50, 50)); 
+
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                ChartUtils.writeChartAsPNG(baos, chart, largura, altura);
+                return baos.toByteArray();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar gráfico de satisfação", e);
+        }
+    }
+
+    private Map<String, Map<Sentimento, Long>> calcularSentimentoPorCurso() {
+        List<Avaliacao> todasAvaliacoes = new ArrayList<>();
+        avaliacaoRepositorio.findAll().forEach(todasAvaliacoes::add);
+
+        return todasAvaliacoes.stream()
+                .collect(Collectors.groupingBy(
+                        a -> nomeOuIdCurso(a.getCurso()),
+                        Collectors.groupingBy(
+                                a -> combinarSentimento(
+                                        analisarSentimentoTexto(Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse(null)),
+                                        analisarSentimentoNumero(extrairFeedbackNumerico(a))
+                                ),
+                                Collectors.counting()
+                        )
+                ));
+    }
 }
