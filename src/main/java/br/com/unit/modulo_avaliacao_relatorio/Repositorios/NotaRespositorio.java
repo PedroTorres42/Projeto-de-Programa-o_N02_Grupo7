@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.MediaPorCurso;
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.MediaPorTipoPergunta;
 
 public interface NotaRespositorio extends JpaRepository<Nota, Long> {
 
@@ -45,5 +46,43 @@ public interface NotaRespositorio extends JpaRepository<Nota, Long> {
     @Query("SELECT n.nota FROM Nota n WHERE n.avaliacao = :avaliacao " +
            "AND n.pergunta.tipo = 'FREQUENCIA' AND n.nota IS NOT NULL")
     Optional<Integer> findFrequenciaByAvaliacao(@Param("avaliacao") Avaliacao avaliacao);
+
+    @Query("""
+        SELECT new br.com.unit.modulo_avaliacao_relatorio.Modelos.MediaPorTipoPergunta(
+            CAST(p.tipo AS string), AVG(CAST(n.nota AS double))
+        )
+        FROM Nota n
+        JOIN n.pergunta p
+        JOIN n.avaliacao a
+        WHERE a.instrutor.id = :instrutorId AND n.nota IS NOT NULL
+        GROUP BY p.tipo
+        ORDER BY p.tipo
+    """)
+    List<MediaPorTipoPergunta> mediasPorTipoPerguntaInstrutor(@Param("instrutorId") String instrutorId);
+
+    @Query("""
+        SELECT new br.com.unit.modulo_avaliacao_relatorio.Modelos.MediaPorTipoPergunta(
+            CAST(p.tipo AS string), AVG(CAST(n.nota AS double))
+        )
+        FROM Nota n
+        JOIN n.pergunta p
+        JOIN n.avaliacao a
+        WHERE a.curso.id = :cursoId AND n.nota IS NOT NULL
+        GROUP BY p.tipo
+        ORDER BY p.tipo
+    """)
+    List<MediaPorTipoPergunta> mediasPorTipoPerguntaCurso(@Param("cursoId") Long cursoId);
+
+    @Query("""
+        SELECT new br.com.unit.modulo_avaliacao_relatorio.Modelos.MediaPorTipoPergunta(
+            CAST(p.tipo AS string), AVG(CAST(n.nota AS double))
+        )
+        FROM Nota n
+        JOIN n.pergunta p
+        WHERE n.nota IS NOT NULL
+        GROUP BY p.tipo
+        ORDER BY p.tipo
+    """)
+    List<MediaPorTipoPergunta> mediasPorTipoPergunta();
 
 }
