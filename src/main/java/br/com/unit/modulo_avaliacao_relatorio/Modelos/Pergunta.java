@@ -31,6 +31,13 @@ public class Pergunta {
 
     public enum TipoPergunta {
         FREQUENCIA,
+        DIDATICA,
+        PONTUALIDADE,
+        ORGANIZACAO,
+        CONTEUDO,
+        CARGA_HORARIA,
+        SATISFACAO,
+        RECOMENDACAO,
         OUTRO
     }
 

@@ -189,24 +189,47 @@ public class DataLoader implements CommandLineRunner {
         List<Pergunta> perguntasInstrutor = new ArrayList<>();
         Pergunta p1a = new Pergunta();
         p1a.setTexto("Como você avalia o domínio do conteúdo pelo instrutor?");
-        p1a.setTipo(Pergunta.TipoPergunta.OUTRO);
+        p1a.setTipo(Pergunta.TipoPergunta.CONTEUDO);
         Pergunta p2a = new Pergunta();
-        p2a.setTexto("Qual foi sua frequência no curso?");
+        p2a.setTexto("Como você avalia a frequência do instrutor no curso?");
         p2a.setTipo(Pergunta.TipoPergunta.FREQUENCIA);
+        Pergunta p3a = new Pergunta();
+        p3a.setTexto("Qual o nível de organização do instrutor na sua visão?");
+        p3a.setTipo(Pergunta.TipoPergunta.ORGANIZACAO);
+        Pergunta p4a = new Pergunta();
+        p4a.setTexto("Qual a nota para a pontualidade do instrutor?");
+        p4a.setTipo(Pergunta.TipoPergunta.PONTUALIDADE);
+        Pergunta p5a = new Pergunta();
+        p5a.setTexto("Qual o nivel de didatica do instrutor?");
+        p5a.setTipo(Pergunta.TipoPergunta.DIDATICA);
+        Pergunta p6a = new Pergunta();
+        p6a.setTexto("Qual o seu nivel de satisfação com o instrutor?");
         perguntasInstrutor.add(p1a);
         perguntasInstrutor.add(p2a);
+        perguntasInstrutor.add(p3a);
+        perguntasInstrutor.add(p4a);
+        perguntasInstrutor.add(p5a);
+        perguntasInstrutor.add(p6a);
 
         formularioService.criarFormulario("Avaliação do Instrutor", perguntasInstrutor);
 
         List<Pergunta> perguntasCurso = new ArrayList<>();
         Pergunta p1b = new Pergunta();
-        p1b.setTexto("Como você avalia o domínio do conteúdo pelo instrutor?");
-        p1b.setTipo(Pergunta.TipoPergunta.OUTRO);
+        p1b.setTexto("Como você avalia o conteúdo do curso?");
+        p1b.setTipo(Pergunta.TipoPergunta.CONTEUDO);
         Pergunta p2b = new Pergunta();
-        p2b.setTexto("Qual foi sua frequência no curso?");
-        p2b.setTipo(Pergunta.TipoPergunta.FREQUENCIA);
+        p2b.setTexto("Como você avalia a carga horária do curso?");
+        p2b.setTipo(Pergunta.TipoPergunta.CARGA_HORARIA);
+        Pergunta p3b = new Pergunta();
+        p3b.setTexto("Você recomendaria esse curso para um amigo ou familiar?(5 - Com certaza , 1 - Nunca");
+        p3b.setTipo(Pergunta.TipoPergunta.RECOMENDACAO);
+        Pergunta p4b = new Pergunta();
+        p4b.setTexto("Qual a sua satisfação com o curso? ");
+        p4b.setTipo(Pergunta.TipoPergunta.SATISFACAO);
         perguntasCurso.add(p1b);
         perguntasCurso.add(p2b);
+        perguntasCurso.add(p3b);
+        perguntasCurso.add(p4b);
 
         formularioService.criarFormulario("Avaliação do Curso", perguntasCurso);
 
