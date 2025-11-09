@@ -3,7 +3,9 @@ package br.com.unit.modulo_avaliacao_relatorio.Modelos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -12,6 +14,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"notas", "formulario"})
+@ToString(exclude = {"notas", "formulario"})
 public class Pergunta {
 
     @Id

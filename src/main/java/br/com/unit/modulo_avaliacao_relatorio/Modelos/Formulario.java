@@ -13,6 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @Setter
 @Getter
+@EqualsAndHashCode(exclude = {"perguntas"})
+@ToString(exclude = {"perguntas"})
 public class Formulario {
 
     @Id
@@ -32,10 +34,5 @@ public class Formulario {
         INSTRUTOR,
         ALUNO,
         CURSO
-    }
-
-    @Override
-    public String toString() {
-        return (titulo != null && !titulo.isBlank()) ? titulo : ("Formulario#" + id);
     }
 }

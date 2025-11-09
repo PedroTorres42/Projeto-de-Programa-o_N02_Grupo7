@@ -4,7 +4,9 @@ package br.com.unit.modulo_avaliacao_relatorio.Modelos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -13,6 +15,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"instrutores"})
+@ToString(exclude = {"instrutores"})
 public class Curso {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +29,4 @@ public class Curso {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "curso_instrutor")
     private List<Instrutor> instrutores;
-
-        @Override
-        public String toString() {
-            return (nome != null && !nome.isBlank()) ? nome : ("Curso#" + id);
-        }
 }

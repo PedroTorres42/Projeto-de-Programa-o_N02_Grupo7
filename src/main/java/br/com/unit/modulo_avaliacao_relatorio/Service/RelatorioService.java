@@ -394,6 +394,9 @@ public class RelatorioService {
     private byte[] montarPdfCurso(Curso curso, List<Avaliacao> avaliacoes) {
         String nomeCurso = Optional.ofNullable(curso.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
         String subtitulo = "Curso: " + nomeCurso + " (ID: " + curso.getId() + ")";
+        
+        List<MediaPorTipoPergunta> mediasPorTipo = notaRespositorio.mediasPorTipoPerguntaCurso(curso.getId());
+        
         return montarPdfDetalhado(
                 "Relatório Detalhado do Curso",
                 subtitulo,
@@ -402,13 +405,17 @@ public class RelatorioService {
                 "Instrutor",
                 a -> nomeOuIdAluno(a.getAluno()),
                 a -> nomeOuIdInstrutor(a.getInstrutor()),
-                avaliacoes
+                avaliacoes,
+                mediasPorTipo
         );
     }
 
     private byte[] montarPdfInstrutor(Usuario instrutor, List<Avaliacao> avaliacoes) {
         String nomeInstrutor = Optional.ofNullable(instrutor.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
         String subtitulo = "Instrutor: " + nomeInstrutor + " (ID: " + instrutor.getId() + ")";
+        
+        List<MediaPorTipoPergunta> mediasPorTipo = notaRespositorio.mediasPorTipoPerguntaInstrutor(instrutor.getId());
+        
         return montarPdfDetalhado(
                 "Relatório Detalhado do Instrutor",
                 subtitulo,
@@ -417,7 +424,8 @@ public class RelatorioService {
                 "Aluno",
                 a -> nomeOuIdCurso(a.getCurso()),
                 a -> nomeOuIdAluno(a.getAluno()),
-                avaliacoes
+                avaliacoes,
+                mediasPorTipo
         );
     }
 
@@ -429,6 +437,19 @@ public class RelatorioService {
                                       Function<Avaliacao, String> col1Fn,
                                       Function<Avaliacao, String> col2Fn,
                                       List<Avaliacao> avaliacoes) {
+        return montarPdfDetalhado(titulo, subtitulo, mensagemVazio, col1Label, col2Label, 
+                                  col1Fn, col2Fn, avaliacoes, null);
+    }
+
+    private byte[] montarPdfDetalhado(String titulo,
+                                      String subtitulo,
+                                      String mensagemVazio,
+                                      String col1Label,
+                                      String col2Label,
+                                      Function<Avaliacao, String> col1Fn,
+                                      Function<Avaliacao, String> col2Fn,
+                                      List<Avaliacao> avaliacoes,
+                                      List<MediaPorTipoPergunta> mediasPorTipo) {
         try {
             Doc db = iniciarPdf();
             adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
@@ -453,6 +474,10 @@ public class RelatorioService {
 
             db.doc().add(table);
             adicionarResumo(db.doc(), db.fonts(), status);
+            
+            if (mediasPorTipo != null && !mediasPorTipo.isEmpty()) {
+                adicionarMediasPorTipoPergunta(db.doc(), db.fonts(), mediasPorTipo);
+            }
 
             db.doc().close();
             return db.baos().toByteArray();
@@ -603,6 +628,44 @@ public class RelatorioService {
         doc.add(new Paragraph("Média de Frequência (%): " + mediaFreqsGeral.toPlainString(), fonts.normal()));
         doc.add(new Paragraph("Média Ponderada Geral: " + pondGeral.toPlainString(), fonts.normal()));
         doc.add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal()));
+    }
+
+    private void adicionarMediasPorTipoPergunta(Document doc, Fontes fonts, List<MediaPorTipoPergunta> medias) throws Exception {
+        if (medias == null || medias.isEmpty()) return;
+        
+        doc.add(new Paragraph("\nMédias por Tipo de Pergunta", fonts.h2()));
+        
+        PdfPTable table = new PdfPTable(2);
+        table.setWidthPercentage(70);
+        table.setWidths(new float[]{3f, 1f});
+        
+        adicionarHeader(table, "Tipo de Pergunta");
+        adicionarHeader(table, "Média");
+        
+        for (MediaPorTipoPergunta media : medias) {
+            String tipoTexto = media.getTipo() != null ? formatarTipoPergunta(media.getTipo()) : "—";
+            String mediaTexto = media.getMedia() != null ? 
+                String.format(Locale.ROOT, "%.2f", media.getMedia()) : "—";
+            adicionarCell(table, tipoTexto);
+            adicionarCell(table, mediaTexto);
+        }
+        
+        doc.add(table);
+    }
+    
+    private String formatarTipoPergunta(Pergunta.TipoPergunta tipo) {
+        switch (tipo) {
+            case FREQUENCIA: return "Frequência";
+            case DIDATICA: return "Didática";
+            case PONTUALIDADE: return "Pontualidade";
+            case ORGANIZACAO: return "Organização";
+            case CONTEUDO: return "Conteúdo";
+            case CARGA_HORARIA: return "Carga Horária";
+            case SATISFACAO: return "Satisfação";
+            case RECOMENDACAO: return "Recomendação";
+            case OUTRO: return "Outro";
+            default: return tipo.name();
+        }
     }
     private <T> String nomeOuIdGenerico(T entidade, Function<T, String> nomeFn, Function<T, Object> idFn, String tipo) {
         if (entidade == null) return tipo + " ?";

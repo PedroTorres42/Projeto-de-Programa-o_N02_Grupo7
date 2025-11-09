@@ -4,13 +4,17 @@ package br.com.unit.modulo_avaliacao_relatorio.Modelos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Table(name = "notas")
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"avaliacao", "pergunta"})
+@ToString(exclude = {"avaliacao", "pergunta"})
 public class Nota {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

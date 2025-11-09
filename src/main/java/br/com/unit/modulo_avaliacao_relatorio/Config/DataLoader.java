@@ -204,6 +204,7 @@ public class DataLoader implements CommandLineRunner {
         p5a.setTipo(Pergunta.TipoPergunta.DIDATICA);
         Pergunta p6a = new Pergunta();
         p6a.setTexto("Qual o seu nivel de satisfação com o instrutor?");
+        p6a.setTipo(Pergunta.TipoPergunta.SATISFACAO);
         perguntasInstrutor.add(p1a);
         perguntasInstrutor.add(p2a);
         perguntasInstrutor.add(p3a);

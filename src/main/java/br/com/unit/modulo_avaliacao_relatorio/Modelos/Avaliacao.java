@@ -10,6 +10,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"notas", "feedback", "usuario", "aluno", "instrutor", "curso", "formulario"})
+@ToString(exclude = {"notas", "feedback", "usuario", "aluno", "instrutor", "curso", "formulario"})
 public class Avaliacao {
 
     @Id
