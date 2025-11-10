@@ -131,6 +131,9 @@ public class AvaliacaoInstrutorView extends JFrame {
 
 			Avaliacao avaliacao = new Avaliacao();
 			avaliacao.setAluno(aluno);
+			if (aluno.getCursoAtual() != null) {
+				avaliacao.setCurso(aluno.getCursoAtual());
+			}
 			avaliacao.setInstrutor(instrutor);
 			avaliacao.setFormulario(formulario);
 			avaliacao.setNotas(notas);

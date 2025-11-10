@@ -2,6 +2,7 @@ package br.com.unit.modulo_avaliacao_relatorio.Service;
 
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Formulario;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Pergunta;
+import br.com.unit.modulo_avaliacao_relatorio.Repositorios.PerguntaRepositorio;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.FormularioRepositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class FormularioService {
 
 
     private final FormularioRepositorio formularioRepositorio;
+    private final PerguntaRepositorio perguntaRepositorio;
     
 
     @Transactional
@@ -131,5 +133,19 @@ public class FormularioService {
         p.setTexto(texto);
         p.setTipo(Pergunta.TipoPergunta.OUTRO);
         return p;
+    }
+
+    @Transactional
+    public Pergunta obterOuCriarPerguntaFrequencia() {
+        // Tenta achar pergunta FREQUENCIA já existente
+        return perguntaRepositorio.findAll().stream()
+                .filter(pr -> pr.getTipo() == Pergunta.TipoPergunta.FREQUENCIA)
+                .findFirst()
+                .orElseGet(() -> {
+                    Pergunta p = new Pergunta();
+                    p.setTexto("Frequência (%)");
+                    p.setTipo(Pergunta.TipoPergunta.FREQUENCIA);
+                    return perguntaRepositorio.save(p);
+                });
     }
 }
