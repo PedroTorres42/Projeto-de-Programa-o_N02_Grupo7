@@ -74,7 +74,8 @@ public class LoginView extends JFrame {
         btnLogin.setPreferredSize(new Dimension(100, 30));
 
 
-        JButton btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
+    JButton btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
+    btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         btnVoltar.setPreferredSize(new Dimension(100, 30));
         
         painelBotoes.add(btnLogin);

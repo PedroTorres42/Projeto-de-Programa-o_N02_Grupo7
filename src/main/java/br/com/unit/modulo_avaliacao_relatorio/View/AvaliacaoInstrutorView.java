@@ -89,6 +89,7 @@ public class AvaliacaoInstrutorView extends JFrame {
 		JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		botoes.setBackground(UIConstants.BG);
 		JButton btnVoltar = UIUtils.dangerButton("Voltar", this::dispose);
+		btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
 		JButton btnSalvar = UIUtils.successButton("Salvar Avaliação", this::salvar);
 		botoes.add(btnVoltar);
 		botoes.add(btnSalvar);

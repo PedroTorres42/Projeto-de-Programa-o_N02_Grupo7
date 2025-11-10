@@ -63,8 +63,9 @@ public class AvaliacaoView extends JFrame {
         comboAluno = new JComboBox<>();
         comboInstrutor = new JComboBox<>();
         comboCurso = new JComboBox<>();
-        JButton btnSalvar = new JButton("Salvar");
-        JButton btnVoltar = new JButton("Voltar");
+    JButton btnSalvar = new JButton("Salvar");
+    JButton btnVoltar = new JButton("Voltar");
+    btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
 
         // Renderer para exibir somente o nome do curso (evitar toString padrão)
@@ -133,7 +134,7 @@ public class AvaliacaoView extends JFrame {
 
         add(panel);
 
-        btnVoltar.addActionListener(e -> dispose());
+    btnVoltar.addActionListener(e -> dispose());
         btnSalvar.addActionListener(e -> salvarAvaliacao());
     }
 

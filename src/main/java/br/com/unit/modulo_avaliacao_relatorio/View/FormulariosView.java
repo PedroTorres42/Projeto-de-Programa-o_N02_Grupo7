@@ -88,8 +88,8 @@ public class FormulariosView extends JFrame {
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelInferior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        JButton btnVoltar = new JButton("Voltar");
-        btnVoltar.setToolTipText("Fechar esta janela");
+    JButton btnVoltar = new JButton("Voltar");
+    btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         btnVoltar.addActionListener(e -> dispose());
         painelInferior.add(btnVoltar);
         
