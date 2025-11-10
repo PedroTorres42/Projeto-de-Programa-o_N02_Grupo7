@@ -212,7 +212,7 @@ public class DataLoader implements CommandLineRunner {
         perguntasInstrutor.add(p5a);
         perguntasInstrutor.add(p6a);
 
-        formularioService.criarFormulario("Avaliação do Instrutor", perguntasInstrutor);
+        formularioService.criarFormulario("Avaliação do Instrutor", perguntasInstrutor, Formulario.TipoFormulario.INSTRUTOR);
 
         List<Pergunta> perguntasCurso = new ArrayList<>();
         Pergunta p1b = new Pergunta();
@@ -232,7 +232,7 @@ public class DataLoader implements CommandLineRunner {
         perguntasCurso.add(p3b);
         perguntasCurso.add(p4b);
 
-        formularioService.criarFormulario("Avaliação do Curso", perguntasCurso);
+        formularioService.criarFormulario("Avaliação do Curso", perguntasCurso, Formulario.TipoFormulario.CURSO);
 
         
         if (avaliacaoRepositorio.totalAvaliacoes() == 0) {
