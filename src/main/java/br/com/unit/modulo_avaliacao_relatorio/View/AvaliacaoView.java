@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
-import java.awt.Desktop;
 import java.io.File;
 import java.util.List;
 
@@ -21,10 +20,7 @@ public class AvaliacaoView extends JFrame {
     private JComboBox<Aluno> comboAluno;
     private JComboBox<Instrutor> comboInstrutor;
     private JComboBox<Curso> comboCurso;
-    private JButton btnSalvar;
-    private JButton btnVoltar;
     private JSpinner spinnerFrequencia;
-    private JLabel lblInstrutorLogado;
 
     private final AvaliacaoService avaliacaoService;
     private final UsuarioService usuarioService;
@@ -67,8 +63,8 @@ public class AvaliacaoView extends JFrame {
         comboAluno = new JComboBox<>();
         comboInstrutor = new JComboBox<>();
         comboCurso = new JComboBox<>();
-        btnSalvar = new JButton("Salvar");
-        btnVoltar = new JButton("Voltar");
+        JButton btnSalvar = new JButton("Salvar");
+        JButton btnVoltar = new JButton("Voltar");
         spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
 
         popularCombos();
@@ -122,12 +118,7 @@ public class AvaliacaoView extends JFrame {
         add(panel);
 
         btnVoltar.addActionListener(e -> dispose());
-        btnSalvar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                salvarAvaliacao();
-            }
-        });
+        btnSalvar.addActionListener(e -> salvarAvaliacao());
     }
 
     private void popularCombos() {
@@ -249,26 +240,5 @@ public class AvaliacaoView extends JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
         }
-    }
-
-    private Avaliacao getAvaliacao() {
-        double media = Double.parseDouble(campoMedia.getText());
-        String comentario = campoComentario.getText();
-        Aluno aluno = (Aluno) comboAluno.getSelectedItem();
-        Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
-        Curso curso = (Curso) comboCurso.getSelectedItem();
-        Formulario formulario = (Formulario) comboFormulario.getSelectedItem();
-
-        Avaliacao avaliacao = new Avaliacao();
-        avaliacao.setMedia(media);
-        Feedback feedback = new Feedback();
-        feedback.setComentario(comentario);
-        feedback.setAvaliacao(avaliacao);
-        avaliacao.setFeedback(feedback);
-        avaliacao.setAluno(aluno);
-        avaliacao.setInstrutor(instrutor);
-        avaliacao.setCurso(curso);
-        avaliacao.setFormulario(formulario);
-        return avaliacao;
     }
 }
