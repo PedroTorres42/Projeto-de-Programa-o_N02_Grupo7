@@ -89,13 +89,11 @@ public class MenuView extends JFrame {
 				JButton btnGerenciarFormularios = UIUtils.primaryButton("Gerenciar Formulários", this::abrirGerenciarFormularios);
                 panelBotoes.add(btnGerenciarFormularios);
 
-                JButton btnCadastrarUsuario = new JButton("Cadastrar Usuário");
-                btnCadastrarUsuario.addActionListener(e -> abrirCadastroUsuario());
-                panelBotoes.add(btnCadastrarUsuario);
+				JButton btnCadastrarUsuario = UIUtils.primaryButton("Cadastrar Usuário", this::abrirCadastroUsuario);
+				panelBotoes.add(btnCadastrarUsuario);
 
-                JButton btnCadastrarCurso = new JButton("Cadastrar Curso");
-                btnCadastrarCurso.addActionListener(e -> abrirCadastroCurso());
-                panelBotoes.add(btnCadastrarCurso);
+				JButton btnCadastrarCurso = UIUtils.primaryButton("Cadastrar Curso", this::abrirCadastroCurso);
+				panelBotoes.add(btnCadastrarCurso);
 
             }
             default -> {
