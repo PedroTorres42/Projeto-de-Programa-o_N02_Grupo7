@@ -49,7 +49,8 @@ public class CadastroView extends JFrame {
         setSize(500, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setResizable(false);
+    setResizable(false);
+    UIUtils.padronizarJanela(this);
 
         JPanel painelPrincipal = UIUtils.paddedBorderLayout(20);
 
@@ -173,7 +174,8 @@ public class CadastroView extends JFrame {
         btnLimpar = UIUtils.warningButton("Limpar", this::limparCampos);
         btnLimpar.setPreferredSize(new Dimension(120, 35));
 
-        btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
+    btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
+    btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         btnVoltar.setPreferredSize(new Dimension(120, 35));
         btnVoltar.setForeground(Color.WHITE);
         btnVoltar.setFont(new Font("Arial", Font.BOLD, 12));

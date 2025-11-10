@@ -66,6 +66,7 @@ public class RelatorioView extends JFrame {
         this.usuarioService = usuarioService;
         setTitle("Gerenciamento de Relatórios");
         setSize(900, 600);
+    UIUtils.padronizarJanela(this);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
@@ -86,13 +87,11 @@ public class RelatorioView extends JFrame {
         comboFiltro.addActionListener(e -> filtrarRelatorios());
         painelSuperior.add(comboFiltro);
 
-        btnAtualizar = new JButton("Recarregar (F5)");
-        btnAtualizar.setToolTipText("Recarregar lista de relatórios do banco (F5)");
-        btnAtualizar.addActionListener(e -> carregarRelatorios());
+    btnAtualizar = UIUtils.primaryButton("Recarregar (F5)", this::carregarRelatorios);
+    btnAtualizar.setToolTipText("Recarregar lista de relatórios do banco (F5)");
         painelSuperior.add(btnAtualizar);
 
-        btnGerarNovo = new JButton("Gerar Novo Relatório");
-        btnGerarNovo.addActionListener(e -> abrirDialogoGerarRelatorio());
+    btnGerarNovo = UIUtils.successButton("Gerar Novo Relatório", this::abrirDialogoGerarRelatorio);
         painelSuperior.add(btnGerarNovo);
         
         add(painelSuperior, BorderLayout.NORTH);
@@ -121,33 +120,25 @@ public class RelatorioView extends JFrame {
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelInferior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        JButton btnVoltar = new JButton("Voltar");
+        JButton btnVoltar = UIUtils.dangerButton("Voltar", () -> { if (loading) return; dispose(); });
         btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
-        btnVoltar.addActionListener(e -> {
-            if (loading) return;
-            dispose();
-        });
         painelInferior.add(btnVoltar);
         
-        btnVisualizar = new JButton("Visualizar");
-        btnVisualizar.addActionListener(e -> visualizarRelatorio());
+    btnVisualizar = UIUtils.primaryButton("Visualizar", this::visualizarRelatorio);
+    btnVisualizar.setForeground(Color.WHITE);
         painelInferior.add(btnVisualizar);
         
-        btnExportarPDF = new JButton("Exportar PDF Selecionado");
-        btnExportarPDF.addActionListener(e -> exportarPDF());
+    btnExportarPDF = UIUtils.successButton("Exportar PDF Selecionado", this::exportarPDF);
+    btnExportarPDF.setForeground(Color.WHITE);
         painelInferior.add(btnExportarPDF);
 
-        JButton btnExportarCSV = new JButton("Exportar CSV (Avaliações)");
-        btnExportarCSV.addActionListener(e -> exportarCSV());
+        JButton btnExportarCSV = UIUtils.warningButton("Exportar CSV (Avaliações)", this::exportarCSV);
         painelInferior.add(btnExportarCSV);
 
-        JButton btnExportarPDFGraficos = new JButton("Exportar PDF com Gráficos");
-        btnExportarPDFGraficos.addActionListener(e -> exportarPDFComGraficos());
+        JButton btnExportarPDFGraficos = UIUtils.successButton("Exportar PDF com Gráficos", this::exportarPDFComGraficos);
         painelInferior.add(btnExportarPDFGraficos);
 
-        btnExcluir = new JButton("Excluir Selecionado");
-        btnExcluir.addActionListener(e -> excluirRelatorio());
-        btnExcluir.setForeground(Color.RED);
+        btnExcluir = UIUtils.dangerButton("Excluir Selecionado", this::excluirRelatorio);
         painelInferior.add(btnExcluir);
         
         add(painelInferior, BorderLayout.SOUTH);

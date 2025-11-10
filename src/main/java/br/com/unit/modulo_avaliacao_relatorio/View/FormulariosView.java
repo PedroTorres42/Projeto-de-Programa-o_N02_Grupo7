@@ -38,6 +38,7 @@ public class FormulariosView extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
+    UIUtils.padronizarJanela(this);
         
         addWindowListener(new WindowAdapter() {
             @Override
@@ -57,9 +58,8 @@ public class FormulariosView extends JFrame {
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 16));
         painelSuperior.add(lblTitulo);
         
-        btnAtualizar = new JButton("Atualizar");
+    btnAtualizar = UIUtils.primaryButton("Atualizar", this::carregarFormularios);
         btnAtualizar.setToolTipText("Recarregar lista de formulários");
-        btnAtualizar.addActionListener(e -> carregarFormularios());
         painelSuperior.add(btnAtualizar);
         
         add(painelSuperior, BorderLayout.NORTH);
@@ -88,26 +88,20 @@ public class FormulariosView extends JFrame {
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelInferior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
-        JButton btnVoltar = new JButton("Voltar");
-        btnVoltar.setToolTipText("Fechar esta janela");
-        btnVoltar.addActionListener(e -> dispose());
+    JButton btnVoltar = UIUtils.dangerButton("Voltar", this::dispose);
+    btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         painelInferior.add(btnVoltar);
         
-        btnVisualizar = new JButton("Visualizar");
-        btnVisualizar.addActionListener(e -> visualizarFormulario());
+    btnVisualizar = UIUtils.primaryButton("Visualizar", this::visualizarFormulario);
         painelInferior.add(btnVisualizar);
         
-        btnNovo = new JButton("Novo Formulário");
-        btnNovo.addActionListener(e -> novoFormulario());
+    btnNovo = UIUtils.successButton("Novo Formulário", this::novoFormulario);
         painelInferior.add(btnNovo);
         
-        btnEditar = new JButton("Editar");
-        btnEditar.addActionListener(e -> editarFormulario());
+    btnEditar = UIUtils.warningButton("Editar", this::editarFormulario);
         painelInferior.add(btnEditar);
         
-        btnExcluir = new JButton("Excluir");
-        btnExcluir.setForeground(Color.RED);
-        btnExcluir.addActionListener(e -> excluirFormulario());
+    btnExcluir = UIUtils.dangerButton("Excluir", this::excluirFormulario);
         painelInferior.add(btnExcluir);
         
         add(painelInferior, BorderLayout.SOUTH);

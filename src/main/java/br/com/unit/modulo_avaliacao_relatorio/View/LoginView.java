@@ -34,6 +34,7 @@ public class LoginView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
+    // Removida padronização global para manter tamanho compacto de login
         
         JPanel painelPrincipal = UIUtils.paddedBorderLayout(20);
             
@@ -70,11 +71,12 @@ public class LoginView extends JFrame {
         
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
-        JButton btnLogin = UIUtils.primaryButton("Entrar", this::fazerLogin);
+    JButton btnLogin = UIUtils.primaryButton("Entrar", this::fazerLogin);
         btnLogin.setPreferredSize(new Dimension(100, 30));
 
 
-        JButton btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
+    JButton btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
+    btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         btnVoltar.setPreferredSize(new Dimension(100, 30));
         
         painelBotoes.add(btnLogin);

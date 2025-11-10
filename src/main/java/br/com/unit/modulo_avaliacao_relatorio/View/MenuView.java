@@ -31,6 +31,7 @@ public class MenuView extends JFrame {
 		setLocationRelativeTo(null);
 
 		initComponents();
+		// Mantemos o tamanho compacto do menu inicial (sem padronização global de 900x600)
 	}
 
 	private void initComponents() {
@@ -42,11 +43,12 @@ public class MenuView extends JFrame {
 		panelBotoes = new JPanel();
 		panelBotoes.setLayout(new GridLayout(0, 1, 10, 10));
 		panelBotoes.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		panelBotoes.setBackground(UIConstants.BG);
 		add(panelBotoes, BorderLayout.CENTER);
 
-	JButton btnSair = new JButton("Sair");
-	btnSair.addActionListener(e -> sairParaLogin());
+	JButton btnSair = UIUtils.dangerButton("Sair", this::sairParaLogin);
 		JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		south.setBackground(UIConstants.BG);
 		south.add(btnSair);
 		add(south, BorderLayout.SOUTH);
 
@@ -64,33 +66,27 @@ public class MenuView extends JFrame {
             }
             case Aluno aluno -> {
                 lblUsuario.setText("Aluno: " + safe(usuarioAtual.getNome()));
-                JButton btnAvaliarInstrutor = new JButton("Avaliar Instrutor");
-                btnAvaliarInstrutor.addActionListener(e -> abrirAvaliacaoInstrutor());
+				JButton btnAvaliarInstrutor = UIUtils.primaryButton("Avaliar Instrutor", this::abrirAvaliacaoInstrutor);
                 panelBotoes.add(btnAvaliarInstrutor);
-                JButton btnAvaliarCurso = new JButton("Avaliar Curso");
-                btnAvaliarCurso.addActionListener(e -> abrirAvaliacaoCurso());
+				JButton btnAvaliarCurso = UIUtils.primaryButton("Avaliar Curso", this::abrirAvaliacaoCurso);
                 panelBotoes.add(btnAvaliarCurso);
             }
             case Instrutor instrutor -> {
                 lblUsuario.setText("Instrutor: " + safe(usuarioAtual.getNome()));
 
-                JButton btnAvaliarAluno = new JButton("Avaliar Aluno");
-                btnAvaliarAluno.addActionListener(e -> abrirAvaliacaoView());
+				JButton btnAvaliarAluno = UIUtils.primaryButton("Avaliar Aluno", this::abrirAvaliacaoView);
                 panelBotoes.add(btnAvaliarAluno);
 
-                JButton btnVisualizarRelatorio = new JButton("Visualizar Relatório");
-                btnVisualizarRelatorio.addActionListener(e -> abrirRelatoriosInstrutor());
+				JButton btnVisualizarRelatorio = UIUtils.primaryButton("Visualizar Relatório", this::abrirRelatoriosInstrutor);
                 panelBotoes.add(btnVisualizarRelatorio);
             }
             case Administrador administrador -> {
                 lblUsuario.setText("Administrador: " + safe(usuarioAtual.getNome()));
 
-                JButton btnRelatorios = new JButton("Ver Relatórios");
-                btnRelatorios.addActionListener(e -> verRelatorios());
+				JButton btnRelatorios = UIUtils.primaryButton("Ver Relatórios", this::verRelatorios);
                 panelBotoes.add(btnRelatorios);
 
-                JButton btnGerenciarFormularios = new JButton("Gerenciar Formulários");
-                btnGerenciarFormularios.addActionListener(e -> abrirGerenciarFormularios());
+				JButton btnGerenciarFormularios = UIUtils.primaryButton("Gerenciar Formulários", this::abrirGerenciarFormularios);
                 panelBotoes.add(btnGerenciarFormularios);
 
             }

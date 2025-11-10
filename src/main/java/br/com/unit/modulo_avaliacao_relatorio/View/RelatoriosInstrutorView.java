@@ -40,7 +40,7 @@ public class RelatoriosInstrutorView extends JFrame {
     setTitle("Relatórios do Instrutor");
     // Janela maior por padrão para melhor visualização
     setSize(1100, 700);
-    setMinimumSize(new Dimension(900, 600));
+    UIUtils.padronizarJanela(this);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
@@ -93,9 +93,10 @@ public class RelatoriosInstrutorView extends JFrame {
     JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     south.setBackground(UIConstants.BG);
     JButton btnExportarPdf = UIUtils.successButton("Salvar como PDF", this::exportarPdf);
-    JButton btnFechar = UIUtils.dangerButton("Fechar", this::dispose);
+    JButton btnVoltar = UIUtils.dangerButton("Voltar", this::dispose);
+    btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
     south.add(btnExportarPdf);
-    south.add(btnFechar);
+    south.add(btnVoltar);
         add(south, BorderLayout.SOUTH);
 
         tabela.getSelectionModel().addListSelectionListener(e -> {
