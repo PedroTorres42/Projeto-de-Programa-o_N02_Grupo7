@@ -49,7 +49,8 @@ public class CadastroView extends JFrame {
         setSize(500, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setResizable(false);
+    setResizable(false);
+    UIUtils.padronizarJanela(this);
 
         JPanel painelPrincipal = UIUtils.paddedBorderLayout(20);
 

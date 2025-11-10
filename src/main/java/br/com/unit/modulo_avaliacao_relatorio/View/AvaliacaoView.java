@@ -54,6 +54,7 @@ public class AvaliacaoView extends JFrame {
         setLocationRelativeTo(null);
 
         initComponents();
+        UIUtils.padronizarJanela(this);
     }
 
     private void initComponents() {
@@ -63,8 +64,8 @@ public class AvaliacaoView extends JFrame {
         comboAluno = new JComboBox<>();
         comboInstrutor = new JComboBox<>();
         comboCurso = new JComboBox<>();
-    JButton btnSalvar = new JButton("Salvar");
-    JButton btnVoltar = new JButton("Voltar");
+    JButton btnSalvar = UIUtils.successButton("Salvar", this::salvarAvaliacao);
+    JButton btnVoltar = UIUtils.dangerButton("Voltar", this::dispose);
     btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
 
@@ -134,8 +135,7 @@ public class AvaliacaoView extends JFrame {
 
         add(panel);
 
-    btnVoltar.addActionListener(e -> dispose());
-        btnSalvar.addActionListener(e -> salvarAvaliacao());
+        // Listeners já aplicados pelos helpers UIUtils
     }
 
     private void popularCombos() {

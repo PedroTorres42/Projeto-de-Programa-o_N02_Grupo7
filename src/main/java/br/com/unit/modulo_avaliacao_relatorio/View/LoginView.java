@@ -34,6 +34,7 @@ public class LoginView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
+    UIUtils.padronizarJanela(this);
         
         JPanel painelPrincipal = UIUtils.paddedBorderLayout(20);
             
@@ -70,7 +71,7 @@ public class LoginView extends JFrame {
         
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
-        JButton btnLogin = UIUtils.primaryButton("Entrar", this::fazerLogin);
+    JButton btnLogin = UIUtils.primaryButton("Entrar", this::fazerLogin);
         btnLogin.setPreferredSize(new Dimension(100, 30));
 
 

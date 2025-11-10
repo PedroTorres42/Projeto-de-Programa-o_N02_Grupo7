@@ -40,7 +40,7 @@ public class RelatoriosInstrutorView extends JFrame {
     setTitle("Relatórios do Instrutor");
     // Janela maior por padrão para melhor visualização
     setSize(1100, 700);
-    setMinimumSize(new Dimension(900, 600));
+    UIUtils.padronizarJanela(this);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
