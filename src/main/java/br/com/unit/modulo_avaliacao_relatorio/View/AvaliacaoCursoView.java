@@ -60,6 +60,36 @@ public class AvaliacaoCursoView extends JFrame {
 		campoFeedback = new JTextArea(4, 20);
 		labelAluno = new JLabel("(não definido)");
 
+		// Renderers para exibir apenas o nome (evita br.com...Curso@1234)
+		comboCurso.setRenderer(new DefaultListCellRenderer() {
+			@Override
+			public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				java.awt.Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				String texto;
+				if (value instanceof Curso curso) {
+					texto = (curso.getNome() != null && !curso.getNome().isBlank()) ? curso.getNome() : ("Curso#" + curso.getId());
+				} else {
+					texto = (value != null) ? value.toString() : "";
+				}
+				setText(texto);
+				return comp;
+			}
+		});
+		comboInstrutor.setRenderer(new DefaultListCellRenderer() {
+			@Override
+			public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				java.awt.Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				String texto;
+				if (value instanceof Instrutor i) {
+					texto = (i.getNome() != null && !i.getNome().isBlank()) ? i.getNome() : ("Instrutor#" + i.getId());
+				} else {
+					texto = (value != null) ? value.toString() : "";
+				}
+				setText(texto);
+				return comp;
+			}
+		});
+
 		JPanel panel = new JPanel(new GridBagLayout());
 		panel.setBackground(UIConstants.BG);
 		GridBagConstraints gbc = new GridBagConstraints();
