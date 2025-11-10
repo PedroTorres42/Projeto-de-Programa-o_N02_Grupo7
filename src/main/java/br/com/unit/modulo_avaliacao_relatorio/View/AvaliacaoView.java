@@ -67,6 +67,22 @@ public class AvaliacaoView extends JFrame {
         JButton btnVoltar = new JButton("Voltar");
         spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
 
+        // Renderer para exibir somente o nome do curso (evitar toString padrão)
+        comboCurso.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                java.awt.Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                String texto;
+                if (value instanceof Curso c) {
+                    texto = (c.getNome() != null && !c.getNome().isBlank()) ? c.getNome() : ("Curso#" + c.getId());
+                } else {
+                    texto = value != null ? value.toString() : "";
+                }
+                setText(texto);
+                return comp;
+            }
+        });
+
         popularCombos();
 
         JLabel lblMedia = new JLabel("Média:");
@@ -132,7 +148,7 @@ public class AvaliacaoView extends JFrame {
             comboInstrutor.setEnabled(false);
 
         String instrutorId = instrutorLogado.getId();
-        // Deduplicar cursos por ID
+        // Deduplicar cursos por ID e ordenar alfabeticamente
         java.util.Map<Long, Curso> cursosMap = new java.util.LinkedHashMap<>();
         for (Curso c : cursoService.listarCursos()) {
             if (c != null && c.getId() != null && c.getInstrutores() != null &&
@@ -140,7 +156,10 @@ public class AvaliacaoView extends JFrame {
                 cursosMap.putIfAbsent(c.getId(), c);
             }
         }
-        cursosMap.values().forEach(comboCurso::addItem);
+        java.util.List<Curso> cursosOrdenados = cursosMap.values().stream()
+                .sorted(java.util.Comparator.comparing(cc -> cc.getNome() != null ? cc.getNome() : ""))
+                .toList();
+        cursosOrdenados.forEach(comboCurso::addItem);
 
         // Deduplicar alunos por ID, apenas dos cursos do instrutor
         java.util.Map<String, Aluno> alunosMap = new java.util.LinkedHashMap<>();
@@ -154,7 +173,9 @@ public class AvaliacaoView extends JFrame {
         } else {
             usuarioService.listarAlunos().forEach(comboAluno::addItem);
             usuarioService.listarInstrutores().forEach(comboInstrutor::addItem);
-            cursoService.listarCursos().forEach(comboCurso::addItem);
+            cursoService.listarCursos().stream()
+                    .sorted(java.util.Comparator.comparing(c -> c.getNome() != null ? c.getNome() : ""))
+                    .forEach(comboCurso::addItem);
         }
     }
 

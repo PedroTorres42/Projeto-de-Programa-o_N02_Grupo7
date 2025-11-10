@@ -245,7 +245,15 @@ public class AvaliacaoCursoView extends JFrame {
 			Curso curso = aluno.getCursoAtual();
 			comboCurso.addItem(curso);
 			if (curso.getInstrutores() != null) {
-				curso.getInstrutores().forEach(comboInstrutor::addItem);
+				// Deduplicar instrutores por ID e ordenar por nome
+				java.util.Map<String, Instrutor> map = new java.util.LinkedHashMap<>();
+				for (Instrutor i : curso.getInstrutores()) {
+					if (i != null && i.getId() != null) map.putIfAbsent(i.getId(), i);
+				}
+				java.util.List<Instrutor> ordenados = map.values().stream()
+						.sorted(java.util.Comparator.comparing(ii -> ii.getNome() != null ? ii.getNome() : ""))
+						.toList();
+				ordenados.forEach(comboInstrutor::addItem);
 			}
 		}
 	}
