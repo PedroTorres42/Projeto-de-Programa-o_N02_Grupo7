@@ -15,9 +15,12 @@ import lombok.RequiredArgsConstructor;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.ChartUtils;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -29,6 +32,7 @@ import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Base64;
@@ -52,8 +56,8 @@ public class RelatorioService {
     }
 
     @Transactional(readOnly = true)
-    public Iterable<Relatorio> pegarTodosRelatorios() {
-        return relatorioRepositorio.findAll();
+    public List<Relatorio> pegarTodosRelatorios() {
+        return relatorioRepositorio.findAllOrderByDataDesc();
     }
 
     @Transactional
@@ -390,6 +394,9 @@ public class RelatorioService {
     private byte[] montarPdfCurso(Curso curso, List<Avaliacao> avaliacoes) {
         String nomeCurso = Optional.ofNullable(curso.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
         String subtitulo = "Curso: " + nomeCurso + " (ID: " + curso.getId() + ")";
+        
+        List<MediaPorTipoPergunta> mediasPorTipo = notaRespositorio.mediasPorTipoPerguntaCurso(curso.getId());
+        
         return montarPdfDetalhado(
                 "Relatório Detalhado do Curso",
                 subtitulo,
@@ -398,13 +405,17 @@ public class RelatorioService {
                 "Instrutor",
                 a -> nomeOuIdAluno(a.getAluno()),
                 a -> nomeOuIdInstrutor(a.getInstrutor()),
-                avaliacoes
+                avaliacoes,
+                mediasPorTipo
         );
     }
 
     private byte[] montarPdfInstrutor(Usuario instrutor, List<Avaliacao> avaliacoes) {
         String nomeInstrutor = Optional.ofNullable(instrutor.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
         String subtitulo = "Instrutor: " + nomeInstrutor + " (ID: " + instrutor.getId() + ")";
+        
+        List<MediaPorTipoPergunta> mediasPorTipo = notaRespositorio.mediasPorTipoPerguntaInstrutor(instrutor.getId());
+        
         return montarPdfDetalhado(
                 "Relatório Detalhado do Instrutor",
                 subtitulo,
@@ -413,7 +424,8 @@ public class RelatorioService {
                 "Aluno",
                 a -> nomeOuIdCurso(a.getCurso()),
                 a -> nomeOuIdAluno(a.getAluno()),
-                avaliacoes
+                avaliacoes,
+                mediasPorTipo
         );
     }
 
@@ -425,6 +437,19 @@ public class RelatorioService {
                                       Function<Avaliacao, String> col1Fn,
                                       Function<Avaliacao, String> col2Fn,
                                       List<Avaliacao> avaliacoes) {
+        return montarPdfDetalhado(titulo, subtitulo, mensagemVazio, col1Label, col2Label, 
+                                  col1Fn, col2Fn, avaliacoes, null);
+    }
+
+    private byte[] montarPdfDetalhado(String titulo,
+                                      String subtitulo,
+                                      String mensagemVazio,
+                                      String col1Label,
+                                      String col2Label,
+                                      Function<Avaliacao, String> col1Fn,
+                                      Function<Avaliacao, String> col2Fn,
+                                      List<Avaliacao> avaliacoes,
+                                      List<MediaPorTipoPergunta> mediasPorTipo) {
         try {
             Doc db = iniciarPdf();
             adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
@@ -449,6 +474,10 @@ public class RelatorioService {
 
             db.doc().add(table);
             adicionarResumo(db.doc(), db.fonts(), status);
+            
+            if (mediasPorTipo != null && !mediasPorTipo.isEmpty()) {
+                adicionarMediasPorTipoPergunta(db.doc(), db.fonts(), mediasPorTipo);
+            }
 
             db.doc().close();
             return db.baos().toByteArray();
@@ -600,6 +629,44 @@ public class RelatorioService {
         doc.add(new Paragraph("Média Ponderada Geral: " + pondGeral.toPlainString(), fonts.normal()));
         doc.add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal()));
     }
+
+    private void adicionarMediasPorTipoPergunta(Document doc, Fontes fonts, List<MediaPorTipoPergunta> medias) throws Exception {
+        if (medias == null || medias.isEmpty()) return;
+        
+        doc.add(new Paragraph("\nMédias por Tipo de Pergunta", fonts.h2()));
+        
+        PdfPTable table = new PdfPTable(2);
+        table.setWidthPercentage(70);
+        table.setWidths(new float[]{3f, 1f});
+        
+        adicionarHeader(table, "Tipo de Pergunta");
+        adicionarHeader(table, "Média");
+        
+        for (MediaPorTipoPergunta media : medias) {
+            String tipoTexto = media.getTipo() != null ? formatarTipoPergunta(media.getTipo()) : "—";
+            String mediaTexto = media.getMedia() != null ? 
+                String.format(Locale.ROOT, "%.2f", media.getMedia()) : "—";
+            adicionarCell(table, tipoTexto);
+            adicionarCell(table, mediaTexto);
+        }
+        
+        doc.add(table);
+    }
+    
+    private String formatarTipoPergunta(Pergunta.TipoPergunta tipo) {
+        switch (tipo) {
+            case FREQUENCIA: return "Frequência";
+            case DIDATICA: return "Didática";
+            case PONTUALIDADE: return "Pontualidade";
+            case ORGANIZACAO: return "Organização";
+            case CONTEUDO: return "Conteúdo";
+            case CARGA_HORARIA: return "Carga Horária";
+            case SATISFACAO: return "Satisfação";
+            case RECOMENDACAO: return "Recomendação";
+            case OUTRO: return "Outro";
+            default: return tipo.name();
+        }
+    }
     private <T> String nomeOuIdGenerico(T entidade, Function<T, String> nomeFn, Function<T, Object> idFn, String tipo) {
         if (entidade == null) return tipo + " ?";
         String nome = nomeFn.apply(entidade);
@@ -695,6 +762,10 @@ public class RelatorioService {
                     dataset
             );
 
+            chart.setBackgroundPaint(Color.WHITE);
+            chart.getPlot().setBackgroundPaint(new Color(245, 245, 250));
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(70, 130, 180));
+
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 ChartUtils.writeChartAsPNG(baos, chart, largura, altura);
                 return baos.toByteArray();
@@ -705,7 +776,11 @@ public class RelatorioService {
     }
 
 
-    public void exportarPdfComGraficos(File destino) {
+     public void exportarPdfComGraficos(File destino) {
+        exportarPdfComGraficos(destino, false);
+    }
+
+    public void exportarPdfComGraficos(File destino, boolean incluirSatisfacao) {
         try {
             try (OutputStream out = Files.newOutputStream(destino.toPath())) {
                 Document document = new Document();
@@ -723,12 +798,27 @@ public class RelatorioService {
                 document.add(new Paragraph(" "));
                 int largura = 800;
                 int altura = 400;
-                byte[] grafico = gerarGraficoMediaPorCursoBytes(largura, altura);
-                if (grafico.length > 0) {
-                    Image img = Image.getInstance(grafico);
+                
+                byte[] graficoDesempenho = gerarGraficoMediaPorCursoBytes(largura, altura);
+                if (graficoDesempenho.length > 0) {
+                    document.add(new Paragraph("Gráfico de Desempenho (Média Ponderada)", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)));
+                    Image img = Image.getInstance(graficoDesempenho);
                     img.scaleToFit(520, 260);
                     img.setAlignment(Element.ALIGN_CENTER);
                     document.add(img);
+                    document.add(new Paragraph(" "));
+                }
+                
+                if (incluirSatisfacao) {
+                    byte[] graficoSatisfacao = gerarGraficoSatisfacaoPorCursoBytes(largura, altura);
+                    if (graficoSatisfacao.length > 0) {
+                        document.add(new Paragraph("Gráfico de Satisfação (Sentimento)", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)));
+                        Image img = Image.getInstance(graficoSatisfacao);
+                        img.scaleToFit(520, 260);
+                        img.setAlignment(Element.ALIGN_CENTER);
+                        document.add(img);
+                        document.add(new Paragraph(" "));
+                    }
                 }
 
                 document.close();
@@ -845,5 +935,58 @@ public class RelatorioService {
             throw new RuntimeException("Erro ao salvar documento do relatório", e);
         }
     }
-    
+     private byte[] gerarGraficoSatisfacaoPorCursoBytes(int largura, int altura) {
+        try {
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            
+            Map<String, Map<Sentimento, Long>> sentimentoPorCurso = calcularSentimentoPorCurso();
+            
+            sentimentoPorCurso.forEach((curso, contagens) -> {
+                dataset.addValue(contagens.getOrDefault(Sentimento.POSITIVO, 0L), "Positivo", curso);
+                dataset.addValue(contagens.getOrDefault(Sentimento.NEUTRO, 0L), "Neutro", curso);
+                dataset.addValue(contagens.getOrDefault(Sentimento.NEGATIVO, 0L), "Negativo", curso);
+            });
+
+            JFreeChart chart = ChartFactory.createStackedBarChart(
+                    "Satisfação (Sentimento) por Curso",
+                    "Curso",
+                    "Contagem de Avaliações",
+                    dataset,
+                    PlotOrientation.VERTICAL,
+                    true,
+                    true,
+                    false
+            );
+            
+            chart.setBackgroundPaint(Color.WHITE);
+            chart.getPlot().setBackgroundPaint(new Color(245, 245, 250));
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(60, 179, 113));
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(1, new Color(255, 193, 7)); 
+            chart.getCategoryPlot().getRenderer().setSeriesPaint(2, new Color(220, 53, 69)); 
+
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                ChartUtils.writeChartAsPNG(baos, chart, largura, altura);
+                return baos.toByteArray();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar gráfico de satisfação", e);
+        }
+    }
+
+    private Map<String, Map<Sentimento, Long>> calcularSentimentoPorCurso() {
+        List<Avaliacao> todasAvaliacoes = new ArrayList<>();
+        avaliacaoRepositorio.findAll().forEach(todasAvaliacoes::add);
+
+        return todasAvaliacoes.stream()
+                .collect(Collectors.groupingBy(
+                        a -> nomeOuIdCurso(a.getCurso()),
+                        Collectors.groupingBy(
+                                a -> combinarSentimento(
+                                        analisarSentimentoTexto(Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse(null)),
+                                        analisarSentimentoNumero(extrairFeedbackNumerico(a))
+                                ),
+                                Collectors.counting()
+                        )
+                ));
+    }
 }

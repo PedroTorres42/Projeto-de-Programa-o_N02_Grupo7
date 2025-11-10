@@ -8,8 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
@@ -28,7 +27,25 @@ public class CursoService {
 
     @Transactional(readOnly = true)
     public List<Curso> listarCursos() {
-        return cursoRepositorio.findAll();
+        return cursoRepositorio.findAllDistinct();
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Curso> listarCursosUnicosOrdenados() {
+        List<Curso> base = cursoRepositorio.findAllDistinct();
+        Map<String, Curso> porNome = new LinkedHashMap<>();
+        for (Curso c : base) {
+            String key = normalizarNome(c != null ? c.getNome() : null);
+            porNome.putIfAbsent(key, c);
+        }
+        return new ArrayList<>(porNome.values());
+    }
+
+    private String normalizarNome(String nome) {
+        if (nome == null) return "";
+        String n = nome.trim();
+        n = n.replaceAll("\\s+", " ");
+        return n.toLowerCase(java.util.Locale.ROOT);
     }
 
 

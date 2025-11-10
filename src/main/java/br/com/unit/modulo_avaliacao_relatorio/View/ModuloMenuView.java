@@ -30,16 +30,15 @@ public class ModuloMenuView {
 
                 Usuario u = null;
                 List<Aluno> alunos = us.listarAlunos();
-                if (!alunos.isEmpty()) u = alunos.get(0);
+                if (!alunos.isEmpty()) u = alunos.getFirst();
                 if (u == null) {
                     List<Instrutor> instrs = us.listarInstrutores();
-                    if (!instrs.isEmpty()) u = instrs.get(0);
+                    if (!instrs.isEmpty()) u = instrs.getFirst();
                 }
                 if (u != null) menu.setUsuarioAtual(u);
 
                 menu.setVisible(true);
             } catch (Exception ex) {
-                ex.printStackTrace();
                 JOptionPane.showMessageDialog(null, "Falha ao abrir o Menu: " + ex.getMessage());
             }
         });

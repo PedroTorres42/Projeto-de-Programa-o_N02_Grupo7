@@ -15,8 +15,6 @@ public class LoginView extends JFrame {
     
     private JTextField usuarioField;
     private JPasswordField senhaField;
-    private JButton btnLogin;
-    private JButton btnVoltar;
     private final UsuarioService usuarioService;
     
     @Autowired
@@ -37,17 +35,13 @@ public class LoginView extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
         
-        JPanel painelPrincipal = new JPanel();
-        painelPrincipal.setLayout(new BorderLayout(10, 10));
-        painelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
+        JPanel painelPrincipal = UIUtils.paddedBorderLayout(20);
+            
         JPanel painelTitulo = new JPanel();
-        JLabel lblTitulo = new JLabel("Sistema de Avaliação");
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
+        JLabel lblTitulo = UIUtils.titleLabel("Sistema de Avaliação");
         painelTitulo.add(lblTitulo);
-        
-        JPanel painelCampos = new JPanel();
-        painelCampos.setLayout(new GridBagLayout());
+            
+        JPanel painelCampos = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -74,17 +68,14 @@ public class LoginView extends JFrame {
         senhaField = new JPasswordField(20);
         painelCampos.add(senhaField, gbc);
         
-        JPanel painelBotoes = new JPanel();
-        painelBotoes.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        
-        btnLogin = new JButton("Entrar");
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
+        JButton btnLogin = UIUtils.primaryButton("Entrar", this::fazerLogin);
         btnLogin.setPreferredSize(new Dimension(100, 30));
-        btnLogin.addActionListener(e -> fazerLogin());
-        
-        
-        btnVoltar = new JButton("Voltar");
+
+
+        JButton btnVoltar = UIUtils.dangerButton("Voltar", this::voltar);
         btnVoltar.setPreferredSize(new Dimension(100, 30));
-        btnVoltar.addActionListener(e -> voltar());
         
         painelBotoes.add(btnLogin);
         painelBotoes.add(btnVoltar);
@@ -162,7 +153,6 @@ public class LoginView extends JFrame {
                 "Erro ao realizar login: " + ex.getMessage(),
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
         }
     }    private String identificarTipoUsuario(Usuario usuario) {
         String className = usuario.getClass().getSimpleName();
@@ -200,9 +190,5 @@ public class LoginView extends JFrame {
     
     public String getUsuario() {
         return usuarioField.getText();
-    }
-    
-    public String getSenha() {
-        return new String(senhaField.getPassword());
     }
 }

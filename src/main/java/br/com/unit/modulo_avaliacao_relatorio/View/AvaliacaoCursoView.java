@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
@@ -59,9 +58,10 @@ public class AvaliacaoCursoView extends JFrame {
 		comboCurso = new JComboBox<>();
 		comboInstrutor = new JComboBox<>();
 		campoFeedback = new JTextArea(4, 20);
-	labelAluno = new JLabel("(não definido)");
+		labelAluno = new JLabel("(não definido)");
 
 		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBackground(UIConstants.BG);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(6, 6, 6, 6);
 		gbc.anchor = GridBagConstraints.WEST;
@@ -91,20 +91,19 @@ public class AvaliacaoCursoView extends JFrame {
 		gbc.gridx = 1; panel.add(new JScrollPane(campoFeedback), gbc); row++;
 
 	
-	JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-	JButton btnVoltar = new JButton("Voltar");
-	btnVoltar.addActionListener(evt -> dispose());
-	JButton btnSalvar = new JButton("Salvar Avaliação");
-	btnSalvar.addActionListener(this::salvar);
-	botoes.add(btnVoltar);
-	botoes.add(btnSalvar);
-	gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.EAST;
-	panel.add(botoes, gbc);
+		JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		botoes.setBackground(UIConstants.BG);
+		JButton btnVoltar = UIUtils.dangerButton("Voltar", this::dispose);
+		JButton btnSalvar = UIUtils.successButton("Salvar Avaliação", this::salvar);
+		botoes.add(btnVoltar);
+		botoes.add(btnSalvar);
+		gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.EAST;
+		panel.add(botoes, gbc);
 
 		add(panel);
 	}
 
-	private void salvar(ActionEvent e) {
+	private void salvar() {
 		try {
 			Aluno aluno = alunoAtual;
 			Curso curso = (Curso) comboCurso.getSelectedItem();

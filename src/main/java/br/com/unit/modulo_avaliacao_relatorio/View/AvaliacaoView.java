@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.List;
@@ -51,7 +49,7 @@ public class AvaliacaoView extends JFrame {
 
         List<Instrutor> instrutores = usuarioService.listarInstrutores();
         if (!instrutores.isEmpty()) {
-            instrutorLogado = instrutores.get(0);
+            instrutorLogado = instrutores.getFirst();
         }
 
         setTitle("Cadastro de Avaliação");
@@ -69,19 +67,19 @@ public class AvaliacaoView extends JFrame {
         comboAluno = new JComboBox<>();
         comboInstrutor = new JComboBox<>();
         comboCurso = new JComboBox<>();
-    btnSalvar = new JButton("Salvar");
-    btnVoltar = new JButton("Voltar");
-    spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
+        btnSalvar = new JButton("Salvar");
+        btnVoltar = new JButton("Voltar");
+        spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
 
         popularCombos();
 
         JLabel lblMedia = new JLabel("Média:");
         JLabel lblComentario = new JLabel("Comentário:");
-    JLabel lblAluno = new JLabel("Aluno:");
-    JLabel lblCurso = new JLabel("Curso:");
-    JLabel lblFreq = new JLabel("Frequência (%):");
+        JLabel lblAluno = new JLabel("Aluno:");
+        JLabel lblCurso = new JLabel("Curso:");
+        JLabel lblFreq = new JLabel("Frequência (%):");
 
-        lblInstrutorLogado = new JLabel("Instrutor: " + (instrutorLogado != null ? instrutorLogado.getNome() + " (ID: " + instrutorLogado.getId() + ")" : "Nenhum"));
+        JLabel lblInstrutorLogado = new JLabel("Instrutor: " + (instrutorLogado != null ? instrutorLogado.getNome() + " (ID: " + instrutorLogado.getId() + ")" : "Nenhum"));
         
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -111,17 +109,15 @@ public class AvaliacaoView extends JFrame {
         gbc.gridx = 1; gbc.gridy = 4;
         panel.add(new JScrollPane(campoComentario), gbc);
 
-    JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    botoes.add(btnVoltar);
-    botoes.add(btnSalvar);
-    // Linha de frequência
-    gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.WEST;
-    panel.add(lblFreq, gbc);
-    gbc.gridx = 1; gbc.gridy = 5; panel.add(spinnerFrequencia, gbc);
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        botoes.add(btnVoltar);
+        botoes.add(btnSalvar);
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.WEST;
+        panel.add(lblFreq, gbc);
+        gbc.gridx = 1; gbc.gridy = 5; panel.add(spinnerFrequencia, gbc);
 
-    // Linha de botões
-    gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.EAST;
-    panel.add(botoes, gbc);
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.EAST;
+        panel.add(botoes, gbc);
 
         add(panel);
 
@@ -253,5 +249,26 @@ public class AvaliacaoView extends JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
         }
+    }
+
+    private Avaliacao getAvaliacao() {
+        double media = Double.parseDouble(campoMedia.getText());
+        String comentario = campoComentario.getText();
+        Aluno aluno = (Aluno) comboAluno.getSelectedItem();
+        Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
+        Curso curso = (Curso) comboCurso.getSelectedItem();
+        Formulario formulario = (Formulario) comboFormulario.getSelectedItem();
+
+        Avaliacao avaliacao = new Avaliacao();
+        avaliacao.setMedia(media);
+        Feedback feedback = new Feedback();
+        feedback.setComentario(comentario);
+        feedback.setAvaliacao(avaliacao);
+        avaliacao.setFeedback(feedback);
+        avaliacao.setAluno(aluno);
+        avaliacao.setInstrutor(instrutor);
+        avaliacao.setCurso(curso);
+        avaliacao.setFormulario(formulario);
+        return avaliacao;
     }
 }

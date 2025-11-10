@@ -130,6 +130,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <mainClass>br.com.unit.modulo_avaliacao_relatorio.ModuloAvaliacaoView</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

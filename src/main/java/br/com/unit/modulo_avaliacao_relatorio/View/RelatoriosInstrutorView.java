@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
@@ -30,7 +28,6 @@ public class RelatoriosInstrutorView extends JFrame {
     private DefaultTableModel modelo;
 
     private JPanel detalhesPanel;
-    private JTable detalhesTabela;
     private DefaultTableModel detalhesModelo;
     private JLabel lblMedia;
     private JLabel lblFeedback;
@@ -50,7 +47,7 @@ public class RelatoriosInstrutorView extends JFrame {
     private void initComponents() {
         setLayout(new BorderLayout());
 
-        lblInstrutor = new JLabel("Instrutor: (não definido)");
+        lblInstrutor = UIUtils.subtitleLabel("Instrutor: (não definido)");
         lblInstrutor.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
         add(lblInstrutor, BorderLayout.NORTH);
 
@@ -82,7 +79,7 @@ public class RelatoriosInstrutorView extends JFrame {
                 return false;
             }
         };
-        detalhesTabela = new JTable(detalhesModelo);
+        JTable detalhesTabela = new JTable(detalhesModelo);
         detalhesPanel.add(new JScrollPane(detalhesTabela), BorderLayout.CENTER);
         detalhesPanel.setVisible(false);
 
@@ -92,25 +89,22 @@ public class RelatoriosInstrutorView extends JFrame {
         add(center, BorderLayout.CENTER);
 
         JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnFechar = new JButton("Fechar");
-        btnFechar.addActionListener(e -> dispose());
+        south.setBackground(UIConstants.BG);
+        JButton btnFechar = UIUtils.dangerButton("Fechar", this::dispose);
         south.add(btnFechar);
         add(south, BorderLayout.SOUTH);
 
-        tabela.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting()) return;
-                int row = tabela.getSelectedRow();
-                if (row < 0 || row >= cacheAvaliacoes.size()) {
-                    esconderDetalhes();
-                    return;
-                }
-                if (linhaExpandida == row && detalhesPanel.isVisible()) {
-                    esconderDetalhes();
-                } else {
-                    mostrarDetalhes(row);
-                }
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) return;
+            int row = tabela.getSelectedRow();
+            if (row < 0 || row >= cacheAvaliacoes.size()) {
+                esconderDetalhes();
+                return;
+            }
+            if (linhaExpandida == row && detalhesPanel.isVisible()) {
+                esconderDetalhes();
+            } else {
+                mostrarDetalhes(row);
             }
         });
     }

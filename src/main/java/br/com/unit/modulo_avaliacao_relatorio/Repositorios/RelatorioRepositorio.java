@@ -16,4 +16,8 @@ public interface RelatorioRepositorio extends JpaRepository<Relatorio, Long> {
 
     @Query("SELECT r FROM Relatorio r WHERE r.tipo = :tipo ORDER BY r.data DESC")
     List<Relatorio> findByTipoOrderByDataDesc(@Param("tipo") Relatorio.TipoRelatorio tipo);
+    
+    
+    @Query("SELECT r FROM Relatorio r ORDER BY r.data DESC")
+    List<Relatorio> findAllOrderByDataDesc();
 }

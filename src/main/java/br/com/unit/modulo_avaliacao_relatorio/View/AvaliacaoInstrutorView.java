@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
@@ -60,10 +59,8 @@ public class AvaliacaoInstrutorView extends JFrame {
 		comboInstrutor = new JComboBox<>();
 		campoFeedback = new JTextArea(4, 20);
 		labelAluno = new JLabel("(não definido)");
-
-
-
 		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBackground(UIConstants.BG);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(6, 6, 6, 6);
 		gbc.anchor = GridBagConstraints.WEST;
@@ -90,10 +87,9 @@ public class AvaliacaoInstrutorView extends JFrame {
 		gbc.gridx = 1; panel.add(new JScrollPane(campoFeedback), gbc); row++;
 
 		JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton btnVoltar = new JButton("Voltar");
-		btnVoltar.addActionListener(evt -> dispose());
-		JButton btnSalvar = new JButton("Salvar Avaliação");
-		btnSalvar.addActionListener(this::salvar);
+		botoes.setBackground(UIConstants.BG);
+		JButton btnVoltar = UIUtils.dangerButton("Voltar", this::dispose);
+		JButton btnSalvar = UIUtils.successButton("Salvar Avaliação", this::salvar);
 		botoes.add(btnVoltar);
 		botoes.add(btnSalvar);
 
@@ -103,7 +99,7 @@ public class AvaliacaoInstrutorView extends JFrame {
 		add(panel);
 	}
 
-	private void salvar(ActionEvent e) {
+	private void salvar() {
 		try {
 			Aluno aluno = alunoAtual;
 			Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
@@ -178,26 +174,23 @@ public class AvaliacaoInstrutorView extends JFrame {
 								"O arquivo já existe. Deseja sobrescrever?",
 								"Confirmar",
 								JOptionPane.YES_NO_OPTION);
-						if (ow != JOptionPane.YES_OPTION) {
-						} else {
-							relatorioService.exportarPdfDaAvaliacao(salva.getId(), f);
-							int open = JOptionPane.showConfirmDialog(this, "PDF salvo. Deseja abrir agora?", "Abrir PDF", JOptionPane.YES_NO_OPTION);
-							if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
-								Desktop.getDesktop().open(f);
-							}
-							dispose();
-							return;
-						}
-					} else {
+                        if (ow == JOptionPane.YES_OPTION) {
+                            relatorioService.exportarPdfDaAvaliacao(salva.getId(), f);
+                            int open = JOptionPane.showConfirmDialog(this, "PDF salvo. Deseja abrir agora?", "Abrir PDF", JOptionPane.YES_NO_OPTION);
+                            if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
+                                Desktop.getDesktop().open(f);
+                            }
+                        }
+                    } else {
 						relatorioService.exportarPdfDaAvaliacao(salva.getId(), f);
 						int open = JOptionPane.showConfirmDialog(this, "PDF salvo. Deseja abrir agora?", "Abrir PDF", JOptionPane.YES_NO_OPTION);
 						if (open == JOptionPane.YES_OPTION && Desktop.isDesktopSupported()) {
 							Desktop.getDesktop().open(f);
 						}
-						dispose();
-						return;
-					}
-				}
+                    }
+                    dispose();
+                    return;
+                }
 			}
 
 			dispose();
