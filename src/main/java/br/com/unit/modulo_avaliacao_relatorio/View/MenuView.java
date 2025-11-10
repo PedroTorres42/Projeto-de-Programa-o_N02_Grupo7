@@ -94,6 +94,10 @@ public class MenuView extends JFrame {
                 btnRelatorios.addActionListener(e -> verRelatorios());
                 panelBotoes.add(btnRelatorios);
 
+                JButton btnGerenciarFormularios = new JButton("Gerenciar Formulários");
+                btnGerenciarFormularios.addActionListener(e -> abrirGerenciarFormularios());
+                panelBotoes.add(btnGerenciarFormularios);
+
             }
             default -> {
                 lblUsuario.setText("Usuário: " + safe(usuarioAtual.getNome()));
@@ -147,6 +151,15 @@ public class MenuView extends JFrame {
 			tela.setVisible(true);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Falha ao abrir Relatórios do Instrutor: " + ex.getMessage());
+		}
+	}
+
+	private void abrirGerenciarFormularios() {
+		try {
+			FormulariosView tela = ctx.getBean(FormulariosView.class);
+			tela.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Falha ao abrir Gerenciar Formulários: " + ex.getMessage());
 		}
 	}
 
