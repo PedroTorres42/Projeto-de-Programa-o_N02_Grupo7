@@ -44,8 +44,8 @@ public class MenuView extends JFrame {
 		panelBotoes.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		add(panelBotoes, BorderLayout.CENTER);
 
-		JButton btnSair = new JButton("Sair");
-		btnSair.addActionListener(e -> dispose());
+	JButton btnSair = new JButton("Sair");
+	btnSair.addActionListener(e -> sairParaLogin());
 		JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		south.add(btnSair);
 		add(south, BorderLayout.SOUTH);
@@ -192,5 +192,21 @@ public class MenuView extends JFrame {
 	public void setUsuarioAtual(Usuario usuario) {
 		this.usuarioAtual = usuario;
 		renderBotoes();
+	}
+
+	private void sairParaLogin() {
+		try {
+			// limpa estado do usuário atual
+			this.usuarioAtual = null;
+			// abre tela de login via contexto do Spring
+			LoginView login = ctx.getBean(LoginView.class);
+			if (login != null) {
+				login.exibir();
+			}
+			// esconde o menu atual
+			this.setVisible(false);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Falha ao abrir tela de login: " + ex.getMessage());
+		}
 	}
 }
