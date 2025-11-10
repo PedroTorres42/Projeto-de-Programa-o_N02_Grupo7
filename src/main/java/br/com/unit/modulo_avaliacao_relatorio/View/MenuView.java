@@ -81,11 +81,6 @@ public class MenuView extends JFrame {
                 JButton btnVisualizarRelatorio = new JButton("Visualizar Relatório");
                 btnVisualizarRelatorio.addActionListener(e -> abrirRelatoriosInstrutor());
                 panelBotoes.add(btnVisualizarRelatorio);
-
-                JButton btnRelatorios = new JButton("Ver Relatórios");
-                btnRelatorios.addActionListener(e -> verRelatorios());
-                panelBotoes.add(btnRelatorios);
-
             }
             case Administrador administrador -> {
                 lblUsuario.setText("Administrador: " + safe(usuarioAtual.getNome()));
