@@ -54,7 +54,6 @@ public class AvaliacaoView extends JFrame {
         setLocationRelativeTo(null);
 
         initComponents();
-        UIUtils.padronizarJanela(this);
     }
 
     private void initComponents() {
