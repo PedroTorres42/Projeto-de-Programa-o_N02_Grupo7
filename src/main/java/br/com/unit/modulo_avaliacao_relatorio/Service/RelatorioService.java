@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
@@ -988,5 +989,114 @@ public class RelatorioService {
                                 Collectors.counting()
                         )
                 ));
+    }
+
+    /**
+     * Gera um PDF estilizado da visão de relatórios do instrutor (tabela de avaliações + detalhes).
+     * Não persiste Relatorio no banco – uso direto para exportação da UI.
+     */
+    @Transactional(readOnly = true)
+    public byte[] gerarPdfVisaoInstrutor(String instrutorId) {
+        if (instrutorId == null || instrutorId.isBlank()) {
+            throw new IllegalArgumentException("InstrutorId inválido");
+        }
+        Usuario u = usuarioRepositorio.findById(instrutorId)
+                .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
+        if (!(u instanceof Instrutor)) {
+            throw new IllegalArgumentException("ID fornecido não é de um instrutor");
+        }
+        List<Avaliacao> avaliacoes = listarAvaliacoesDoInstrutor(instrutorId);
+        try {
+            Doc db = iniciarPdf();
+            Fontes fonts = db.fonts();
+            String nomeInstrutor = Optional.ofNullable(u.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
+            adicionarTituloCabecalho(db.doc(), fonts, "Relatórios do Instrutor", "Instrutor: " + nomeInstrutor + " (ID: " + u.getId() + ")");
+
+            if (avaliacoes.isEmpty()) {
+                db.doc().add(new Paragraph("Nenhuma avaliação registrada para este instrutor.", fonts.normal()));
+                db.doc().close();
+                return db.baos().toByteArray();
+            }
+
+            // Tabela principal (similar à view): Data, Curso, Aluno (anônimo), Média Nota, Freq%, Média Pond, Sentimento
+            String[] headers = {"Data", "Curso", "Aluno", "Média", "Freq%", "Pond", "Sentimento"};
+            float[] widths = {2.2f, 3f, 2.3f, 1.2f, 1.2f, 1.3f, 1.5f};
+            PdfPTable table = criarTabelaDetalhada(widths, headers);
+
+            // Custom header styling
+            for (int i = 0; i < headers.length; i++) {
+                PdfPCell c = table.getRow(0).getCells()[i];
+                c.setBackgroundColor(new com.itextpdf.text.BaseColor(230, 230, 235));
+                c.setPadding(6f);
+            }
+
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            int rowIndex = 0;
+            Status status = new Status();
+            for (Avaliacao a : avaliacoes) {
+                Metricas m = calcularMetricasLinha(a);
+                String data = a.getData() != null ? a.getData().format(fmt) : "—";
+                String curso = nomeOuIdCurso(a.getCurso());
+                String aluno = "Anônimo"; // manter anonimato
+                String mediaNota = String.format(Locale.ROOT, "%.2f", m.mediaNota());
+                String freq = String.format(Locale.ROOT, "%.2f", m.freq());
+                String pond = m.pond().toPlainString();
+                String sentimento = m.sentimento().name();
+                adicionarCell(table, data);
+                adicionarCell(table, curso);
+                adicionarCell(table, aluno);
+                adicionarCell(table, mediaNota);
+                adicionarCell(table, freq);
+                adicionarCell(table, pond);
+                adicionarCell(table, sentimento);
+                // Row styling (zebra)
+                int cellsInRow = headers.length;
+                for (int i = 0; i < cellsInRow; i++) {
+                    PdfPCell cell = table.getRow(table.getRows().size() - 1).getCells()[i];
+                    cell.setPadding(5f);
+                    if (rowIndex % 2 == 1) {
+                        cell.setBackgroundColor(new com.itextpdf.text.BaseColor(250, 250, 252));
+                    }
+                }
+                acumular(status, m);
+                rowIndex++;
+            }
+
+            db.doc().add(table);
+
+            // Resumo geral
+            db.doc().add(new Paragraph("\nResumo Geral", fonts.h2()));
+            BigDecimal mediaNotasGeral = BigDecimal.valueOf(media(status.notas)).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal mediaFreqsGeral = BigDecimal.valueOf(media(status.freqs)).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal pondGeral = calcularMediaPonderada(mediaNotasGeral.doubleValue(), mediaFreqsGeral.doubleValue());
+            db.doc().add(new Paragraph("Média das Notas: " + mediaNotasGeral, fonts.normal()));
+            db.doc().add(new Paragraph("Média de Frequência (%): " + mediaFreqsGeral, fonts.normal()));
+            db.doc().add(new Paragraph("Média Ponderada Geral: " + pondGeral, fonts.normal()));
+            db.doc().add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal()));
+
+            // Medias por tipo de pergunta (se existir)
+            List<MediaPorTipoPergunta> mediasPorTipo = notaRespositorio.mediasPorTipoPerguntaInstrutor(instrutorId);
+            if (mediasPorTipo != null && !mediasPorTipo.isEmpty()) {
+                adicionarMediasPorTipoPergunta(db.doc(), fonts, mediasPorTipo);
+            }
+
+            // Seção de Feedbacks (lista completa)
+            db.doc().add(new Paragraph("\nFeedbacks", fonts.h2()));
+            for (Avaliacao a : avaliacoes) {
+                String fb = Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).filter(s -> !s.isBlank()).orElse("(sem feedback)");
+                String cab = (a.getCurso() != null ? nomeOuIdCurso(a.getCurso()) : "Curso ?") + " | Média: " + (a.getMedia() != null ? String.format(Locale.ROOT, "%.2f", a.getMedia()) : "—");
+                Paragraph pCab = new Paragraph(cab, new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD));
+                pCab.setSpacingBefore(6f);
+                db.doc().add(pCab);
+                Paragraph pFb = new Paragraph(fb, fonts.normal());
+                pFb.setFirstLineIndent(12f);
+                db.doc().add(pFb);
+            }
+
+            db.doc().close();
+            return db.baos().toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar PDF do instrutor", e);
+        }
     }
 }

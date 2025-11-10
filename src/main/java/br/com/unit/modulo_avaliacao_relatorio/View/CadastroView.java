@@ -284,9 +284,9 @@ public class CadastroView extends JFrame {
                 return;
             }
 
-            if (senha.length() < 6) {
+            if (senha.length() < 4) {
                 JOptionPane.showMessageDialog(this,
-                    "A senha deve ter no mínimo 6 caracteres!",
+                    "A senha deve ter no mínimo 4 caracteres!",
                     "Senha fraca",
                     JOptionPane.WARNING_MESSAGE);
                 return;

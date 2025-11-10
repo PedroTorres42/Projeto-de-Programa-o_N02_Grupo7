@@ -37,8 +37,10 @@ public class RelatoriosInstrutorView extends JFrame {
 
     public RelatoriosInstrutorView(RelatorioService relatorioService) {
         this.relatorioService = relatorioService;
-        setTitle("Relatórios do Instrutor");
-        setSize(800, 560);
+    setTitle("Relatórios do Instrutor");
+    // Janela maior por padrão para melhor visualização
+    setSize(1100, 700);
+    setMinimumSize(new Dimension(900, 600));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         initComponents();
@@ -88,10 +90,12 @@ public class RelatoriosInstrutorView extends JFrame {
         center.add(detalhesPanel, BorderLayout.SOUTH);
         add(center, BorderLayout.CENTER);
 
-        JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        south.setBackground(UIConstants.BG);
-        JButton btnFechar = UIUtils.dangerButton("Fechar", this::dispose);
-        south.add(btnFechar);
+    JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    south.setBackground(UIConstants.BG);
+    JButton btnExportarPdf = UIUtils.successButton("Salvar como PDF", this::exportarPdf);
+    JButton btnFechar = UIUtils.dangerButton("Fechar", this::dispose);
+    south.add(btnExportarPdf);
+    south.add(btnFechar);
         add(south, BorderLayout.SOUTH);
 
         tabela.getSelectionModel().addListSelectionListener(e -> {
@@ -107,6 +111,36 @@ public class RelatoriosInstrutorView extends JFrame {
                 mostrarDetalhes(row);
             }
         });
+    }
+
+    private void exportarPdf() {
+        if (instrutorAtual == null || instrutorAtual.getId() == null) {
+            JOptionPane.showMessageDialog(this, "Instrutor não definido para exportação.");
+            return;
+        }
+        try {
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Salvar Relatório do Instrutor em PDF");
+            fc.setSelectedFile(new java.io.File("relatorios-instrutor-" + instrutorAtual.getId() + ".pdf"));
+            int r = fc.showSaveDialog(this);
+            if (r != JFileChooser.APPROVE_OPTION) return;
+            java.io.File f = fc.getSelectedFile();
+            if (!f.getName().toLowerCase().endsWith(".pdf")) {
+                f = new java.io.File(f.getParentFile(), f.getName() + ".pdf");
+            }
+            if (f.exists()) {
+                int ow = JOptionPane.showConfirmDialog(this, "Arquivo já existe. Sobrescrever?", "Confirmar", JOptionPane.YES_NO_OPTION);
+                if (ow != JOptionPane.YES_OPTION) return;
+            }
+            byte[] pdf = relatorioService.gerarPdfVisaoInstrutor(instrutorAtual.getId());
+            java.nio.file.Files.write(f.toPath(), pdf, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+            int open = JOptionPane.showConfirmDialog(this, "PDF salvo. Abrir agora?", "Abrir PDF", JOptionPane.YES_NO_OPTION);
+            if (open == JOptionPane.YES_OPTION && java.awt.Desktop.isDesktopSupported()) {
+                java.awt.Desktop.getDesktop().open(f);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Falha ao exportar PDF: " + ex.getMessage());
+        }
     }
 
     public void setInstrutorAtual(Instrutor instrutor) {
