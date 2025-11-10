@@ -762,8 +762,8 @@ public class RelatorioService {
     private byte[] montarPdfAvaliacaoUnica(Avaliacao a) {
         try {
             Doc db = iniciarPdf();
-            String titulo = "Avaliação";
-            String subtitulo = String.format("Aluno: %s | Curso: %s | Instrutor: %s | ID: %s",
+            String titulo = "Avaliação Individual";
+            String subtitulo = String.format("Aluno: %s | Curso: %s | Instrutor: %s | ID Avaliação: %s",
                     nomeOuIdAluno(a.getAluno()),
                     nomeOuIdCurso(a.getCurso()),
                     nomeOuIdInstrutor(a.getInstrutor()),
@@ -771,23 +771,50 @@ public class RelatorioService {
 
             adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
 
-            float[] widths = new float[]{4f, 1f};
-            PdfPTable table = criarTabelaDetalhada(widths, new String[]{"Pergunta", "Nota"});
             List<Nota> notas = Optional.ofNullable(a.getNotas()).orElse(Collections.emptyList());
+            // Separar frequência das demais
+            List<Nota> frequencias = new ArrayList<>();
+            List<Nota> outras = new ArrayList<>();
             for (Nota n : notas) {
-                String pergunta = Optional.ofNullable(n.getPergunta()).map(Pergunta::getTexto).orElse("—");
-                String notaStr = Optional.ofNullable(n.getNota()).map(Object::toString).orElse("—");
-                adicionarCell(table, pergunta);
-                adicionarCell(table, notaStr);
+                if (n != null && n.getPergunta() != null && n.getPergunta().getTipo() == Pergunta.TipoPergunta.FREQUENCIA) {
+                    frequencias.add(n);
+                } else {
+                    outras.add(n);
+                }
             }
-            db.doc().add(table);
 
-            db.doc().add(new Paragraph("\nFeedback:", db.fonts().h2()));
+            if (!outras.isEmpty()) {
+                db.doc().add(new Paragraph("Notas das Perguntas", db.fonts().h2()));
+                float[] widths = new float[]{5f, 1.2f};
+                PdfPTable table = criarTabelaDetalhada(widths, new String[]{"Pergunta", "Nota"});
+                for (Nota n : outras) {
+                    String pergunta = Optional.ofNullable(n.getPergunta()).map(Pergunta::getTexto).orElse("—");
+                    String notaStr = Optional.ofNullable(n.getNota()).map(Object::toString).orElse("—");
+                    adicionarCell(table, pergunta);
+                    adicionarCell(table, notaStr);
+                }
+                db.doc().add(table);
+            }
+
+            if (!frequencias.isEmpty()) {
+                db.doc().add(new Paragraph("\nFrequência", db.fonts().h2()));
+                float[] wf = new float[]{4f, 2f};
+                PdfPTable tFreq = criarTabelaDetalhada(wf, new String[]{"Indicador", "Valor (%)"});
+                for (Nota n : frequencias) {
+                    String pergunta = Optional.ofNullable(n.getPergunta()).map(Pergunta::getTexto).orElse("Frequência");
+                    String valor = Optional.ofNullable(n.getNota()).map(v -> v + "%").orElse("—");
+                    adicionarCell(tFreq, pergunta);
+                    adicionarCell(tFreq, valor);
+                }
+                db.doc().add(tFreq);
+            }
+
+            db.doc().add(new Paragraph("\nFeedback", db.fonts().h2()));
             String fb = Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).orElse("—");
             db.doc().add(new Paragraph(fb, db.fonts().normal()));
 
             if (a.getMedia() != null) {
-                db.doc().add(new Paragraph("\nMédia informada: " + a.getMedia(), db.fonts().normal()));
+                db.doc().add(new Paragraph("\nMédia Geral (0-10): " + a.getMedia(), db.fonts().normal()));
             }
 
             db.doc().close();
