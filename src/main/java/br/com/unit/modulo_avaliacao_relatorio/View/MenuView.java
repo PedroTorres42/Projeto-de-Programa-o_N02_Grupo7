@@ -89,6 +89,14 @@ public class MenuView extends JFrame {
 				JButton btnGerenciarFormularios = UIUtils.primaryButton("Gerenciar Formulários", this::abrirGerenciarFormularios);
                 panelBotoes.add(btnGerenciarFormularios);
 
+                JButton btnCadastrarUsuario = new JButton("Cadastrar Usuário");
+                btnCadastrarUsuario.addActionListener(e -> abrirCadastroUsuario());
+                panelBotoes.add(btnCadastrarUsuario);
+
+                JButton btnCadastrarCurso = new JButton("Cadastrar Curso");
+                btnCadastrarCurso.addActionListener(e -> abrirCadastroCurso());
+                panelBotoes.add(btnCadastrarCurso);
+
             }
             default -> {
                 lblUsuario.setText("Usuário: " + safe(usuarioAtual.getNome()));
@@ -151,6 +159,25 @@ public class MenuView extends JFrame {
 			tela.setVisible(true);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Falha ao abrir Gerenciar Formulários: " + ex.getMessage());
+		}
+	}
+
+	private void abrirCadastroUsuario() {
+		try {
+			CadastroView tela = ctx.getBean(CadastroView.class);
+			tela.setMenuView(this);
+			tela.exibir();
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Falha ao abrir Cadastro de Usuário: " + ex.getMessage());
+		}
+	}
+
+	private void abrirCadastroCurso() {
+		try {
+			CadastroCursoView tela = ctx.getBean(CadastroCursoView.class);
+			tela.setVisible(true);
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Falha ao abrir Cadastro de Curso: " + ex.getMessage());
 		}
 	}
 

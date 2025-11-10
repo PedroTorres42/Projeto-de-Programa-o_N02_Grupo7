@@ -10,13 +10,9 @@ import java.awt.*;
 public class InicialView extends JFrame {
     
     private JButton btnLogin;
-    private JButton btnCadastrar;
     
     @Autowired
     private LoginView loginView;
-    
-    @Autowired
-    private CadastroView cadastroView;
     
     public InicialView() {
         initComponents();
@@ -53,11 +49,6 @@ public class InicialView extends JFrame {
         btnLogin.setFont(new Font("Arial", Font.BOLD, 16));
         btnLogin.setPreferredSize(new Dimension(250,50));
         painelCentro.add(btnLogin, gbc);
-        gbc.gridy = 1;
-        btnCadastrar = UIUtils.successButton("Cadastrar", this::abrirCadastro);
-        btnCadastrar.setFont(new Font("Arial", Font.BOLD, 16));
-        btnCadastrar.setPreferredSize(new Dimension(250,50));
-        painelCentro.add(btnCadastrar, gbc);
             
         JPanel painelRodape = new JPanel();
         painelRodape.setBackground(UIConstants.BG);
@@ -89,25 +80,6 @@ public class InicialView extends JFrame {
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                 "Erro ao abrir tela de login: " + ex.getMessage(),
-                "Erro",
-                JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private void abrirCadastro() {
-        try {
-            if (cadastroView != null) {
-                cadastroView.exibir();
-                this.setVisible(false);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                    "Erro ao carregar tela de cadastro. CadastroView não inicializado.",
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                "Erro ao abrir tela de cadastro: " + ex.getMessage(),
                 "Erro",
                 JOptionPane.ERROR_MESSAGE);
         }

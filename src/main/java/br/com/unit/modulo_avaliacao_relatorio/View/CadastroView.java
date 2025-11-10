@@ -5,14 +5,17 @@ import org.springframework.stereotype.Component;
 
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Administrador;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Aluno;
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.Curso;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Instrutor;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Usuario;
+import br.com.unit.modulo_avaliacao_relatorio.Service.CursoService;
 import br.com.unit.modulo_avaliacao_relatorio.Service.UsuarioService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 @Component
 public class CadastroView extends JFrame {
@@ -23,8 +26,10 @@ public class CadastroView extends JFrame {
     private JPasswordField confirmarSenhaField;
     private JComboBox<String> tipoUsuarioCombo;
     private JTextField matriculaField;
+    private JComboBox<Curso> cursoCombo;
     private JTextField especialidadeField;
     private JLabel lblMatricula;
+    private JLabel lblCurso;
     private JLabel lblEspecialidade;
     private JPanel painelCamposEspecificos;
     private JButton btnCadastrar;
@@ -32,15 +37,20 @@ public class CadastroView extends JFrame {
     private JButton btnVoltar;
     
     private final UsuarioService usuarioService;
+    private final CursoService cursoService;
     
     @Autowired
     private InicialView inicialView;
     
     @Autowired
     private MenuView menuView;
+
+    private MenuView menuViewFromAdmin;
+    private boolean cursosCarregados = false;
     
-    public CadastroView(UsuarioService usuarioService) {
+    public CadastroView(UsuarioService usuarioService, CursoService cursoService) {
         this.usuarioService = usuarioService;
+        this.cursoService = cursoService;
         initComponents();
     }
     
@@ -149,6 +159,20 @@ public class CadastroView extends JFrame {
         gbcEsp.gridx = 0;
         gbcEsp.gridy = 1;
         gbcEsp.weightx = 0.3;
+        lblCurso = new JLabel("Curso:");
+        lblCurso.setFont(new Font("Arial", Font.BOLD, 12));
+        lblCurso.setVisible(false);
+        painelCamposEspecificos.add(lblCurso, gbcEsp);
+
+        gbcEsp.gridx = 1;
+        gbcEsp.weightx = 0.7;
+        cursoCombo = new JComboBox<>();
+        cursoCombo.setVisible(false);
+        painelCamposEspecificos.add(cursoCombo, gbcEsp);
+
+        gbcEsp.gridx = 0;
+        gbcEsp.gridy = 2;
+        gbcEsp.weightx = 0.3;
         lblEspecialidade = new JLabel("Especialidade:");
         lblEspecialidade.setFont(new Font("Arial", Font.BOLD, 12));
         lblEspecialidade.setVisible(false);
@@ -196,6 +220,72 @@ public class CadastroView extends JFrame {
 
         adicionarEfeitosHover();
     }
+
+    private void carregarCursos() {
+        if (cursosCarregados && cursoCombo.getItemCount() > 0) {
+            return;
+        }
+        
+        if (cursoCombo.getRenderer() instanceof DefaultListCellRenderer == false || 
+            cursoCombo.getItemCount() == 0) {
+            cursoCombo.setRenderer(new DefaultListCellRenderer() {
+                private static final long serialVersionUID = 1L;
+                
+                @SuppressWarnings("rawtypes")
+                @Override
+                public java.awt.Component getListCellRendererComponent(JList list, Object value, 
+                        int index, boolean isSelected, boolean cellHasFocus) {
+                    java.awt.Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (value == null) {
+                        setText("(Nenhum)");
+                    } else if (value instanceof Curso) {
+                        setText(((Curso) value).getNome());
+                    }
+                    return comp;
+                }
+            });
+        }
+        
+        SwingWorker<List<Curso>, Void> worker = new SwingWorker<List<Curso>, Void>() {
+            @Override
+            protected List<Curso> doInBackground() throws Exception {
+                System.out.println("[CadastroView] Iniciando carregamento de cursos em background...");
+                return cursoService.listarCursos();
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    List<Curso> cursos = get();
+                    System.out.println("[CadastroView] Cursos carregados. Total: " + cursos.size());
+                    
+                    cursoCombo.removeAllItems();
+                    cursoCombo.addItem(null);
+                    
+                    for (Curso curso : cursos) {
+                        System.out.println("[CadastroView] Adicionando curso: " + curso.getNome());
+                        cursoCombo.addItem(curso);
+                    }
+                    
+                    cursosCarregados = true;
+                    System.out.println("[CadastroView] Cursos carregados com sucesso na UI!");
+                    
+                } catch (Exception e) {
+                    System.err.println("[CadastroView] ERRO ao carregar cursos: " + e.getMessage());
+                    e.printStackTrace();
+                    
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(CadastroView.this, 
+                            "Erro ao carregar cursos: " + e.getMessage(), 
+                            "Erro", 
+                            JOptionPane.ERROR_MESSAGE);
+                    });
+                }
+            }
+        };
+        
+        worker.execute();
+    }
     
     private void adicionarEfeitosHover() {
         btnCadastrar.addMouseListener(new MouseAdapter() {
@@ -231,6 +321,8 @@ public class CadastroView extends JFrame {
         
         lblMatricula.setVisible(false);
         matriculaField.setVisible(false);
+        lblCurso.setVisible(false);
+        cursoCombo.setVisible(false);
         lblEspecialidade.setVisible(false);
         especialidadeField.setVisible(false);
 
@@ -238,6 +330,9 @@ public class CadastroView extends JFrame {
             case "Aluno":
                 lblMatricula.setVisible(true);
                 matriculaField.setVisible(true);
+                lblCurso.setVisible(true);
+                cursoCombo.setVisible(true);
+                carregarCursos();
                 break;
             case "Instrutor":
                 lblEspecialidade.setVisible(true);
@@ -319,6 +414,13 @@ public class CadastroView extends JFrame {
                     aluno.setEmail(email);
                     aluno.setSenha(senha);
                     aluno.setMatricula(matricula);
+                    
+                    // Define o curso selecionado
+                    Curso cursoSelecionado = (Curso) cursoCombo.getSelectedItem();
+                    if (cursoSelecionado != null) {
+                        aluno.setCursoAtual(cursoSelecionado);
+                    }
+                    
                     usuario = aluno;
                     break;
                     
@@ -404,12 +506,23 @@ public class CadastroView extends JFrame {
         if (resposta == JOptionPane.YES_OPTION) {
             limparCampos();
             this.setVisible(false);
-            if (inicialView != null) {
+            if (menuViewFromAdmin != null) {
+                menuViewFromAdmin.setVisible(true);
+            } else if (inicialView != null) {
                 inicialView.exibir();
             } else {
                 System.exit(0);
             }
         }
+    }
+
+    public void setMenuView(MenuView menuView) {
+        this.menuViewFromAdmin = menuView;
+    }
+
+    public void recarregarCursos() {
+        cursosCarregados = false;
+        carregarCursos();
     }
     
     public void exibir() {
