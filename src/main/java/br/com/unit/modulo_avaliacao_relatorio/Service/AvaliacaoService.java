@@ -3,6 +3,7 @@ package br.com.unit.modulo_avaliacao_relatorio.Service;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Avaliacao;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Feedback;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Nota;
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.Pergunta;
 import br.com.unit.modulo_avaliacao_relatorio.Repositorios.AvaliacaoRepositorio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,8 +34,10 @@ public class AvaliacaoService {
         }
 
         Double media = calcularMedia(avaliacao);
-        if (media < 0.0 || media > 5.0) {
-            throw new IllegalArgumentException("A média deve estar entre 0 e 5.");
+        double maxPermitido = (avaliacao.getNotas() == null || avaliacao.getNotas().isEmpty()) ? 10.0 : 5.0;
+        if (media < 0.0 || media > maxPermitido) {
+            String msg = maxPermitido == 10.0 ? "A média deve estar entre 0 e 10." : "A média deve estar entre 0 e 5.";
+            throw new IllegalArgumentException(msg);
         }
         avaliacao.setMedia(media);
 
@@ -73,8 +76,10 @@ public class AvaliacaoService {
         }
 
         Double media = calcularMedia(existente);
-        if (media < 0.0 || media > 5.0) {
-            throw new IllegalArgumentException("A média deve estar entre 0 e 5.");
+        double maxPermitido = (existente.getNotas() == null || existente.getNotas().isEmpty()) ? 10.0 : 5.0;
+        if (media < 0.0 || media > maxPermitido) {
+            String msg = maxPermitido == 10.0 ? "A média deve estar entre 0 e 10." : "A média deve estar entre 0 e 5.";
+            throw new IllegalArgumentException(msg);
         }
         existente.setMedia(media);
 
@@ -108,6 +113,11 @@ public class AvaliacaoService {
             int cont = 0;
             for (Nota n : a.getNotas()) {
                 if (n != null && n.getNota() != null) {
+                    // Ignora notas de perguntas do tipo FREQUENCIA no cálculo da média de 1..5
+                    Pergunta p = n.getPergunta();
+                    if (p != null && p.getTipo() == Pergunta.TipoPergunta.FREQUENCIA) {
+                        continue;
+                    }
                     soma += n.getNota();
                     cont++;
                 }
