@@ -42,6 +42,10 @@ public class DataLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        System.out.println("========================================");
+        System.out.println("[DataLoader] Iniciando carregamento de dados...");
+        System.out.println("========================================");
+        
         Administrador admin = new Administrador();
         admin.setNome("Admin Sistema");
         admin.setEmail("admin@sistema.com");
@@ -77,27 +81,9 @@ public class DataLoader implements CommandLineRunner {
         instrutor2 = resolveInstrutor(instrutor2);
         instrutor3 = resolveInstrutor(instrutor3);
 
-        Curso cursoJava = new Curso();
-        cursoJava.setNome("Curso Java");
-        cursoJava.setDescricao("Aprendizado de Java básico e avançado");
-        cursoJava.setCargaHoraria(40);
-        cursoJava.setInstrutores(Collections.singletonList(instrutor1));
-
-        Curso cursoPython = new Curso();
-        cursoPython.setNome("Curso Python");
-        cursoPython.setDescricao("Aprendizado de Python básico e avançado");
-        cursoPython.setCargaHoraria(35);
-        cursoPython.setInstrutores(Collections.singletonList(instrutor2));
-
-        Curso cursoWeb = new Curso();
-        cursoWeb.setNome("Desenvolvimento Web");
-        cursoWeb.setDescricao("HTML, CSS e JavaScript");
-        cursoWeb.setCargaHoraria(45);
-        cursoWeb.setInstrutores(Collections.singletonList(instrutor3));
-
-        cursoJava = cursoService.criarCurso(cursoJava);
-        cursoPython = cursoService.criarCurso(cursoPython);
-        cursoWeb = cursoService.criarCurso(cursoWeb);
+        Curso cursoJava = resolveCurso("Curso Java", "Aprendizado de Java básico e avançado", 40, Collections.singletonList(instrutor1));
+        Curso cursoPython = resolveCurso("Curso Python", "Aprendizado de Python básico e avançado", 35, Collections.singletonList(instrutor2));
+        Curso cursoWeb = resolveCurso("Desenvolvimento Web", "HTML, CSS e JavaScript", 45, Collections.singletonList(instrutor3));
 
         Aluno aluno1 = new Aluno();
         aluno1.setNome("Pedro Torres");
@@ -171,20 +157,9 @@ public class DataLoader implements CommandLineRunner {
         instrutor2b = resolveInstrutor(instrutor2b);
         instrutor3b = resolveInstrutor(instrutor3b);
 
-        List<Instrutor> instrJava = new ArrayList<>(cursoJava.getInstrutores());
-        if (!instrJava.contains(instrutor1b)) instrJava.add(instrutor1b);
-        cursoJava.setInstrutores(instrJava);
-        cursoJava = cursoService.criarCurso(cursoJava);
-
-        List<Instrutor> instrPython = new ArrayList<>(cursoPython.getInstrutores());
-        if (!instrPython.contains(instrutor2b)) instrPython.add(instrutor2b);
-        cursoPython.setInstrutores(instrPython);
-        cursoPython = cursoService.criarCurso(cursoPython);
-
-        List<Instrutor> instrWeb = new ArrayList<>(cursoWeb.getInstrutores());
-        if (!instrWeb.contains(instrutor3b)) instrWeb.add(instrutor3b);
-        cursoWeb.setInstrutores(instrWeb);
-        cursoWeb = cursoService.criarCurso(cursoWeb);
+        adicionarInstrutorAoCurso(cursoJava, instrutor1b);
+        adicionarInstrutorAoCurso(cursoPython, instrutor2b);
+        adicionarInstrutorAoCurso(cursoWeb, instrutor3b);
 
         List<Pergunta> perguntasInstrutor = new ArrayList<>();
         Pergunta p1a = new Pergunta();
@@ -212,8 +187,6 @@ public class DataLoader implements CommandLineRunner {
         perguntasInstrutor.add(p5a);
         perguntasInstrutor.add(p6a);
 
-        formularioService.criarFormulario("Avaliação do Instrutor", perguntasInstrutor, Formulario.TipoFormulario.INSTRUTOR);
-
         List<Pergunta> perguntasCurso = new ArrayList<>();
         Pergunta p1b = new Pergunta();
         p1b.setTexto("Como você avalia o conteúdo do curso?");
@@ -232,7 +205,25 @@ public class DataLoader implements CommandLineRunner {
         perguntasCurso.add(p3b);
         perguntasCurso.add(p4b);
 
-        formularioService.criarFormulario("Avaliação do Curso", perguntasCurso, Formulario.TipoFormulario.CURSO);
+        var formulariosExistentes = formularioService.listarFormularios();
+        boolean formInstrutorExiste = formulariosExistentes.stream()
+                .anyMatch(f -> "Avaliação do Instrutor".equals(f.getTitulo()));
+        boolean formCursoExiste = formulariosExistentes.stream()
+                .anyMatch(f -> "Avaliação do Curso".equals(f.getTitulo()));
+
+        if (!formInstrutorExiste) {
+            formularioService.criarFormulario("Avaliação do Instrutor", perguntasInstrutor, Formulario.TipoFormulario.INSTRUTOR);
+            System.out.println("[DataLoader] Formulário 'Avaliação do Instrutor' criado.");
+        } else {
+            System.out.println("[DataLoader] Formulário 'Avaliação do Instrutor' já existe.");
+        }
+
+        if (!formCursoExiste) {
+            formularioService.criarFormulario("Avaliação do Curso", perguntasCurso, Formulario.TipoFormulario.CURSO);
+            System.out.println("[DataLoader] Formulário 'Avaliação do Curso' criado.");
+        } else {
+            System.out.println("[DataLoader] Formulário 'Avaliação do Curso' já existe.");
+        }
 
         
         if (avaliacaoRepositorio.totalAvaliacoes() == 0) {
@@ -328,7 +319,9 @@ public class DataLoader implements CommandLineRunner {
         
         
 
-        System.out.println("DataLoader finalizado: dados de teste inseridos com sucesso!");
+        System.out.println("========================================");
+        System.out.println("[DataLoader] Finalizado: dados de teste carregados com sucesso!");
+        System.out.println("========================================");
     }
 
     @Transactional
@@ -346,6 +339,66 @@ public class DataLoader implements CommandLineRunner {
         if (existente == null) return (Aluno) usuarioService.salvarUsuario(novo);
         if (existente instanceof Aluno a) return a;
         System.out.println("[DataLoader] Email " + novo.getEmail() + " já utilizado por outro tipo de usuário. Pulando criação do Aluno.");
-    return novo;
+        return novo;
+    }
+
+    @Transactional
+    protected Curso resolveCurso(String nome, String descricao, Integer cargaHoraria, List<Instrutor> instrutores) {
+        List<Curso> cursosExistentes = cursoService.listarCursos();
+        for (Curso c : cursosExistentes) {
+            if (c.getNome() != null && c.getNome().equalsIgnoreCase(nome)) {
+                System.out.println("[DataLoader] Curso '" + nome + "' já existe. ID: " + c.getId());
+                
+                if (instrutores != null && !instrutores.isEmpty()) {
+                    List<Instrutor> instrutoresAtuais = c.getInstrutores() != null ? new ArrayList<>(c.getInstrutores()) : new ArrayList<>();
+                    boolean atualizado = false;
+                    
+                    for (Instrutor novoInstr : instrutores) {
+                        if (!instrutoresAtuais.contains(novoInstr)) {
+                            instrutoresAtuais.add(novoInstr);
+                            atualizado = true;
+                        }
+                    }
+                    
+                    if (atualizado) {
+                        c.setInstrutores(instrutoresAtuais);
+                        c = cursoService.criarCurso(c);
+                        System.out.println("[DataLoader] Instrutores do curso '" + nome + "' atualizados.");
+                    }
+                }
+                
+                return c;
+            }
+        }
+        
+        Curso novoCurso = new Curso();
+        novoCurso.setNome(nome);
+        novoCurso.setDescricao(descricao);
+        novoCurso.setCargaHoraria(cargaHoraria);
+        novoCurso.setInstrutores(instrutores != null ? instrutores : new ArrayList<>());
+        novoCurso = cursoService.criarCurso(novoCurso);
+        System.out.println("[DataLoader] Curso '" + nome + "' criado. ID: " + novoCurso.getId());
+        return novoCurso;
+    }
+
+    @Transactional
+    protected void adicionarInstrutorAoCurso(Curso curso, Instrutor instrutor) {
+        if (curso == null || instrutor == null) {
+            return;
+        }
+        
+        List<Instrutor> instrutores = curso.getInstrutores() != null ? new ArrayList<>(curso.getInstrutores()) : new ArrayList<>();
+        
+        boolean jaExiste = instrutores.stream()
+                .anyMatch(i -> i.getId() != null && i.getId().equals(instrutor.getId()));
+        
+        if (!jaExiste) {
+            instrutores.add(instrutor);
+            curso.setInstrutores(instrutores);
+            cursoService.criarCurso(curso);
+            System.out.println("[DataLoader] Instrutor '" + instrutor.getNome() + "' adicionado ao curso '" + curso.getNome() + "'");
+        } else {
+            System.out.println("[DataLoader] Instrutor '" + instrutor.getNome() + "' já está no curso '" + curso.getNome() + "'");
+        }
     }
 }
