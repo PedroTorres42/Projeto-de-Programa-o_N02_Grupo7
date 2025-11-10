@@ -79,21 +79,32 @@ public class RelatorioView extends JFrame {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
         
-        JPanel painelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        JPanel painelSuperior = new JPanel(new BorderLayout(10, 10));
         painelSuperior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        
-        painelSuperior.add(new JLabel("Filtrar por tipo:"));
+
+        // Bloco esquerdo (filtros e ações principais)
+        JPanel painelSuperiorEsquerda = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        painelSuperiorEsquerda.add(new JLabel("Filtrar por tipo:"));
         comboFiltro = new JComboBox<>(FiltroTipo.values());
         comboFiltro.addActionListener(e -> filtrarRelatorios());
-        painelSuperior.add(comboFiltro);
+        painelSuperiorEsquerda.add(comboFiltro);
 
-    btnAtualizar = UIUtils.primaryButton("Recarregar (F5)", this::carregarRelatorios);
-    btnAtualizar.setToolTipText("Recarregar lista de relatórios do banco (F5)");
-        painelSuperior.add(btnAtualizar);
+        btnAtualizar = UIUtils.primaryButton("Recarregar (F5)", this::carregarRelatorios);
+        btnAtualizar.setToolTipText("Recarregar lista de relatórios do banco (F5)");
+        painelSuperiorEsquerda.add(btnAtualizar);
 
-    btnGerarNovo = UIUtils.successButton("Gerar Novo Relatório", this::abrirDialogoGerarRelatorio);
-        painelSuperior.add(btnGerarNovo);
-        
+        btnGerarNovo = UIUtils.successButton("Gerar Novo Relatório", this::abrirDialogoGerarRelatorio);
+        painelSuperiorEsquerda.add(btnGerarNovo);
+
+        // Bloco direito (Voltar alinhado à direita)
+        JPanel painelSuperiorDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        JButton btnVoltarTopo = UIUtils.dangerButton("Voltar", () -> { if (loading) return; dispose(); });
+        btnVoltarTopo.setToolTipText("Fechar esta janela e retornar ao menu");
+        painelSuperiorDireita.add(btnVoltarTopo);
+
+        painelSuperior.add(painelSuperiorEsquerda, BorderLayout.CENTER);
+        painelSuperior.add(painelSuperiorDireita, BorderLayout.EAST);
+
         add(painelSuperior, BorderLayout.NORTH);
         
         String[] colunas = {"ID", "Tipo", "Data", "Tamanho (aprox.)"};
@@ -119,10 +130,6 @@ public class RelatorioView extends JFrame {
         
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         painelInferior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        JButton btnVoltar = UIUtils.dangerButton("Voltar", () -> { if (loading) return; dispose(); });
-        btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
-        painelInferior.add(btnVoltar);
         
     btnVisualizar = UIUtils.primaryButton("Visualizar", this::visualizarRelatorio);
     btnVisualizar.setForeground(Color.WHITE);
