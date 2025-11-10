@@ -23,8 +23,14 @@ public class FormularioService {
 
     @Transactional
     public void criarFormulario(String titulo, List<Pergunta> perguntas) {
+        criarFormulario(titulo, perguntas, null);
+    }
+
+    @Transactional
+    public void criarFormulario(String titulo, List<Pergunta> perguntas, Formulario.TipoFormulario tipo) {
         Formulario formulario = new Formulario();
         formulario.setTitulo(titulo);
+        formulario.setTipo(tipo);
 
         if (perguntas != null) {
             for (Pergunta p : perguntas) {
@@ -55,8 +61,16 @@ public class FormularioService {
 
     @Transactional
     public Formulario editarFormulario(Long id, List<Pergunta> perguntas, String titulo) {
+        return editarFormulario(id, perguntas, titulo, null);
+    }
+
+    @Transactional
+    public Formulario editarFormulario(Long id, List<Pergunta> perguntas, String titulo, Formulario.TipoFormulario tipo) {
         Formulario formulario = pegarFormulario(id);
         formulario.setTitulo(titulo);
+        if (tipo != null) {
+            formulario.setTipo(tipo);
+        }
 
         if (perguntas != null) {
             for (Pergunta p : perguntas) {
@@ -117,6 +131,35 @@ public class FormularioService {
         Formulario formulario = new Formulario();
         formulario.setTitulo(titulo);
         formulario.setTipo(Formulario.TipoFormulario.INSTRUTOR);
+
+        for (Pergunta p : perguntas) {
+            p.setFormulario(formulario);
+        }
+        formulario.setPerguntas(perguntas);
+
+        return formularioRepositorio.save(formulario);
+    }
+
+    @Transactional
+    public Formulario obterOuCriarFormularioCursoPadrao() {
+        final String titulo = "Avaliação do Curso";
+        Optional<Formulario> existente = formularioRepositorio.findByTituloAndTipo(
+                titulo, Formulario.TipoFormulario.CURSO);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+
+        List<Pergunta> perguntas = new ArrayList<>();
+        perguntas.add(novaPergunta("Qualidade do conteúdo programático"));
+        perguntas.add(novaPergunta("Organização do curso"));
+        perguntas.add(novaPergunta("Carga horária adequada"));
+        perguntas.add(novaPergunta("Material didático"));
+        perguntas.add(novaPergunta("Infraestrutura"));
+        perguntas.add(novaPergunta("Atendimento às expectativas"));
+
+        Formulario formulario = new Formulario();
+        formulario.setTitulo(titulo);
+        formulario.setTipo(Formulario.TipoFormulario.CURSO);
 
         for (Pergunta p : perguntas) {
             p.setFormulario(formulario);
