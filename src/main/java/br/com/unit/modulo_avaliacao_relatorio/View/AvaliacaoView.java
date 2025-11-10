@@ -23,8 +23,9 @@ public class AvaliacaoView extends JFrame {
     private JComboBox<Aluno> comboAluno;
     private JComboBox<Instrutor> comboInstrutor;
     private JComboBox<Curso> comboCurso;
-    private JComboBox<Formulario> comboFormulario;
     private JButton btnSalvar;
+    private JButton btnVoltar;
+    private JSpinner spinnerFrequencia;
     private JLabel lblInstrutorLogado;
 
     private final AvaliacaoService avaliacaoService;
@@ -68,15 +69,17 @@ public class AvaliacaoView extends JFrame {
         comboAluno = new JComboBox<>();
         comboInstrutor = new JComboBox<>();
         comboCurso = new JComboBox<>();
-        comboFormulario = new JComboBox<>();
-        btnSalvar = new JButton("Salvar");
+    btnSalvar = new JButton("Salvar");
+    btnVoltar = new JButton("Voltar");
+    spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
 
         popularCombos();
 
         JLabel lblMedia = new JLabel("Média:");
         JLabel lblComentario = new JLabel("Comentário:");
-        JLabel lblAluno = new JLabel("Aluno:");
-        JLabel lblCurso = new JLabel("Curso:");
+    JLabel lblAluno = new JLabel("Aluno:");
+    JLabel lblCurso = new JLabel("Curso:");
+    JLabel lblFreq = new JLabel("Frequência (%):");
 
         lblInstrutorLogado = new JLabel("Instrutor: " + (instrutorLogado != null ? instrutorLogado.getNome() + " (ID: " + instrutorLogado.getId() + ")" : "Nenhum"));
         
@@ -108,16 +111,21 @@ public class AvaliacaoView extends JFrame {
         gbc.gridx = 1; gbc.gridy = 4;
         panel.add(new JScrollPane(campoComentario), gbc);
 
-        gbc.gridx = 0; gbc.gridy = 5;
-        panel.add(new JLabel("Formulário:"), gbc);
-        gbc.gridx = 1; gbc.gridy = 5;
-        panel.add(comboFormulario, gbc);
+    JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    botoes.add(btnVoltar);
+    botoes.add(btnSalvar);
+    // Linha de frequência
+    gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.WEST;
+    panel.add(lblFreq, gbc);
+    gbc.gridx = 1; gbc.gridy = 5; panel.add(spinnerFrequencia, gbc);
 
-        gbc.gridx = 1; gbc.gridy = 6;
-        panel.add(btnSalvar, gbc);
+    // Linha de botões
+    gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.EAST;
+    panel.add(botoes, gbc);
 
         add(panel);
 
+        btnVoltar.addActionListener(e -> dispose());
         btnSalvar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -137,35 +145,45 @@ public class AvaliacaoView extends JFrame {
             comboInstrutor.setEnabled(false);
 
         String instrutorId = instrutorLogado.getId();
-        List<Curso> cursosDoInstrutor = cursoService.listarCursos().stream()
-            .filter(c -> c.getInstrutores() != null && c.getInstrutores().stream()
-                .anyMatch(i -> i != null && i.getId() != null && i.getId().equals(instrutorId)))
-            .toList();
-            cursosDoInstrutor.forEach(comboCurso::addItem);
+        // Deduplicar cursos por ID
+        java.util.Map<Long, Curso> cursosMap = new java.util.LinkedHashMap<>();
+        for (Curso c : cursoService.listarCursos()) {
+            if (c != null && c.getId() != null && c.getInstrutores() != null &&
+                    c.getInstrutores().stream().anyMatch(i -> i != null && instrutorId.equals(i.getId()))) {
+                cursosMap.putIfAbsent(c.getId(), c);
+            }
+        }
+        cursosMap.values().forEach(comboCurso::addItem);
 
-        List<Aluno> alunosElegiveis = usuarioService.listarAlunos().stream()
-            .filter(a -> a.getCursoAtual() != null && cursosDoInstrutor.stream()
-                .anyMatch(c -> c.getId() != null && a.getCursoAtual().getId() != null && c.getId().equals(a.getCursoAtual().getId())))
-            .toList();
-            alunosElegiveis.forEach(comboAluno::addItem);
+        // Deduplicar alunos por ID, apenas dos cursos do instrutor
+        java.util.Map<String, Aluno> alunosMap = new java.util.LinkedHashMap<>();
+        for (Aluno a : usuarioService.listarAlunos()) {
+            if (a != null && a.getId() != null && a.getCursoAtual() != null && a.getCursoAtual().getId() != null &&
+                    cursosMap.containsKey(a.getCursoAtual().getId())) {
+                alunosMap.putIfAbsent(a.getId(), a);
+            }
+        }
+        alunosMap.values().forEach(comboAluno::addItem);
         } else {
             usuarioService.listarAlunos().forEach(comboAluno::addItem);
             usuarioService.listarInstrutores().forEach(comboInstrutor::addItem);
             cursoService.listarCursos().forEach(comboCurso::addItem);
         }
-
-        List<Formulario> formularios = formularioService.listarFormularios();
-        formularios.forEach(comboFormulario::addItem);
     }
 
     private void salvarAvaliacao() {
         try {
             double media = Double.parseDouble(campoMedia.getText());
+            if (media < 0.0 || media > 10.0) {
+                JOptionPane.showMessageDialog(this, "A média deve estar entre 0 e 10.");
+                return;
+            }
             String comentario = campoComentario.getText();
             Aluno aluno = (Aluno) comboAluno.getSelectedItem();
             Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
             Curso curso = (Curso) comboCurso.getSelectedItem();
-            Formulario formulario = (Formulario) comboFormulario.getSelectedItem();
+            // Define automaticamente um formulário padrão (sem escolha pelo usuário)
+            Formulario formulario = formularioService.obterOuCriarFormularioAlunoPadrao();
 
             Avaliacao avaliacao = new Avaliacao();
             avaliacao.setMedia(media);
@@ -177,6 +195,20 @@ public class AvaliacaoView extends JFrame {
             avaliacao.setInstrutor(instrutor);
             avaliacao.setCurso(curso);
             avaliacao.setFormulario(formulario);
+
+            // Registrar frequência (%) como Nota vinculada à Pergunta do tipo FREQUENCIA
+            List<Nota> notas = new java.util.ArrayList<>();
+            try {
+                Pergunta perguntaFreq = formularioService.obterOuCriarPerguntaFrequencia();
+                Nota nFreq = new Nota();
+                nFreq.setPergunta(perguntaFreq);
+                nFreq.setNota((Integer) spinnerFrequencia.getValue());
+                nFreq.setAvaliacao(avaliacao);
+                notas.add(nFreq);
+            } catch (Exception ignore) { }
+            if (!notas.isEmpty()) {
+                avaliacao.setNotas(notas);
+            }
 
             Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
 
