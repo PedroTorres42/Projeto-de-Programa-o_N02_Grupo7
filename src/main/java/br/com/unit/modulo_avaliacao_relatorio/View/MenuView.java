@@ -86,7 +86,7 @@ public class MenuView extends JFrame {
 				JButton btnRelatorios = UIUtils.primaryButton("Ver Relatórios", this::verRelatorios);
                 panelBotoes.add(btnRelatorios);
 
-				JButton btnGerenciarFormularios = UIUtils.warningButton("Gerenciar Formulários", this::abrirGerenciarFormularios);
+				JButton btnGerenciarFormularios = UIUtils.primaryButton("Gerenciar Formulários", this::abrirGerenciarFormularios);
                 panelBotoes.add(btnGerenciarFormularios);
 
             }
