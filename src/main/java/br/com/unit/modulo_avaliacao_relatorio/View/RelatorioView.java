@@ -124,10 +124,12 @@ public class RelatorioView extends JFrame {
         btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         painelInferior.add(btnVoltar);
         
-        btnVisualizar = UIUtils.primaryButton("Visualizar", this::visualizarRelatorio);
+    btnVisualizar = UIUtils.primaryButton("Visualizar", this::visualizarRelatorio);
+    btnVisualizar.setForeground(Color.WHITE);
         painelInferior.add(btnVisualizar);
         
-        btnExportarPDF = UIUtils.successButton("Exportar PDF Selecionado", this::exportarPDF);
+    btnExportarPDF = UIUtils.successButton("Exportar PDF Selecionado", this::exportarPDF);
+    btnExportarPDF.setForeground(Color.WHITE);
         painelInferior.add(btnExportarPDF);
 
         JButton btnExportarCSV = UIUtils.warningButton("Exportar CSV (Avaliações)", this::exportarCSV);
