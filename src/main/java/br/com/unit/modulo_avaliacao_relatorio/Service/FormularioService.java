@@ -52,6 +52,17 @@ public class FormularioService {
     }
 
     @Transactional(readOnly = true)
+    public List<Formulario> listarFormulariosComPerguntas() {
+        return formularioRepositorio.findAllWithPerguntas();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Formulario> listarFormulariosPorTipo(Formulario.TipoFormulario tipo) {
+        if (tipo == null) return listarFormularios();
+        return formularioRepositorio.findByTipoWithPerguntas(tipo);
+    }
+
+    @Transactional(readOnly = true)
     public Formulario pegarFormulario(Long id) {
         return formularioRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Formulario não encontrado"));
     }
