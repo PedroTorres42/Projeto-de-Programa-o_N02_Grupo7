@@ -31,7 +31,6 @@ public class MenuView extends JFrame {
 		setLocationRelativeTo(null);
 
 		initComponents();
-		// Mantemos o tamanho compacto do menu inicial (sem padronização global de 900x600)
 	}
 
 	private void initComponents() {
@@ -212,14 +211,11 @@ public class MenuView extends JFrame {
 
 	private void sairParaLogin() {
 		try {
-			// limpa estado do usuário atual
 			this.usuarioAtual = null;
-			// abre tela de login via contexto do Spring
 			LoginView login = ctx.getBean(LoginView.class);
 			if (login != null) {
 				login.exibir();
 			}
-			// esconde o menu atual
 			this.setVisible(false);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Falha ao abrir tela de login: " + ex.getMessage());
