@@ -10,11 +10,7 @@ import java.awt.*;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Lazy
 @Component
@@ -29,15 +25,7 @@ public class AvaliacaoInstrutorView extends JFrame {
 	private JComboBox<Instrutor> comboInstrutor;
 	private JTextArea campoFeedback;
 	private final List<JComboBox<Integer>> combosNotas = new ArrayList<>();
-
-	private static final List<String> QUESTOES = Arrays.asList(
-			"Didática",
-			"Domínio do conteúdo",
-			"Clareza",
-			"Assiduidade",
-			"Interação com a turma",
-			"Capacidade de resolver dúvidas"
-	);
+	private Formulario formularioCarregado;
 
 	public AvaliacaoInstrutorView(
 								  AvaliacaoService avaliacaoService,
@@ -59,6 +47,9 @@ public class AvaliacaoInstrutorView extends JFrame {
 		comboInstrutor = new JComboBox<>();
 		campoFeedback = new JTextArea(4, 20);
 		labelAluno = new JLabel("(não definido)");
+		
+		formularioCarregado = formularioService.obterOuCriarFormularioInstrutorPadrao();
+		
 		JPanel panel = new JPanel(new GridBagLayout());
 		panel.setBackground(UIConstants.BG);
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -74,17 +65,40 @@ public class AvaliacaoInstrutorView extends JFrame {
 		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Instrutor:"), gbc);
 		gbc.gridx = 1; panel.add(comboInstrutor, gbc); row++;
 
-		for (String q : QUESTOES) {
-			gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel(q + ":"), gbc);
-			JComboBox<Integer> cb = new JComboBox<>(new Integer[]{1,2,3,4,5});
-			cb.setSelectedItem(5);
-			combosNotas.add(cb);
-			gbc.gridx = 1; panel.add(cb, gbc);
-			row++;
+		if (formularioCarregado != null && formularioCarregado.getPerguntas() != null) {
+			for (Pergunta pergunta : formularioCarregado.getPerguntas()) {
+				gbc.gridwidth = 1;
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				
+				gbc.gridx = 0; 
+				gbc.gridy = row;
+				panel.add(new JLabel(pergunta.getTexto() + ":"), gbc);
+				
+				JComboBox<Integer> cb = new JComboBox<>();
+				cb.addItem(1);
+				cb.addItem(2);
+				cb.addItem(3);
+				cb.addItem(4);
+				cb.addItem(5);
+				cb.setSelectedIndex(4); 
+				combosNotas.add(cb);
+				
+				gbc.gridx = 1;
+				panel.add(cb, gbc);
+				row++;
+			}
 		}
 
-		gbc.gridx = 0; gbc.gridy = row; panel.add(new JLabel("Feedback (opcional):"), gbc);
-		gbc.gridx = 1; panel.add(new JScrollPane(campoFeedback), gbc); row++;
+		gbc.gridwidth = 1;
+		gbc.gridx = 0; gbc.gridy = row; 
+		panel.add(new JLabel("Feedback (opcional):"), gbc);
+		
+		gbc.gridx = 1; 
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx = 1.0;
+		gbc.weighty = 0.3;
+		panel.add(new JScrollPane(campoFeedback), gbc); 
+		row++;
 
 		JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		botoes.setBackground(UIConstants.BG);
@@ -113,16 +127,12 @@ public class AvaliacaoInstrutorView extends JFrame {
 				return;
 			}
 
-			Formulario formulario = formularioService.obterOuCriarFormularioInstrutorPadrao();
-
-			Map<String, Pergunta> porTexto = formulario.getPerguntas().stream()
-					.collect(Collectors.toMap(Pergunta::getTexto, Function.identity()));
+			Formulario formulario = formularioCarregado;
 
 			List<Nota> notas = new ArrayList<>();
-			for (int i = 0; i < QUESTOES.size(); i++) {
-				String texto = QUESTOES.get(i);
-				Pergunta p = porTexto.get(texto);
-				if (p == null) continue;
+			List<Pergunta> perguntas = formulario.getPerguntas();
+			for (int i = 0; i < perguntas.size() && i < combosNotas.size(); i++) {
+				Pergunta p = perguntas.get(i);
 				Integer valor = (Integer) combosNotas.get(i).getSelectedItem();
 				Nota n = new Nota();
 				n.setNota(valor);
