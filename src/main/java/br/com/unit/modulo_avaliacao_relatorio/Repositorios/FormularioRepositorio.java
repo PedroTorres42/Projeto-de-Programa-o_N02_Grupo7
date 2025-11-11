@@ -16,4 +16,7 @@ public interface FormularioRepositorio extends JpaRepository<Formulario, Long> {
 	
 	@Query("SELECT f FROM Formulario f LEFT JOIN FETCH f.perguntas WHERE f.id = :id")
 	Optional<Formulario> findByIdWithPerguntas(@Param("id") Long id);
+
+	@Query("SELECT DISTINCT f FROM Formulario f LEFT JOIN FETCH f.perguntas WHERE f.tipo = :tipo")
+	List<Formulario> findByTipoWithPerguntas(@Param("tipo") Formulario.TipoFormulario tipo);
 }
