@@ -463,6 +463,7 @@ public class RelatorioService {
 
             String[] headers = new String[]{col1Label, col2Label, "Média Nota", "Frequência %", "Média Pond", "Sentimento", "Feedback"};
             PdfPTable table = criarTabelaDetalhada(WIDTHS_DETALHADO, headers);
+            table.setSpacingBefore(8f);
 
             Status status = new Status();
             for (Avaliacao a : avaliacoes) {
@@ -495,6 +496,7 @@ public class RelatorioService {
             float[] widths = new float[]{3f, 1.2f, 1.2f, 1.2f, 1f, 1f, 1f, 1f};
             String[] headers = {"Grupo", "Média Nota", "Média Freq%", "Média Pond", "Positivos", "Neutros", "Negativos", "Total"};
             PdfPTable table = criarTabelaDetalhada(widths, headers);
+            table.setSpacingBefore(8f); // Espaço antes da tabela principal
 
             List<Map.Entry<String, List<Avaliacao>>> ordenado = new ArrayList<>(grupos.entrySet());
             ordenado.sort((e1, e2) -> mediaPonderadaGrupo(e2.getValue()).compareTo(mediaPonderadaGrupo(e1.getValue())));
@@ -621,7 +623,10 @@ public class RelatorioService {
     }
 
     private void adicionarResumo(Document doc, Fontes fonts, Status status) throws Exception {
-        doc.add(new Paragraph("\nResumo", fonts.h2()));
+        Paragraph tituloResumo = new Paragraph("Resumo", fonts.h2());
+        tituloResumo.setSpacingBefore(10f);
+        tituloResumo.setSpacingAfter(6f);
+        doc.add(tituloResumo);
         BigDecimal mediaNotasGeral = BigDecimal.valueOf(media(status.notas)).setScale(2, RoundingMode.HALF_UP);
         BigDecimal mediaFreqsGeral = BigDecimal.valueOf(media(status.freqs)).setScale(2, RoundingMode.HALF_UP);
         BigDecimal pondGeral = calcularMediaPonderada(mediaNotasGeral.doubleValue(), mediaFreqsGeral.doubleValue());
@@ -634,9 +639,13 @@ public class RelatorioService {
     private void adicionarMediasPorTipoPergunta(Document doc, Fontes fonts, List<MediaPorTipoPergunta> medias) throws Exception {
         if (medias == null || medias.isEmpty()) return;
         
-        doc.add(new Paragraph("\nMédias por Tipo de Pergunta", fonts.h2()));
-        
-        PdfPTable table = new PdfPTable(2);
+    Paragraph tituloMedias = new Paragraph("Médias por Tipo de Pergunta", fonts.h2());
+    tituloMedias.setSpacingBefore(6f);
+    tituloMedias.setSpacingAfter(8f);
+    doc.add(tituloMedias);
+
+    PdfPTable table = new PdfPTable(2);
+    table.setSpacingBefore(4f);
         table.setWidthPercentage(70);
         table.setWidths(new float[]{3f, 1f});
         
@@ -875,9 +884,13 @@ public class RelatorioService {
             }
 
             if (!outras.isEmpty()) {
-                db.doc().add(new Paragraph("Notas das Perguntas", db.fonts().h2()));
+                Paragraph tituloNotas = new Paragraph("Notas das Perguntas", db.fonts().h2());
+                tituloNotas.setSpacingAfter(8f); // Espaço entre o título e a tabela
+                db.doc().add(tituloNotas);
+
                 float[] widths = new float[]{5f, 1.2f};
                 PdfPTable table = criarTabelaDetalhada(widths, new String[]{"Pergunta", "Nota"});
+                table.setSpacingBefore(4f);
                 for (Nota n : outras) {
                     String pergunta = Optional.ofNullable(n.getPergunta()).map(Pergunta::getTexto).orElse("—");
                     String notaStr = Optional.ofNullable(n.getNota()).map(Object::toString).orElse("—");
@@ -888,9 +901,13 @@ public class RelatorioService {
             }
 
             if (!frequencias.isEmpty()) {
-                db.doc().add(new Paragraph("\nFrequência", db.fonts().h2()));
+                Paragraph tituloFreq = new Paragraph("Frequência", db.fonts().h2());
+                tituloFreq.setSpacingBefore(6f);
+                tituloFreq.setSpacingAfter(8f);
+                db.doc().add(tituloFreq);
                 float[] wf = new float[]{4f, 2f};
                 PdfPTable tFreq = criarTabelaDetalhada(wf, new String[]{"Indicador", "Valor (%)"});
+                tFreq.setSpacingBefore(4f);
                 for (Nota n : frequencias) {
                     String pergunta = Optional.ofNullable(n.getPergunta()).map(Pergunta::getTexto).orElse("Frequência");
                     String valor = Optional.ofNullable(n.getNota()).map(v -> v + "%").orElse("—");
@@ -905,7 +922,7 @@ public class RelatorioService {
             db.doc().add(new Paragraph(fb, db.fonts().normal()));
 
             if (a.getMedia() != null) {
-                db.doc().add(new Paragraph("\nMédia Geral (0-10): " + a.getMedia(), db.fonts().normal()));
+                db.doc().add(new Paragraph("\nMédia Geral (0-5): " + a.getMedia(), db.fonts().normal()));
             }
 
             db.doc().close();
@@ -1065,7 +1082,10 @@ public class RelatorioService {
             db.doc().add(table);
 
             // Resumo geral
-            db.doc().add(new Paragraph("\nResumo Geral", fonts.h2()));
+            Paragraph tituloResumoGeral = new Paragraph("Resumo Geral", fonts.h2());
+            tituloResumoGeral.setSpacingBefore(10f);
+            tituloResumoGeral.setSpacingAfter(6f);
+            db.doc().add(tituloResumoGeral);
             BigDecimal mediaNotasGeral = BigDecimal.valueOf(media(status.notas)).setScale(2, RoundingMode.HALF_UP);
             BigDecimal mediaFreqsGeral = BigDecimal.valueOf(media(status.freqs)).setScale(2, RoundingMode.HALF_UP);
             BigDecimal pondGeral = calcularMediaPonderada(mediaNotasGeral.doubleValue(), mediaFreqsGeral.doubleValue());
@@ -1081,7 +1101,10 @@ public class RelatorioService {
             }
 
             // Seção de Feedbacks (lista completa)
-            db.doc().add(new Paragraph("\nFeedbacks", fonts.h2()));
+            Paragraph tituloFeedbacks = new Paragraph("Feedbacks", fonts.h2());
+            tituloFeedbacks.setSpacingBefore(10f);
+            tituloFeedbacks.setSpacingAfter(6f);
+            db.doc().add(tituloFeedbacks);
             for (Avaliacao a : avaliacoes) {
                 String fb = Optional.ofNullable(a.getFeedback()).map(Feedback::getComentario).filter(s -> !s.isBlank()).orElse("(sem feedback)");
                 String cab = (a.getCurso() != null ? nomeOuIdCurso(a.getCurso()) : "Curso ?") + " | Média: " + (a.getMedia() != null ? String.format(Locale.ROOT, "%.2f", a.getMedia()) : "—");
