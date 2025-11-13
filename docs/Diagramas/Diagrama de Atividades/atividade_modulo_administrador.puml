@@ -1,0 +1,72 @@
+@startuml atividade_admin_menu
+title Módulo do Administrador — Visão Geral (Menu)
+
+scale 0.9
+skinparam dpi 150
+skinparam monochrome false
+skinparam activity {
+  BackgroundColor #f7f9fc
+  BorderColor #2b6cb0
+  FontSize 12
+  Padding 6
+  BorderThickness 1
+}
+skinparam ArrowColor #2d3748
+skinparam ArrowThickness 0.8
+skinparam Shadowing false
+
+start
+
+partition "LoginView" {
+  :Iniciar aplicação (ModuloAvaliacaoView);
+  :Exibir Tela de Login;
+  if (Credenciais válidas?) then (Sim)
+    :Carregar perfil do usuário;
+  else (Não)
+    :Exibir erro; :Tentar novamente ou Cadastrar;
+    stop
+  endif
+}
+
+partition "MenuView (Administrador)" {
+  :Abrir Menu do Administrador;
+  :Exibir opções\n- Ver Relatórios\n- Gerenciar Formulários\n- Cadastrar Usuário\n- Cadastrar Curso\n- Sair;
+
+  if (Escolha = Ver Relatórios?) then (Sim)
+    :Entrar em Relatórios; 
+    note right
+      Ver subdiagrama:
+      atividade_admin_relatorios.puml
+    end note
+  else (Não)
+    if (Escolha = Gerenciar Formulários?) then (Sim)
+      :Entrar em Formulários;
+      note right
+        Ver subdiagrama:
+        atividade_admin_formularios_cadastros.puml
+      end note
+    else (Não)
+      if (Escolha = Cadastrar Usuário?) then (Sim)
+        :Entrar em Cadastro de Usuário;
+        note right
+          Ver subdiagrama:
+          atividade_admin_formularios_cadastros.puml
+        end note
+      else (Não)
+        if (Escolha = Cadastrar Curso?) then (Sim)
+          :Entrar em Cadastro de Curso;
+          note right
+            Ver subdiagrama:
+            atividade_admin_formularios_cadastros.puml
+          end note
+        else (Não)
+          :Comando Sair selecionado; :Retornar à Tela de Login;
+          stop
+        endif
+      endif
+    endif
+  endif
+}
+
+stop
+@enduml

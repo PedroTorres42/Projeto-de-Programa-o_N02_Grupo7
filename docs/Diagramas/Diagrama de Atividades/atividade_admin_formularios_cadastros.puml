@@ -1,0 +1,84 @@
+@startuml atividade_admin_formularios_cadastros
+title Administrador — Formulários e Cadastros
+
+scale 0.9
+skinparam dpi 150
+skinparam monochrome false
+skinparam activity {
+  BackgroundColor #f7f9fc
+  BorderColor #2b6cb0
+  FontSize 12
+  Padding 6
+  BorderThickness 1
+}
+skinparam ArrowColor #2d3748
+skinparam ArrowThickness 0.8
+skinparam Shadowing false
+
+start
+
+partition "FormulariosView" {
+  :Carregar lista ao abrir;
+  :Exibir tabela (ID, Título, Tipo, Nº Perg.);
+
+  if (Atualizar?) then (Sim)
+    :Recarregar lista;
+  endif
+
+  if (Visualizar?) then (Sim)
+    :Exibir detalhes (cabeçalho e perguntas);
+  endif
+
+  if (Novo Formulário?) then (Sim)
+    :Abrir diálogo; :Definir Título e Tipo;
+    :Adicionar/Remover perguntas;
+    :Salvar -> Criar; :Atualizar lista;
+  endif
+
+  if (Editar?) then (Sim)
+    :Abrir diálogo com dados; :Alterar Título/Tipo/Perg.;
+    :Salvar -> Atualizar; :Recarregar lista;
+  endif
+
+  if (Excluir?) then (Sim)
+    :Confirmar; :Excluir; :Atualizar lista;
+  endif
+
+  if (Voltar?) then (Sim)
+    :Retornar ao Menu (Admin);
+  endif
+}
+
+partition "Cadastro de Usuário" {
+  :Abrir CadastroView;
+  :Preencher Nome, Email, Senha, Confirmar;
+  :Escolher Tipo (Aluno | Instrutor);
+  if (Tipo = Aluno?) then (Sim)
+    :Informar Matrícula e Curso;
+  else (Não)
+    if (Tipo = Instrutor?) then (Sim)
+      :Informar Especialidade;
+    endif
+  endif
+  if (Cadastrar?) then (Sim)
+    :Validar; :Salvar; :Confirmação; :Limpar;
+    :Fechar e mostrar Menu (perfil atualizado);
+  endif
+  if (Voltar?) then (Sim)
+    :Confirmar; :Descartar não salvos; :Menu (Admin);
+  endif
+}
+
+partition "Cadastro de Curso" {
+  :Abrir CadastroCursoView;
+  :Preencher Nome, Descrição, Carga Horária;
+  if (Salvar?) then (Sim)
+    :Validar; :Salvar; :Atualizar tabela;
+  endif
+  if (Voltar?) then (Sim)
+    :Fechar e retornar ao Menu (Admin);
+  endif
+}
+
+stop
+@enduml

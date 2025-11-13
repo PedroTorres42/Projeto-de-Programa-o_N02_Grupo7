@@ -1,0 +1,63 @@
+@startuml atividade_admin_relatorios
+title Administrador — Relatórios
+
+scale 0.9
+skinparam dpi 150
+skinparam monochrome false
+skinparam activity {
+  BackgroundColor #f7f9fc
+  BorderColor #2b6cb0
+  FontSize 12
+  Padding 6
+  BorderThickness 1
+}
+skinparam ArrowColor #2d3748
+skinparam ArrowThickness 0.8
+skinparam Shadowing false
+
+start
+
+partition "RelatorioView" {
+  :Carregar lista ao abrir/ativar;
+  :Exibir tabela (ID, Tipo, Data, Tam.);
+
+  if (Filtrar?) then (Sim)
+    :Selecionar tipo (Todos/Curso/Instrutor/Aluno)\nAplicar filtro;
+  endif
+
+  if (Recarregar (F5)?) then (Sim)
+    :Recarregar lista do banco;
+  endif
+
+  if (Gerar Novo?) then (Sim)
+    :Abrir diálogo (6 opções)\nSelecionar entidade\nGerar; 
+    :Exibir sucesso; :Atualizar lista;
+  endif
+
+  if (Seleção na tabela?) then (Sim)
+    if (Visualizar?) then (Sim)
+      :Abrir PDF temporário;
+    endif
+    if (Exportar PDF?) then (Sim)
+      :Escolher destino; :Exportar PDF;
+    endif
+    if (Excluir?) then (Sim)
+      :Confirmar; :Excluir; :Recarregar lista;
+    endif
+  endif
+
+  if (Exportar CSV (Avaliações)?) then (Sim)
+    :Escolher destino; :Exportar CSV;
+  endif
+
+  if (Exportar PDF\n(com gráficos)?) then (Sim)
+    :Escolher destino; :Incluir satisfação?; :Exportar PDF;
+  endif
+
+  if (Voltar?) then (Sim)
+    :Retornar ao Menu (Admin);
+  endif
+}
+
+stop
+@enduml
