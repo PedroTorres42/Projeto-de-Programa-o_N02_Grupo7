@@ -85,14 +85,10 @@ public final class UIUtils {
         return p;
     }
 
-    /**
-     * Aplica padronização de janela: tamanho mínimo 900x600, centraliza,
-     * define background e ícone opcional futuro.
-     */
+
     public static void padronizarJanela(JFrame frame) {
         if (frame == null) return;
         frame.setMinimumSize(new Dimension(900, 600));
-        // Se já tiver um tamanho menor, expande para o mínimo.
         Dimension cur = frame.getSize();
         if (cur.width < 900 || cur.height < 600) {
             frame.setSize(Math.max(cur.width, 900), Math.max(cur.height, 600));

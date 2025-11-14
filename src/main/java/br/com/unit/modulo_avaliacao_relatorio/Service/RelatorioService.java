@@ -496,7 +496,7 @@ public class RelatorioService {
             float[] widths = new float[]{3f, 1.2f, 1.2f, 1.2f, 1f, 1f, 1f, 1f};
             String[] headers = {"Grupo", "Média Nota", "Média Freq%", "Média Pond", "Positivos", "Neutros", "Negativos", "Total"};
             PdfPTable table = criarTabelaDetalhada(widths, headers);
-            table.setSpacingBefore(8f); // Espaço antes da tabela principal
+            table.setSpacingBefore(8f);
 
             List<Map.Entry<String, List<Avaliacao>>> ordenado = new ArrayList<>(grupos.entrySet());
             ordenado.sort((e1, e2) -> mediaPonderadaGrupo(e2.getValue()).compareTo(mediaPonderadaGrupo(e1.getValue())));
@@ -872,7 +872,6 @@ public class RelatorioService {
             adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
 
             List<Nota> notas = Optional.ofNullable(a.getNotas()).orElse(Collections.emptyList());
-            // Separar frequência das demais
             List<Nota> frequencias = new ArrayList<>();
             List<Nota> outras = new ArrayList<>();
             for (Nota n : notas) {
@@ -885,7 +884,7 @@ public class RelatorioService {
 
             if (!outras.isEmpty()) {
                 Paragraph tituloNotas = new Paragraph("Notas das Perguntas", db.fonts().h2());
-                tituloNotas.setSpacingAfter(8f); // Espaço entre o título e a tabela
+                tituloNotas.setSpacingAfter(8f); 
                 db.doc().add(tituloNotas);
 
                 float[] widths = new float[]{5f, 1.2f};
@@ -1035,12 +1034,10 @@ public class RelatorioService {
                 return db.baos().toByteArray();
             }
 
-            // Tabela principal (similar à view): Data, Curso, Aluno (anônimo), Média Nota, Freq%, Média Pond, Sentimento
             String[] headers = {"Data", "Curso", "Aluno", "Média", "Freq%", "Pond", "Sentimento"};
             float[] widths = {2.2f, 3f, 2.3f, 1.2f, 1.2f, 1.3f, 1.5f};
             PdfPTable table = criarTabelaDetalhada(widths, headers);
 
-            // Custom header styling
             for (int i = 0; i < headers.length; i++) {
                 PdfPCell c = table.getRow(0).getCells()[i];
                 c.setBackgroundColor(new com.itextpdf.text.BaseColor(230, 230, 235));
@@ -1054,7 +1051,7 @@ public class RelatorioService {
                 Metricas m = calcularMetricasLinha(a);
                 String data = a.getData() != null ? a.getData().format(fmt) : "—";
                 String curso = nomeOuIdCurso(a.getCurso());
-                String aluno = "Anônimo"; // manter anonimato
+                String aluno = "Anônimo"; 
                 String mediaNota = String.format(Locale.ROOT, "%.2f", m.mediaNota());
                 String freq = String.format(Locale.ROOT, "%.2f", m.freq());
                 String pond = m.pond().toPlainString();
@@ -1066,7 +1063,6 @@ public class RelatorioService {
                 adicionarCell(table, freq);
                 adicionarCell(table, pond);
                 adicionarCell(table, sentimento);
-                // Row styling (zebra)
                 int cellsInRow = headers.length;
                 for (int i = 0; i < cellsInRow; i++) {
                     PdfPCell cell = table.getRow(table.getRows().size() - 1).getCells()[i];
@@ -1081,7 +1077,6 @@ public class RelatorioService {
 
             db.doc().add(table);
 
-            // Resumo geral
             Paragraph tituloResumoGeral = new Paragraph("Resumo Geral", fonts.h2());
             tituloResumoGeral.setSpacingBefore(10f);
             tituloResumoGeral.setSpacingAfter(6f);
@@ -1094,13 +1089,11 @@ public class RelatorioService {
             db.doc().add(new Paragraph("Média Ponderada Geral: " + pondGeral, fonts.normal()));
             db.doc().add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal()));
 
-            // Medias por tipo de pergunta (se existir)
             List<MediaPorTipoPergunta> mediasPorTipo = notaRespositorio.mediasPorTipoPerguntaInstrutor(instrutorId);
             if (mediasPorTipo != null && !mediasPorTipo.isEmpty()) {
                 adicionarMediasPorTipoPergunta(db.doc(), fonts, mediasPorTipo);
             }
 
-            // Seção de Feedbacks (lista completa)
             Paragraph tituloFeedbacks = new Paragraph("Feedbacks", fonts.h2());
             tituloFeedbacks.setSpacingBefore(10f);
             tituloFeedbacks.setSpacingAfter(6f);

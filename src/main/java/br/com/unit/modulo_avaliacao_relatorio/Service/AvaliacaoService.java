@@ -113,7 +113,6 @@ public class AvaliacaoService {
             int cont = 0;
             for (Nota n : a.getNotas()) {
                 if (n != null && n.getNota() != null) {
-                    // Ignora notas de perguntas do tipo FREQUENCIA no cálculo da média de 1..5
                     Pergunta p = n.getPergunta();
                     if (p != null && p.getTipo() == Pergunta.TipoPergunta.FREQUENCIA) {
                         continue;

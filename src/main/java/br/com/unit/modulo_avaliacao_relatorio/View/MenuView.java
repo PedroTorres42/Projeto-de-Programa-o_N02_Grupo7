@@ -4,7 +4,6 @@ import br.com.unit.modulo_avaliacao_relatorio.Modelos.Administrador;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Aluno;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Instrutor;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Usuario;
-import br.com.unit.modulo_avaliacao_relatorio.Service.UsuarioService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,7 @@ public class MenuView extends JFrame {
 	private JLabel lblUsuario;
 	private JPanel panelBotoes;
 
-	public MenuView(UsuarioService usuarioService, ApplicationContext ctx) {
+	public MenuView(ApplicationContext ctx) {
 		this.ctx = ctx;
 
 		setTitle("Menu Principal");
@@ -213,10 +212,8 @@ public class MenuView extends JFrame {
 		try {
 			this.usuarioAtual = null;
 			LoginView login = ctx.getBean(LoginView.class);
-			if (login != null) {
-				login.exibir();
-			}
-			this.setVisible(false);
+            login.exibir();
+            this.setVisible(false);
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Falha ao abrir tela de login: " + ex.getMessage());
 		}

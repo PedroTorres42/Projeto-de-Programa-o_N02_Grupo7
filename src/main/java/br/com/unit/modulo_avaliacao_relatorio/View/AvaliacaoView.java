@@ -9,7 +9,9 @@ import org.springframework.stereotype.Component;
 
 import java.awt.*;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Lazy
 @Component
@@ -68,7 +70,6 @@ public class AvaliacaoView extends JFrame {
     btnVoltar.setToolTipText("Fechar esta janela e retornar ao menu");
         spinnerFrequencia = new JSpinner(new SpinnerNumberModel(0, 0, 100, 5));
 
-        // Renderer para exibir somente o nome do curso (evitar toString padrão)
         comboCurso.setRenderer(new DefaultListCellRenderer() {
             @Override
             public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -134,7 +135,6 @@ public class AvaliacaoView extends JFrame {
 
         add(panel);
 
-        // Listeners já aplicados pelos helpers UIUtils
     }
 
     private void popularCombos() {
@@ -148,21 +148,19 @@ public class AvaliacaoView extends JFrame {
             comboInstrutor.setEnabled(false);
 
         String instrutorId = instrutorLogado.getId();
-        // Deduplicar cursos por ID e ordenar alfabeticamente
-        java.util.Map<Long, Curso> cursosMap = new java.util.LinkedHashMap<>();
+        Map<Long, Curso> cursosMap = new java.util.LinkedHashMap<>();
         for (Curso c : cursoService.listarCursos()) {
             if (c != null && c.getId() != null && c.getInstrutores() != null &&
                     c.getInstrutores().stream().anyMatch(i -> i != null && instrutorId.equals(i.getId()))) {
                 cursosMap.putIfAbsent(c.getId(), c);
             }
         }
-        java.util.List<Curso> cursosOrdenados = cursosMap.values().stream()
+        List<Curso> cursosOrdenados = cursosMap.values().stream()
                 .sorted(java.util.Comparator.comparing(cc -> cc.getNome() != null ? cc.getNome() : ""))
                 .toList();
         cursosOrdenados.forEach(comboCurso::addItem);
 
-        // Deduplicar alunos por ID, apenas dos cursos do instrutor
-        java.util.Map<String, Aluno> alunosMap = new java.util.LinkedHashMap<>();
+        Map<String, Aluno> alunosMap = new LinkedHashMap<>();
         for (Aluno a : usuarioService.listarAlunos()) {
             if (a != null && a.getId() != null && a.getCursoAtual() != null && a.getCursoAtual().getId() != null &&
                     cursosMap.containsKey(a.getCursoAtual().getId())) {
@@ -190,7 +188,6 @@ public class AvaliacaoView extends JFrame {
             Aluno aluno = (Aluno) comboAluno.getSelectedItem();
             Instrutor instrutor = (Instrutor) comboInstrutor.getSelectedItem();
             Curso curso = (Curso) comboCurso.getSelectedItem();
-            // Define automaticamente um formulário padrão (sem escolha pelo usuário)
             Formulario formulario = formularioService.obterOuCriarFormularioAlunoPadrao();
 
             Avaliacao avaliacao = new Avaliacao();
@@ -204,7 +201,6 @@ public class AvaliacaoView extends JFrame {
             avaliacao.setCurso(curso);
             avaliacao.setFormulario(formulario);
 
-            // Registrar frequência (%) como Nota vinculada à Pergunta do tipo FREQUENCIA
             List<Nota> notas = new java.util.ArrayList<>();
             try {
                 Pergunta perguntaFreq = formularioService.obterOuCriarPerguntaFrequencia();

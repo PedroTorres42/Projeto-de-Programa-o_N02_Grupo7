@@ -191,7 +191,6 @@ public class FormularioService {
 
     @Transactional
     public Pergunta obterOuCriarPerguntaFrequencia() {
-        // Tenta achar pergunta FREQUENCIA já existente
         return perguntaRepositorio.findAll().stream()
                 .filter(pr -> pr.getTipo() == Pergunta.TipoPergunta.FREQUENCIA)
                 .findFirst()
