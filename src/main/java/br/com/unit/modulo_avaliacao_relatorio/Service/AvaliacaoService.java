@@ -33,6 +33,10 @@ public class AvaliacaoService {
             fb.setAvaliacao(avaliacao);
         }
 
+        return calcularMediaNotas(avaliacao);
+    }
+
+    private Avaliacao calcularMediaNotas(Avaliacao avaliacao) {
         Double media = calcularMedia(avaliacao);
         double maxPermitido = (avaliacao.getNotas() == null || avaliacao.getNotas().isEmpty()) ? 10.0 : 5.0;
         if (media < 0.0 || media > maxPermitido) {
@@ -75,15 +79,7 @@ public class AvaliacaoService {
             existente.getNotas().stream().filter(Objects::nonNull).forEach(n -> n.setAvaliacao(existente));
         }
 
-        Double media = calcularMedia(existente);
-        double maxPermitido = (existente.getNotas() == null || existente.getNotas().isEmpty()) ? 10.0 : 5.0;
-        if (media < 0.0 || media > maxPermitido) {
-            String msg = maxPermitido == 10.0 ? "A média deve estar entre 0 e 10." : "A média deve estar entre 0 e 5.";
-            throw new IllegalArgumentException(msg);
-        }
-        existente.setMedia(media);
-
-        return avaliacaoRepositorio.save(existente);
+        return calcularMediaNotas(existente);
     }
 
     @Transactional

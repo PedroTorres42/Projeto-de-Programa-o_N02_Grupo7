@@ -21,12 +21,7 @@ public class FormularioService {
 
     private final FormularioRepositorio formularioRepositorio;
     private final PerguntaRepositorio perguntaRepositorio;
-    
 
-    @Transactional
-    public void criarFormulario(String titulo, List<Pergunta> perguntas) {
-        criarFormulario(titulo, perguntas, null);
-    }
 
     @Transactional
     public void criarFormulario(String titulo, List<Pergunta> perguntas, Formulario.TipoFormulario tipo) {
@@ -52,17 +47,6 @@ public class FormularioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Formulario> listarFormulariosComPerguntas() {
-        return formularioRepositorio.findAllWithPerguntas();
-    }
-
-    @Transactional(readOnly = true)
-    public List<Formulario> listarFormulariosPorTipo(Formulario.TipoFormulario tipo) {
-        if (tipo == null) return listarFormularios();
-        return formularioRepositorio.findByTipoWithPerguntas(tipo);
-    }
-
-    @Transactional(readOnly = true)
     public Formulario pegarFormulario(Long id) {
         return formularioRepositorio.findById(id).orElseThrow(() -> new RuntimeException("Formulario não encontrado"));
     }
@@ -72,13 +56,9 @@ public class FormularioService {
         formularioRepositorio.deleteById(id);
     }
 
-    @Transactional
-    public Formulario editarFormulario(Long id, List<Pergunta> perguntas, String titulo) {
-        return editarFormulario(id, perguntas, titulo, null);
-    }
 
     @Transactional
-    public Formulario editarFormulario(Long id, List<Pergunta> perguntas, String titulo, Formulario.TipoFormulario tipo) {
+    public void editarFormulario(Long id, List<Pergunta> perguntas, String titulo, Formulario.TipoFormulario tipo) {
         Formulario formulario = pegarFormulario(id);
         formulario.setTitulo(titulo);
         if (tipo != null) {
@@ -93,7 +73,7 @@ public class FormularioService {
             }
         }
         formulario.setPerguntas(perguntas);
-        return formularioRepositorio.save(formulario);
+        formularioRepositorio.save(formulario);
     }
 
     @Transactional
@@ -153,34 +133,6 @@ public class FormularioService {
         return formularioRepositorio.save(formulario);
     }
 
-    @Transactional
-    public Formulario obterOuCriarFormularioCursoPadrao() {
-        final String titulo = "Avaliação do Curso";
-        Optional<Formulario> existente = formularioRepositorio.findByTituloAndTipo(
-                titulo, Formulario.TipoFormulario.CURSO);
-        if (existente.isPresent()) {
-            return existente.get();
-        }
-
-        List<Pergunta> perguntas = new ArrayList<>();
-        perguntas.add(novaPergunta("Qualidade do conteúdo programático"));
-        perguntas.add(novaPergunta("Organização do curso"));
-        perguntas.add(novaPergunta("Carga horária adequada"));
-        perguntas.add(novaPergunta("Material didático"));
-        perguntas.add(novaPergunta("Infraestrutura"));
-        perguntas.add(novaPergunta("Atendimento às expectativas"));
-
-        Formulario formulario = new Formulario();
-        formulario.setTitulo(titulo);
-        formulario.setTipo(Formulario.TipoFormulario.CURSO);
-
-        for (Pergunta p : perguntas) {
-            p.setFormulario(formulario);
-        }
-        formulario.setPerguntas(perguntas);
-
-        return formularioRepositorio.save(formulario);
-    }
 
     private Pergunta novaPergunta(String texto) {
         Pergunta p = new Pergunta();
