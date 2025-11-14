@@ -1,0 +1,156 @@
+@startuml diagrama_de_classes
+title Diagrama de Classes — Módulo de Avaliação e Relatórios
+
+scale 0.9
+skinparam dpi 150
+skinparam monochrome false
+skinparam class {
+  BackgroundColor #f7f9fc
+  BorderColor #2b6cb0
+  FontSize 12
+}
+skinparam ArrowColor #2d3748
+skinparam ArrowThickness 0.8
+skinparam Shadowing false
+hide methods
+
+package "br.com.unit.modulo_avaliacao_relatorio.Modelos" as Modelos {
+  class Usuario {
+    +id: String
+    +nome: String
+    +email: String
+    +senha: String
+    tipoUsuario: TipoUsuario
+  }
+  enum TipoUsuario {
+    Administrador
+    Instrutor
+    Aluno
+  }
+
+  class Administrador
+  class Aluno {
+    +matricula: String
+    cursoAtual: Curso
+    avaliacoes: List<Avaliacao>
+  }
+  class Instrutor {
+    +especialidade: String
+    cursos: List<Curso>
+    avaliacoes: List<Avaliacao>
+  }
+
+  class Curso {
+    +id: Long
+    +nome: String
+    descricao: String
+    cargaHoraria: Integer
+    instrutores: List<Instrutor>
+  }
+
+  class Formulario {
+    +id: Long
+    +titulo: String
+    tipo: TipoFormulario
+    perguntas: List<Pergunta>
+  }
+  enum TipoFormulario {
+    INSTRUTOR
+    ALUNO
+    CURSO
+  }
+
+  class Pergunta {
+    +id: Long
+    +texto: String
+    tipo: TipoPergunta
+    notas: List<Nota>
+  }
+  enum TipoPergunta {
+    FREQUENCIA
+    DIDATICA
+    PONTUALIDADE
+    ORGANIZACAO
+    CONTEUDO
+    CARGA_HORARIA
+    SATISFACAO
+    RECOMENDACAO
+    OUTRO
+  }
+
+  class Avaliacao {
+    +id: Long
+    data: LocalDate
+    media: Double
+    usuario: Usuario
+    aluno: Aluno
+    instrutor: Instrutor
+    curso: Curso
+    formulario: Formulario
+    notas: List<Nota>
+    feedback: Feedback
+  }
+
+  class Nota {
+    +id: Long
+    nota: Integer
+    pergunta: Pergunta
+    avaliacao: Avaliacao
+  }
+
+  class Feedback {
+    +id: Long
+    comentario: String
+    avaliacao: Avaliacao
+    usuario: Usuario
+  }
+
+  class Relatorio {
+    +id: Long
+    tipo: TipoRelatorio
+    data: LocalDate
+    descricao: String
+    nomeEntidade: String
+    documento: String
+  }
+  enum TipoRelatorio {
+    CURSO
+    INSTRUTOR
+    ALUNO
+  }
+
+  class Doc {
+    doc: Document
+    baos: ByteArrayOutputStream
+    fonts: Fontes
+  }
+  class Fontes {
+    h1: Font
+    h2: Font
+    normal: Font
+  }
+}
+
+Usuario <|-- Administrador
+Usuario <|-- Aluno
+Usuario <|-- Instrutor
+
+Aluno "*" --> "1" Curso : cursoAtual
+Curso "*" -- "*" Instrutor : instrutores
+
+Formulario "1" o-- "*" Pergunta : perguntas
+Pergunta "1" o-- "*" Nota : notas
+Avaliacao "1" o-- "*" Nota : notas
+Avaliacao "1" o-- "0..1" Feedback : feedback
+
+Avaliacao "*" --> "1" Usuario : usuario
+Avaliacao "*" --> "0..1" Aluno : aluno
+Avaliacao "*" --> "0..1" Instrutor : instrutor
+Avaliacao "*" --> "0..1" Curso : curso
+Avaliacao "*" --> "1" Formulario : formulario
+
+Feedback "*" --> "1" Usuario : usuario
+
+Doc "*" --> "1" Fontes : fonts
+
+@enduml

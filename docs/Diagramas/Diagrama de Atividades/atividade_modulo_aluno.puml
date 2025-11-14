@@ -1,0 +1,96 @@
+@startuml atividade_modulo_aluno
+title Módulo do Aluno — Diagrama de Atividades
+
+scale 0.9
+skinparam dpi 150
+skinparam monochrome false
+skinparam activity {
+  BackgroundColor #f7f9fc
+  BorderColor #2b6cb0
+  FontSize 12
+  Padding 6
+  BorderThickness 1
+}
+skinparam ArrowColor #2d3748
+skinparam ArrowThickness 0.8
+skinparam Shadowing false
+
+start
+
+partition "LoginView" {
+  :Iniciar aplicação (ModuloAvaliacaoView);
+  :Exibir Tela de Login;
+  if (Credenciais válidas?) then (Sim)
+    :Carregar perfil do usuário;
+  else (Não)
+    :Exibir mensagem de erro;
+    :Tentar novamente ou Cadastrar;
+    stop
+  endif
+}
+
+partition "MenuView (Aluno)" {
+  :Abrir Menu do Aluno;
+  :Exibir opções\n- Avaliar Instrutor\n- Avaliar Curso\n- Sair;
+
+  if (Escolha = Avaliar Instrutor?) then (Sim)
+    :Abrir AvaliacaoInstrutorView;
+  else (Não)
+    if (Escolha = Avaliar Curso?) then (Sim)
+      :Abrir AvaliacaoCursoView;
+    else (Não)
+      :Comando Sair selecionado;
+      :Retornar à Tela de Login;
+      stop
+    endif
+  endif
+}
+
+partition "Tela de Avaliação (Aluno)" {
+  :Carregar formulário e perguntas;
+
+  while (Formulário completo?) is (Não)
+    :Preencher respostas (notas, frequência);
+    :Inserir feedback (opcional);
+    :Enviar?;
+    if (Campos obrigatórios faltando?) then (Sim)
+      :Destacar erros e dicas;
+    else (Não)
+      break
+    endif
+  endwhile
+
+  :Validar dados;
+  if (Dados válidos?) then (Sim)
+    :Salvar avaliação (SQLite);
+    :Mostrar confirmação de sucesso;
+    if (Exportar PDF?) then (Sim)
+      :Selecionar arquivo destino;
+      :Gerar PDF da avaliação;
+    endif
+  else (Não)
+    :Exibir inconsistências;
+    :Permitir correção;
+    -> [Voltar ao preenchimento] Carregar formulário e perguntas;
+  endif
+
+  if (Voltar ao Menu?) then (Sim)
+    :Retornar ao Menu do Aluno;
+  else (Não)
+    if (Nova avaliação?) then (Sim)
+      :Reiniciar formulário atual;
+      -> Carregar formulário e perguntas;
+    else (Não)
+      :Sair?;
+      if (Sim) then (Sim)
+        :Retornar à Tela de Login;
+        stop
+      else (Não)
+        :Permanecer no Menu do Aluno;
+      endif
+    endif
+  endif
+}
+
+stop
+@enduml

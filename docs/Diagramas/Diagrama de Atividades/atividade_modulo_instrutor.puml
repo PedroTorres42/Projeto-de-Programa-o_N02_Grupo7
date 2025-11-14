@@ -1,0 +1,109 @@
+@startuml atividade_modulo_instrutor
+title Módulo do Instrutor — Diagrama de Atividades
+
+scale 0.9
+skinparam dpi 150
+skinparam monochrome false
+skinparam activity {
+  BackgroundColor #f7f9fc
+  BorderColor #2b6cb0
+  FontSize 12
+  Padding 6
+  BorderThickness 1
+}
+skinparam ArrowColor #2d3748
+skinparam ArrowThickness 0.8
+skinparam Shadowing false
+
+start
+
+partition "LoginView" {
+  :Iniciar aplicação (ModuloAvaliacaoView);
+  :Exibir Tela de Login;
+  if (Credenciais válidas como Instrutor?) then (Sim)
+    :Carregar perfil (Instrutor);
+  else (Não)
+    :Exibir erro / tentar novamente;
+    stop
+  endif
+}
+
+partition "MenuView (Instrutor)" {
+  :Abrir Menu do Instrutor;
+  :Exibir opções\n- Avaliar Aluno\n- Visualizar Relatório\n- Sair;
+
+  if (Escolha = Avaliar Aluno?) then (Sim)
+    :Abrir AvaliacaoView (Instrutor -> Aluno);
+  else (Não)
+    if (Escolha = Visualizar Relatório?) then (Sim)
+      :Abrir RelatoriosInstrutorView;
+    else (Não)
+      :Sair selecionado;
+      :Retornar à Tela de Login;
+      stop
+    endif
+  endif
+}
+
+partition "Avaliação de Aluno" {
+  :Carregar formulário de avaliação para Alunos;
+  :Selecionar Aluno;
+  :Preencher notas e frequência;
+  :Inserir feedback (opcional);
+  :Enviar avaliação;
+  if (Validação OK?) then (Sim)
+    :Salvar avaliação (SQLite);
+    :Exibir confirmação;
+    if (Exportar PDF?) then (Sim)
+      :Escolher destino;
+      :Gerar PDF da avaliação individual;
+    endif
+  else (Não)
+    :Exibir erros e destacar campos;
+    :Permitir correção;
+  endif
+
+  if (Voltar ao Menu?) then (Sim)
+    :Retornar ao Menu do Instrutor;
+  else (Não)
+    :Realizar nova avaliação?;
+    if (Sim) then (Sim)
+      :Selecionar novo Aluno;
+      -> Carregar formulário de avaliação para Alunos;
+    else (Não)
+      :Encerrar sessão?;
+      if (Sim) then (Sim)
+        :Retornar à Tela de Login;
+        stop
+      else (Não)
+        :Permanecer no Menu do Instrutor;
+      endif
+    endif
+  endif
+}
+
+partition "Relatórios do Instrutor" {
+  :Carregar lista de avaliações do instrutor (ao abrir);
+  :Exibir tabela (Data, Curso, Aluno anônimo, Médias, Sentimento);
+  if (Selecionar linha?) then (Sim)
+    :Expandir/ocultar detalhes da avaliação selecionada;
+  endif
+  if (Exportar PDF da visão?) then (Sim)
+    :Escolher destino;
+    :Gerar PDF consolidado do instrutor;
+  endif
+  if (Voltar ao Menu?) then (Sim)
+    :Retornar ao Menu do Instrutor;
+  else (Não)
+    :Sair?;
+    if (Sim) then (Sim)
+      :Retornar à Tela de Login;
+      stop
+    else (Não)
+      :Permanecer na visão de relatórios;
+    endif
+  endif
+}
+
+stop
+@enduml
