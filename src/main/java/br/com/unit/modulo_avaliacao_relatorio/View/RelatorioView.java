@@ -1,5 +1,6 @@
 package br.com.unit.modulo_avaliacao_relatorio.View;
 
+import br.com.unit.modulo_avaliacao_relatorio.Modelos.Aluno;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Curso;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Relatorio;
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Usuario;
@@ -534,31 +535,39 @@ public class RelatorioView extends JFrame {
     }
     
     private void gerarRelatorioComparativoCurso() {
-        // Usa lista única ordenada para evitar duplicidades na escolha
-        List<Curso> cursos = cursoService.listarCursosUnicosOrdenados();
+        List<Curso> cursos = cursoService.listarCursos();
         
         if (cursos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Não há cursos cadastrados.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        Curso cursoSelecionado = (Curso) JOptionPane.showInputDialog(
+        String[] nomesCursos = cursos.stream().map(Curso::getNome).toArray(String[]::new);
+        
+        String nomeSelecionado = (String) JOptionPane.showInputDialog(
             this,
             "Selecione o curso para comparar seus instrutores:",
             "Comparar Instrutores de um Curso",
             JOptionPane.QUESTION_MESSAGE,
             null,
-            cursos.toArray(),
-            cursos.getFirst()
+            nomesCursos,
+            nomesCursos[0]
         );
         
-        if (cursoSelecionado != null) {
-            try {
-                relatorioService.gerarRelatorioComparativoInstrutoresPorCurso(cursoSelecionado.getId());
-                JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                carregarRelatorios();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        if (nomeSelecionado != null) {
+            Curso cursoSelecionado = cursos.stream()
+                .filter(c -> c.getNome().equals(nomeSelecionado))
+                .findFirst()
+                .orElse(null);
+            
+            if (cursoSelecionado != null) {
+                try {
+                    relatorioService.gerarRelatorioComparativoInstrutoresPorCurso(cursoSelecionado.getId());
+                    JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    carregarRelatorios();
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
@@ -593,7 +602,7 @@ public class RelatorioView extends JFrame {
     }
     
     private void gerarRelatorioAluno() {
-        List<Usuario> alunos = new ArrayList<>(usuarioService.listarAlunos());
+        List<Aluno> alunos = usuarioService.listarAlunos();
         
         if (alunos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Não há alunos cadastrados.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -622,59 +631,77 @@ public class RelatorioView extends JFrame {
     }
     
     private void gerarRelatorioAlunosCurso() {
-        List<Curso> cursos = cursoService.listarCursosUnicosOrdenados();
+        List<Curso> cursos = cursoService.listarCursos();
         
         if (cursos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Não há cursos cadastrados.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        Curso cursoSelecionado = (Curso) JOptionPane.showInputDialog(
+        String[] nomesCursos = cursos.stream().map(Curso::getNome).toArray(String[]::new);
+        
+        String nomeSelecionado = (String) JOptionPane.showInputDialog(
             this,
             "Selecione o curso para comparar seus alunos:",
             "Comparar Alunos de um Curso",
             JOptionPane.QUESTION_MESSAGE,
             null,
-            cursos.toArray(),
-            cursos.getFirst()
+            nomesCursos,
+            nomesCursos[0]
         );
         
-        if (cursoSelecionado != null) {
-            try {
-                relatorioService.gerarRelatorioComparativoAlunosPorCurso(cursoSelecionado.getId());
-                JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                carregarRelatorios();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        if (nomeSelecionado != null) {
+            Curso cursoSelecionado = cursos.stream()
+                .filter(c -> c.getNome().equals(nomeSelecionado))
+                .findFirst()
+                .orElse(null);
+            
+            if (cursoSelecionado != null) {
+                try {
+                    relatorioService.gerarRelatorioComparativoAlunosPorCurso(cursoSelecionado.getId());
+                    JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    carregarRelatorios();
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
     
     private void gerarRelatorioCursoDetalhado() {
-        List<Curso> cursos = cursoService.listarCursosUnicosOrdenados();
+        List<Curso> cursos = cursoService.listarCursos();
         
         if (cursos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Não há cursos cadastrados.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        Curso cursoSelecionado = (Curso) JOptionPane.showInputDialog(
+        String[] nomesCursos = cursos.stream().map(Curso::getNome).toArray(String[]::new);
+        
+        String nomeSelecionado = (String) JOptionPane.showInputDialog(
             this,
             "Selecione o curso:",
             "Gerar Relatório Detalhado do Curso",
             JOptionPane.QUESTION_MESSAGE,
             null,
-            cursos.toArray(),
-            cursos.getFirst()
+            nomesCursos,
+            nomesCursos[0]
         );
         
-        if (cursoSelecionado != null) {
-            try {
-                relatorioService.gerarRelatorioCurso(cursoSelecionado.getId());
-                JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                carregarRelatorios();
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        if (nomeSelecionado != null) {
+            Curso cursoSelecionado = cursos.stream()
+                .filter(c -> c.getNome().equals(nomeSelecionado))
+                .findFirst()
+                .orElse(null);
+            
+            if (cursoSelecionado != null) {
+                try {
+                    relatorioService.gerarRelatorioCurso(cursoSelecionado.getId());
+                    JOptionPane.showMessageDialog(this, "Relatório gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    carregarRelatorios();
+                } catch (RuntimeException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
