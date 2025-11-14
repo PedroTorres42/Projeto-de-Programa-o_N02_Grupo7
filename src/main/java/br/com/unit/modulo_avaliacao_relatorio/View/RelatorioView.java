@@ -83,7 +83,6 @@ public class RelatorioView extends JFrame {
         JPanel painelSuperior = new JPanel(new BorderLayout(10, 10));
         painelSuperior.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        // Bloco esquerdo (filtros e ações principais)
         JPanel painelSuperiorEsquerda = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         painelSuperiorEsquerda.add(new JLabel("Filtrar por tipo:"));
         comboFiltro = new JComboBox<>(FiltroTipo.values());
@@ -97,7 +96,6 @@ public class RelatorioView extends JFrame {
         btnGerarNovo = UIUtils.successButton("Gerar Novo Relatório", this::abrirDialogoGerarRelatorio);
         painelSuperiorEsquerda.add(btnGerarNovo);
 
-        // Bloco direito (Voltar alinhado à direita)
         JPanel painelSuperiorDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         JButton btnVoltarTopo = UIUtils.dangerButton("Voltar", () -> { if (loading) return; dispose(); });
         btnVoltarTopo.setToolTipText("Fechar esta janela e retornar ao menu");

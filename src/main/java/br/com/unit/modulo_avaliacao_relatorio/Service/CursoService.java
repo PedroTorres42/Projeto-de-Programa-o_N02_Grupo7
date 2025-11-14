@@ -29,15 +29,4 @@ public class CursoService {
     public List<Curso> listarCursos() {
         return cursoRepositorio.findAllDistinct();
     }
-
-    @Transactional(readOnly = true)
-    public Optional<Curso> buscarPorId(Long id) {
-        return cursoRepositorio.findById(id);
-    }
-
-
-    @Transactional
-    public void deletarCurso(Long id) {
-        cursoRepositorio.deleteById(id);
-    }
 }

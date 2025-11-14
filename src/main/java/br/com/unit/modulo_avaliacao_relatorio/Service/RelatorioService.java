@@ -61,26 +61,7 @@ public class RelatorioService {
         return relatorioRepositorio.findAllOrderByDataDesc();
     }
 
-    @Transactional
-    public void salvarRelatorio(Relatorio relatorio) {
-        relatorioRepositorio.save(relatorio);
-    }
 
-    @Transactional
-    public Relatorio editarRelatorio(Long id, Relatorio novosDados) {
-        Relatorio existente = relatorioRepositorio.findById(id)
-                .orElseThrow(() -> new RuntimeException("Relatório não encontrado"));
-
-        if (novosDados.getTipo() != null) {
-            existente.setTipo(novosDados.getTipo());
-        }
-        if (novosDados.getDocumento() != null && !novosDados.getDocumento().isEmpty()) {
-            existente.setDocumento(novosDados.getDocumento());
-        }
-
-        existente.setData(LocalDate.now());
-        return relatorioRepositorio.save(existente);
-    }
 
     @Transactional
     public void excluirRelatorio(Long id) {
@@ -106,14 +87,8 @@ public class RelatorioService {
     }
 
 
-    @Transactional(readOnly = true)
-    public List<Relatorio> filtrarRelatoriosPorTipo(Relatorio.TipoRelatorio tipo) {
-        return relatorioRepositorio.findByTipoOrderByDataDesc(tipo);
-    }
-
-
     @Transactional
-    public Relatorio gerarRelatorioComparativoInstrutoresPorCurso(Long cursoId) {
+    public void gerarRelatorioComparativoInstrutoresPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(curso.getId());
@@ -134,11 +109,11 @@ public class RelatorioService {
         r.setNomeEntidade(Optional.ofNullable(curso.getNome()).orElse("Curso_" + cursoId));
         r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
-        return relatorioRepositorio.save(r);
+        relatorioRepositorio.save(r);
     }
 
     @Transactional
-    public Relatorio gerarRelatorioComparativoCursosPorInstrutor(String instrutorId) {
+    public void gerarRelatorioComparativoCursosPorInstrutor(String instrutorId) {
         Usuario i = usuarioRepositorio.findById(instrutorId)
                 .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
         if (!(i instanceof Instrutor)) {
@@ -171,11 +146,11 @@ public class RelatorioService {
         r.setNomeEntidade(nomeInstrutor);
         r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
-        return relatorioRepositorio.save(r);
+        relatorioRepositorio.save(r);
     }
 
     @Transactional
-    public Relatorio gerarRelatorioAluno(String alunoId) {
+    public void gerarRelatorioAluno(String alunoId) {
         Usuario u = usuarioRepositorio.findById(alunoId)
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
         if (!(u instanceof Aluno)) {
@@ -191,12 +166,8 @@ public class RelatorioService {
     String nomeAluno = Optional.ofNullable(u.getNome()).filter(s -> !s.isBlank()).orElse("(sem nome)");
     String subtitulo = "Aluno: " + nomeAluno + " (ID: " + u.getId() + ")";
     byte[] pdf = montarPdfDetalhado(
-        "Relatório de Desempenho do Aluno",
-        subtitulo,
-        "Não há avaliações registradas para este aluno.",
-        "Curso",
-        "Instrutor",
-        a -> nomeOuIdCurso(a.getCurso()),
+            subtitulo,
+            a -> nomeOuIdCurso(a.getCurso()),
         a -> nomeOuIdInstrutor(a.getInstrutor()),
         avaliacoes
     );
@@ -212,11 +183,11 @@ public class RelatorioService {
         r.setNomeEntidade(nomeAlunoFormatado);
         r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
-        return relatorioRepositorio.save(r);
+        relatorioRepositorio.save(r);
     }
 
     @Transactional
-    public Relatorio gerarRelatorioComparativoAlunosPorCurso(Long cursoId) {
+    public void gerarRelatorioComparativoAlunosPorCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
         List<Avaliacao> avaliacoes = obterAvaliacoesDeCurso(cursoId);
@@ -237,7 +208,7 @@ public class RelatorioService {
         r.setNomeEntidade(Optional.ofNullable(curso.getNome()).orElse("Curso_" + cursoId));
         r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
-        return relatorioRepositorio.save(r);
+        relatorioRepositorio.save(r);
     }
 
 
@@ -341,7 +312,7 @@ public class RelatorioService {
 
 
     @Transactional
-    public Relatorio gerarRelatorioCurso(Long cursoId) {
+    public void gerarRelatorioCurso(Long cursoId) {
         Curso curso = cursoRepositorio.findById(cursoId)
                 .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
 
@@ -359,11 +330,11 @@ public class RelatorioService {
         r.setNomeEntidade(Optional.ofNullable(curso.getNome()).orElse("Curso_" + cursoId));
         r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
-        return relatorioRepositorio.save(r);
+        relatorioRepositorio.save(r);
     }
 
     @Transactional
-    public Relatorio gerarRelatorioDetalhadoInstrutor(String instrutorId) {
+    public void gerarRelatorioDetalhadoInstrutor(String instrutorId) {
         Usuario u = usuarioRepositorio.findById(instrutorId)
                 .orElseThrow(() -> new RuntimeException("Instrutor não encontrado"));
         if (!(u instanceof Instrutor)) {
@@ -371,11 +342,11 @@ public class RelatorioService {
         }
 
         List<Avaliacao> avaliacoes = obterAvaliacoesDeInstrutor(instrutorId);
-        
+
         if (avaliacoes == null || avaliacoes.isEmpty()) {
             throw new RuntimeException("Não há avaliações para o instrutor selecionado.");
         }
-        
+
         byte[] pdf = montarPdfInstrutor(u, avaliacoes);
 
         String nomeInstrutorFormatado = Optional.ofNullable(u.getNome())
@@ -389,7 +360,7 @@ public class RelatorioService {
         r.setNomeEntidade(nomeInstrutorFormatado);
         r.setDocumento(Base64.getEncoder().encodeToString(pdf));
         r.setData(LocalDate.now());
-        return relatorioRepositorio.save(r);
+        relatorioRepositorio.save(r);
     }
 
     private byte[] montarPdfCurso(Curso curso, List<Avaliacao> avaliacoes) {
@@ -430,15 +401,11 @@ public class RelatorioService {
         );
     }
 
-    private byte[] montarPdfDetalhado(String titulo,
-                                      String subtitulo,
-                                      String mensagemVazio,
-                                      String col1Label,
-                                      String col2Label,
+    private byte[] montarPdfDetalhado(String subtitulo,
                                       Function<Avaliacao, String> col1Fn,
                                       Function<Avaliacao, String> col2Fn,
                                       List<Avaliacao> avaliacoes) {
-        return montarPdfDetalhado(titulo, subtitulo, mensagemVazio, col1Label, col2Label, 
+        return montarPdfDetalhado("Relatório de Desempenho do Aluno", subtitulo, "Não há avaliações registradas para este aluno.", "Curso", "Instrutor",
                                   col1Fn, col2Fn, avaliacoes, null);
     }
 
@@ -496,7 +463,7 @@ public class RelatorioService {
             float[] widths = new float[]{3f, 1.2f, 1.2f, 1.2f, 1f, 1f, 1f, 1f};
             String[] headers = {"Grupo", "Média Nota", "Média Freq%", "Média Pond", "Positivos", "Neutros", "Negativos", "Total"};
             PdfPTable table = criarTabelaDetalhada(widths, headers);
-            table.setSpacingBefore(8f); // Espaço antes da tabela principal
+            table.setSpacingBefore(8f);
 
             List<Map.Entry<String, List<Avaliacao>>> ordenado = new ArrayList<>(grupos.entrySet());
             ordenado.sort((e1, e2) -> mediaPonderadaGrupo(e2.getValue()).compareTo(mediaPonderadaGrupo(e1.getValue())));
@@ -664,18 +631,17 @@ public class RelatorioService {
     }
     
     private String formatarTipoPergunta(Pergunta.TipoPergunta tipo) {
-        switch (tipo) {
-            case FREQUENCIA: return "Frequência";
-            case DIDATICA: return "Didática";
-            case PONTUALIDADE: return "Pontualidade";
-            case ORGANIZACAO: return "Organização";
-            case CONTEUDO: return "Conteúdo";
-            case CARGA_HORARIA: return "Carga Horária";
-            case SATISFACAO: return "Satisfação";
-            case RECOMENDACAO: return "Recomendação";
-            case OUTRO: return "Outro";
-            default: return tipo.name();
-        }
+        return switch (tipo) {
+            case FREQUENCIA -> "Frequência";
+            case DIDATICA -> "Didática";
+            case PONTUALIDADE -> "Pontualidade";
+            case ORGANIZACAO -> "Organização";
+            case CONTEUDO -> "Conteúdo";
+            case CARGA_HORARIA -> "Carga Horária";
+            case SATISFACAO -> "Satisfação";
+            case RECOMENDACAO -> "Recomendação";
+            case OUTRO -> "Outro";
+        };
     }
     private <T> String nomeOuIdGenerico(T entidade, Function<T, String> nomeFn, Function<T, Object> idFn, String tipo) {
         if (entidade == null) return tipo + " ?";
@@ -786,10 +752,6 @@ public class RelatorioService {
     }
 
 
-     public void exportarPdfComGraficos(File destino) {
-        exportarPdfComGraficos(destino, false);
-    }
-
     public void exportarPdfComGraficos(File destino, boolean incluirSatisfacao) {
         try {
             try (OutputStream out = Files.newOutputStream(destino.toPath())) {
@@ -872,7 +834,6 @@ public class RelatorioService {
             adicionarTituloCabecalho(db.doc(), db.fonts(), titulo, subtitulo);
 
             List<Nota> notas = Optional.ofNullable(a.getNotas()).orElse(Collections.emptyList());
-            // Separar frequência das demais
             List<Nota> frequencias = new ArrayList<>();
             List<Nota> outras = new ArrayList<>();
             for (Nota n : notas) {
@@ -885,7 +846,7 @@ public class RelatorioService {
 
             if (!outras.isEmpty()) {
                 Paragraph tituloNotas = new Paragraph("Notas das Perguntas", db.fonts().h2());
-                tituloNotas.setSpacingAfter(8f); // Espaço entre o título e a tabela
+                tituloNotas.setSpacingAfter(8f); 
                 db.doc().add(tituloNotas);
 
                 float[] widths = new float[]{5f, 1.2f};
@@ -992,8 +953,7 @@ public class RelatorioService {
     }
 
     private Map<String, Map<Sentimento, Long>> calcularSentimentoPorCurso() {
-        List<Avaliacao> todasAvaliacoes = new ArrayList<>();
-        avaliacaoRepositorio.findAll().forEach(todasAvaliacoes::add);
+        List<Avaliacao> todasAvaliacoes = avaliacaoRepositorio.findAll();
 
         return todasAvaliacoes.stream()
                 .collect(Collectors.groupingBy(
@@ -1008,10 +968,6 @@ public class RelatorioService {
                 ));
     }
 
-    /**
-     * Gera um PDF estilizado da visão de relatórios do instrutor (tabela de avaliações + detalhes).
-     * Não persiste Relatorio no banco – uso direto para exportação da UI.
-     */
     @Transactional(readOnly = true)
     public byte[] gerarPdfVisaoInstrutor(String instrutorId) {
         if (instrutorId == null || instrutorId.isBlank()) {
@@ -1035,12 +991,10 @@ public class RelatorioService {
                 return db.baos().toByteArray();
             }
 
-            // Tabela principal (similar à view): Data, Curso, Aluno (anônimo), Média Nota, Freq%, Média Pond, Sentimento
             String[] headers = {"Data", "Curso", "Aluno", "Média", "Freq%", "Pond", "Sentimento"};
             float[] widths = {2.2f, 3f, 2.3f, 1.2f, 1.2f, 1.3f, 1.5f};
             PdfPTable table = criarTabelaDetalhada(widths, headers);
 
-            // Custom header styling
             for (int i = 0; i < headers.length; i++) {
                 PdfPCell c = table.getRow(0).getCells()[i];
                 c.setBackgroundColor(new com.itextpdf.text.BaseColor(230, 230, 235));
@@ -1054,7 +1008,7 @@ public class RelatorioService {
                 Metricas m = calcularMetricasLinha(a);
                 String data = a.getData() != null ? a.getData().format(fmt) : "—";
                 String curso = nomeOuIdCurso(a.getCurso());
-                String aluno = "Anônimo"; // manter anonimato
+                String aluno = "Anônimo"; 
                 String mediaNota = String.format(Locale.ROOT, "%.2f", m.mediaNota());
                 String freq = String.format(Locale.ROOT, "%.2f", m.freq());
                 String pond = m.pond().toPlainString();
@@ -1066,7 +1020,6 @@ public class RelatorioService {
                 adicionarCell(table, freq);
                 adicionarCell(table, pond);
                 adicionarCell(table, sentimento);
-                // Row styling (zebra)
                 int cellsInRow = headers.length;
                 for (int i = 0; i < cellsInRow; i++) {
                     PdfPCell cell = table.getRow(table.getRows().size() - 1).getCells()[i];
@@ -1081,7 +1034,6 @@ public class RelatorioService {
 
             db.doc().add(table);
 
-            // Resumo geral
             Paragraph tituloResumoGeral = new Paragraph("Resumo Geral", fonts.h2());
             tituloResumoGeral.setSpacingBefore(10f);
             tituloResumoGeral.setSpacingAfter(6f);
@@ -1094,13 +1046,11 @@ public class RelatorioService {
             db.doc().add(new Paragraph("Média Ponderada Geral: " + pondGeral, fonts.normal()));
             db.doc().add(new Paragraph("Sentimentos — Positivos: " + status.pos + ", Neutros: " + status.neu + ", Negativos: " + status.neg, fonts.normal()));
 
-            // Medias por tipo de pergunta (se existir)
             List<MediaPorTipoPergunta> mediasPorTipo = notaRespositorio.mediasPorTipoPerguntaInstrutor(instrutorId);
             if (mediasPorTipo != null && !mediasPorTipo.isEmpty()) {
                 adicionarMediasPorTipoPergunta(db.doc(), fonts, mediasPorTipo);
             }
 
-            // Seção de Feedbacks (lista completa)
             Paragraph tituloFeedbacks = new Paragraph("Feedbacks", fonts.h2());
             tituloFeedbacks.setSpacingBefore(10f);
             tituloFeedbacks.setSpacingAfter(6f);

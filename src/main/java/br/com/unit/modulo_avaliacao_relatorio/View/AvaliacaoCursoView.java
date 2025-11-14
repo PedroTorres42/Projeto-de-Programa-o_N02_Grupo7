@@ -255,7 +255,6 @@ public class AvaliacaoCursoView extends JFrame {
 			Curso curso = aluno.getCursoAtual();
 			comboCurso.addItem(curso);
 			if (curso.getInstrutores() != null) {
-				// Deduplicar instrutores por ID e ordenar por nome
 				java.util.Map<String, Instrutor> map = new java.util.LinkedHashMap<>();
 				for (Instrutor i : curso.getInstrutores()) {
 					if (i != null && i.getId() != null) map.putIfAbsent(i.getId(), i);
