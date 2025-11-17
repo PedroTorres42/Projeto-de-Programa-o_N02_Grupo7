@@ -1,5 +1,6 @@
 package br.com.unit.modulo_avaliacao_relatorio.View;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -8,6 +9,7 @@ import java.awt.*;
 @Component
 public class InicialView extends JFrame {
 
+    @Autowired
     private LoginView loginView;
 
     public InicialView() {
