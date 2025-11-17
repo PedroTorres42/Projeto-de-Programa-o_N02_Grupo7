@@ -9,11 +9,6 @@ import java.util.List;
 
 public interface RelatorioRepositorio extends JpaRepository<Relatorio, Long> {
     
-
-    @Query("SELECT r FROM Relatorio r WHERE r.tipo = :tipo")
-    List<Relatorio> findByTipo(@Param("tipo") Relatorio.TipoRelatorio tipo);
-    
-
     @Query("SELECT r FROM Relatorio r WHERE r.tipo = :tipo ORDER BY r.data DESC")
     List<Relatorio> findByTipoOrderByDataDesc(@Param("tipo") Relatorio.TipoRelatorio tipo);
     

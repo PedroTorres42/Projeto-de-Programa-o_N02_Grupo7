@@ -415,7 +415,6 @@ public class CadastroView extends JFrame {
                     aluno.setSenha(senha);
                     aluno.setMatricula(matricula);
                     
-                    // Define o curso selecionado
                     Curso cursoSelecionado = (Curso) cursoCombo.getSelectedItem();
                     if (cursoSelecionado != null) {
                         aluno.setCursoAtual(cursoSelecionado);

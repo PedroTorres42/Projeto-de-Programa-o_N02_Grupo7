@@ -38,7 +38,6 @@ public class RelatoriosInstrutorView extends JFrame {
     public RelatoriosInstrutorView(RelatorioService relatorioService) {
         this.relatorioService = relatorioService;
     setTitle("Relatórios do Instrutor");
-    // Janela maior por padrão para melhor visualização
     setSize(1100, 700);
     UIUtils.padronizarJanela(this);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

@@ -34,7 +34,6 @@ public class LoginView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-    // Removida padronização global para manter tamanho compacto de login
         
         JPanel painelPrincipal = UIUtils.paddedBorderLayout(20);
             
@@ -183,9 +182,7 @@ public class LoginView extends JFrame {
     }
     
     public void exibir() {
-        SwingUtilities.invokeLater(() -> {
-            setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> setVisible(true));
     }
 
     

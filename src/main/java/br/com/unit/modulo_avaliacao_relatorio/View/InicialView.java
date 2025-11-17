@@ -1,6 +1,5 @@
 package br.com.unit.modulo_avaliacao_relatorio.View;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -8,12 +7,9 @@ import java.awt.*;
 
 @Component
 public class InicialView extends JFrame {
-    
-    private JButton btnLogin;
-    
-    @Autowired
+
     private LoginView loginView;
-    
+
     public InicialView() {
         initComponents();
     }
@@ -45,7 +41,7 @@ public class InicialView extends JFrame {
         gbc.gridx = 0;
         
         gbc.gridy = 0;
-        btnLogin = UIUtils.primaryButton("Login", this::abrirLogin);
+        JButton btnLogin = UIUtils.primaryButton("Login", this::abrirLogin);
         btnLogin.setFont(new Font("Arial", Font.BOLD, 16));
         btnLogin.setPreferredSize(new Dimension(250,50));
         painelCentro.add(btnLogin, gbc);

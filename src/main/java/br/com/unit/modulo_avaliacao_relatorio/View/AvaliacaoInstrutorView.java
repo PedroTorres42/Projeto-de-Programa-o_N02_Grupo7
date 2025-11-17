@@ -127,38 +127,9 @@ public class AvaliacaoInstrutorView extends JFrame {
 				return;
 			}
 
-			Formulario formulario = formularioCarregado;
+            Avaliacao avaliacao = criarAvaliacao(aluno, instrutor);
 
-			List<Nota> notas = new ArrayList<>();
-			List<Pergunta> perguntas = formulario.getPerguntas();
-			for (int i = 0; i < perguntas.size() && i < combosNotas.size(); i++) {
-				Pergunta p = perguntas.get(i);
-				Integer valor = (Integer) combosNotas.get(i).getSelectedItem();
-				Nota n = new Nota();
-				n.setNota(valor);
-				n.setPergunta(p);
-				notas.add(n);
-			}
-
-			Avaliacao avaliacao = new Avaliacao();
-			avaliacao.setAluno(aluno);
-			if (aluno.getCursoAtual() != null) {
-				avaliacao.setCurso(aluno.getCursoAtual());
-			}
-			avaliacao.setInstrutor(instrutor);
-			avaliacao.setFormulario(formulario);
-			avaliacao.setNotas(notas);
-			notas.forEach(n -> n.setAvaliacao(avaliacao));
-
-			String fbTxt = campoFeedback.getText();
-			if (fbTxt != null && !fbTxt.isBlank()) {
-				Feedback fb = new Feedback();
-				fb.setComentario(fbTxt.trim());
-				fb.setAvaliacao(avaliacao);
-				avaliacao.setFeedback(fb);
-			}
-
-			Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
+            Avaliacao salva = avaliacaoService.salvarAvaliacao(avaliacao);
 
 			Object[] options = {"OK", "Salvar PDF..."};
 			int opt = JOptionPane.showOptionDialog(this,
@@ -211,7 +182,41 @@ public class AvaliacaoInstrutorView extends JFrame {
 		}
 	}
 
-	public void setAlunoAtual(Aluno aluno) {
+    private Avaliacao criarAvaliacao(Aluno aluno, Instrutor instrutor) {
+        Formulario formulario = formularioCarregado;
+
+        List<Nota> notas = new ArrayList<>();
+        List<Pergunta> perguntas = formulario.getPerguntas();
+        for (int i = 0; i < perguntas.size() && i < combosNotas.size(); i++) {
+            Pergunta p = perguntas.get(i);
+            Integer valor = (Integer) combosNotas.get(i).getSelectedItem();
+            Nota n = new Nota();
+            n.setNota(valor);
+            n.setPergunta(p);
+            notas.add(n);
+        }
+
+        Avaliacao avaliacao = new Avaliacao();
+        avaliacao.setAluno(aluno);
+        if (aluno.getCursoAtual() != null) {
+            avaliacao.setCurso(aluno.getCursoAtual());
+        }
+        avaliacao.setInstrutor(instrutor);
+        avaliacao.setFormulario(formulario);
+        avaliacao.setNotas(notas);
+        notas.forEach(n -> n.setAvaliacao(avaliacao));
+
+        String fbTxt = campoFeedback.getText();
+        if (fbTxt != null && !fbTxt.isBlank()) {
+            Feedback fb = new Feedback();
+            fb.setComentario(fbTxt.trim());
+            fb.setAvaliacao(avaliacao);
+            avaliacao.setFeedback(fb);
+        }
+        return avaliacao;
+    }
+
+    public void setAlunoAtual(Aluno aluno) {
 		this.alunoAtual = aluno;
 		if (labelAluno != null) {
 			labelAluno.setText(aluno != null ? aluno.getNome() : "(não definido)");

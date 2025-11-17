@@ -26,18 +26,6 @@ public class UsuarioService {
         return usuarioRepositorio.save(usuario);
     }
 
-
-    @Transactional(readOnly = true)
-    public List<Usuario> listarUsuarios() {
-        return usuarioRepositorio.findAll();
-    }
-
-
-    @Transactional(readOnly = true)
-    public Optional<Usuario> buscarPorId(String id) {
-        return usuarioRepositorio.findById(id);
-    }
-
     @Transactional(readOnly = true)
     public Optional<Usuario> buscarPorEmail(String email) {
         if (email == null) return Optional.empty();
