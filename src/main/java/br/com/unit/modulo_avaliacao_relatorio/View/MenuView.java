@@ -87,11 +87,7 @@ public class MenuView extends JFrame {
 				JButton btnGerenciarFormularios = UIUtils.primaryButton("Gerenciar Formulários", this::abrirGerenciarFormularios);
                 panelBotoes.add(btnGerenciarFormularios);
 
-				JButton btnCadastrarUsuario = UIUtils.primaryButton("Cadastrar Usuário", this::abrirCadastroUsuario);
-				panelBotoes.add(btnCadastrarUsuario);
 
-				JButton btnCadastrarCurso = UIUtils.primaryButton("Cadastrar Curso", this::abrirCadastroCurso);
-				panelBotoes.add(btnCadastrarCurso);
 
             }
             default -> {
@@ -158,24 +154,6 @@ public class MenuView extends JFrame {
 		}
 	}
 
-	private void abrirCadastroUsuario() {
-		try {
-			CadastroView tela = ctx.getBean(CadastroView.class);
-			tela.setMenuView(this);
-			tela.exibir();
-		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(this, "Falha ao abrir Cadastro de Usuário: " + ex.getMessage());
-		}
-	}
-
-	private void abrirCadastroCurso() {
-		try {
-			CadastroCursoView tela = ctx.getBean(CadastroCursoView.class);
-			tela.setVisible(true);
-		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(this, "Falha ao abrir Cadastro de Curso: " + ex.getMessage());
-		}
-	}
 
 	private void verRelatorios() {
 		try {

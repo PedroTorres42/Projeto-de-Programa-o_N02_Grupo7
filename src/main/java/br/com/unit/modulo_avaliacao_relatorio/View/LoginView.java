@@ -1,6 +1,7 @@
 package br.com.unit.modulo_avaliacao_relatorio.View;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import br.com.unit.modulo_avaliacao_relatorio.Modelos.Usuario;
@@ -18,6 +19,7 @@ public class LoginView extends JFrame {
     private final UsuarioService usuarioService;
     
     @Autowired
+    @Lazy
     private InicialView inicialView;
     
     @Autowired
