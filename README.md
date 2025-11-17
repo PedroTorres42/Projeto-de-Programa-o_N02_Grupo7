@@ -113,8 +113,4 @@ Projeto/
 - **Antonio Jorge Santana Filho**   
 - **Pedro Henrique Torres Pereira** 
 - **Lorena Mariah Oliveira Lima**
-- **Joãoo Vitor Nunes Oliveira Aves**
-
-
-
-## Licença
+- **João Vitor Nunes Oliveira Aves**
