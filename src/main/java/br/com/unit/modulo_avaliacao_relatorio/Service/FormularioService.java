@@ -65,14 +65,17 @@ public class FormularioService {
             formulario.setTipo(tipo);
         }
 
+        formulario.getPerguntas().clear();
+        
         if (perguntas != null) {
             for (Pergunta p : perguntas) {
                 if (p != null) {
                     p.setFormulario(formulario);
+                    formulario.getPerguntas().add(p);
                 }
             }
         }
-        formulario.setPerguntas(perguntas);
+        
         formularioRepositorio.save(formulario);
     }
 
