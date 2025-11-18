@@ -33,7 +33,8 @@ Com isso, administradores conseguem identificar padrões de satisfação e desem
 
 ## Instalação / Configuração
 
-Pré-requisitos:
+Pré-requisitos:<img width="555" height="311" alt="image" src="https://github.com/user-attachments/assets/4e87dc71-9a63-4214-b0dd-4061bb3b05ae" /
+
 - Java 21 instalado (JDK 21)
 - Opcional: Maven instalado (ou usar o wrapper incluso)
 
