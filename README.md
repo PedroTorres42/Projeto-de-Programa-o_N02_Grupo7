@@ -79,24 +79,6 @@ Na primeira execução, o `DataLoader` insere cursos, instrutores, alunos e form
 * Caso deseje iniciar com um banco limpo, apague o arquivo `avaliacoes.db` antes de executar.
 * Logs / Actuator: endpoints de Actuator podem ser expandidos futuramente; atualmente o foco é o uso desktop.
 
-### Exemplo de Saída
-
- - Tela Inicial
-
-	 ![Tela Inicial](docs/Fotos/Tela Inicial.png)
-
- - Tela de Login
-
-	 ![Tela de Login](docs/Fotos/Tela de Login.png)
-
- - Menu (exemplo)
-
-	 ![Menu Exemplo](docs/Fotos/Exemplo Menu.png)
-
- - Exemplo de Formulário
-
-	 ![Exemplo Formulário](docs/Fotos/Exemplo Formulario.png)
-
 ## Estrutura do Projeto
 
 ```
