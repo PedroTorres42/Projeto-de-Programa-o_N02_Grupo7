@@ -34,6 +34,7 @@ Com isso, administradores conseguem identificar padrões de satisfação e desem
 ## Instalação / Configuração
 
 Pré-requisitos:
+
 - Java 21 instalado (JDK 21)
 - Opcional: Maven instalado (ou usar o wrapper incluso)
 
